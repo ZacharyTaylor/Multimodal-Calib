@@ -1,4 +1,4 @@
-#include "common.h"
+#include "Points.h"
 
 class PointsList {
 protected:

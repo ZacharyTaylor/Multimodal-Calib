@@ -1,4 +1,4 @@
-#include "common.h"
+#include "Scan.h"
 
 class Scan {
 protected:
