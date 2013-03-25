@@ -57,7 +57,9 @@ void CameraTform::d_Transform(SparseScan* in, SparseScan* out){
 		cudaMemcpy(out->GetLocationPointer(), in->GetLocationPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
 		return;
 	}
-	CameraTransformKernel<<<gridSize(in->getDimSize(0), BLOCK_SIZE>>>(d_tform_, d_cam_->d_getCam(), in->GetLocationPointer(), out->GetLocationPointer(), in->getDimSize(0), cam->isPanoramic());
+
+	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>
+		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocationPointer(), (float*)out->GetLocationPointer(), in->getDimSize(0), cam_->IsPanoramic());
 }
 
 AffineTform::AffineTform(void):
@@ -75,5 +77,5 @@ void AffineTform::d_Transform(SparseScan* in, SparseScan* out){
 		return;
 	}
 
-	AffineTransformKernel<<<gridSize(in->getDimSize(0), BLOCK_SIZE>>>(d_tform_, in->GetLocationPointer(), out->GetLocationPointer(), in->getDimSize(0));
+	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>(d_tform_, (float*)in->GetLocationPointer(), (float*)out->GetLocationPointer(), in->getDimSize(0));
 }

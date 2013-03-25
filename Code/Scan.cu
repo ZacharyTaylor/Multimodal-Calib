@@ -83,7 +83,7 @@ void DenseImage::d_interpolate(SparseScan* scan){
 	
 	for(size_t i = 0; i < scan->getNumCh(); i++){
 
-		cudaBindTextureToArray(tex, *(((cudaArray**)(points_->GetGpuPointer()))[i]), &channelDesc);
+		cudaBindTextureToArray(&tex, ((cudaArray**)(points_->GetGpuPointer()))[i], &channelDesc);
 
 		TextureList* texPoints = (TextureList*)points_;
 
@@ -114,8 +114,8 @@ SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t nu
 	location_ = location;
 }
 
-SparseScan::SparseScan(Scan in):
-	Scan(in.getNumDim(), in.getNumCh(),setDimSize(in.getNumDim())
+/*SparseScan::SparseScan(Scan in):
+Scan(in.getNumDim(), in.getNumCh(),setDimSize(in.getNumCh(), in.getNumPoints())
 {
 	points_ = in.getPointsPointer();
 
@@ -158,7 +158,7 @@ SparseScan::SparseScan(Scan in, PointsList* location):
 {
 	points_ = in.getPointsPointer();
 	location_ = location;
-}
+}*/
 
 void* SparseScan::GetLocationPointer(void){
 	return location_->GetGpuPointer();

@@ -38,7 +38,7 @@ public:
 	~Tform(void);
 	void SetTform(float* tform);
 	float* d_GetTform(void);
-	virtual SparseScan* d_Transform(Scan* in);
+	virtual void d_Transform(SparseScan* in, SparseScan* out);
 };
 
 class CameraTform: public Tform {
@@ -49,7 +49,7 @@ public:
 
 private:
 
-	const Camera* d_cam_;
+	Camera* cam_;
 };
 
 class AffineTform: public Tform {

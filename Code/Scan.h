@@ -29,11 +29,14 @@ public:
 
 //sparse scans have location and intesity
 class SparseScan: public Scan {
+private:
+
+	static size_t* setDimSize(const size_t numCh, const size_t numPoints);
+
 protected:
 
 	PointsList* location_;
-	size_t* setDimSize(const size_t numCh, const size_t numPoints);
-
+	
 public:
 
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints);
@@ -54,7 +57,7 @@ public:
 
 private:
 
-	size_t* setDimSize(const size_t width, const size_t height, const size_t numCh);
+	static size_t* setDimSize(const size_t width, const size_t height, const size_t numCh);
 };
 
 #endif //SCAN_H
