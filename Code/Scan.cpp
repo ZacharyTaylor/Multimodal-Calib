@@ -65,39 +65,76 @@ public:
 //dense scan points stored in a little endien (changing first dimension first) grid
 class DenseImage: public Scan {
 public:
-	DenseImage(const size_t width, const size_t height, const size_t numCh): 
-		Scan(2,numCh,dimSize)
+	DenseImage(const size_t height, const size_t width, const size_t numCh = 1): 
+		Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh))
 	{
-		int i;
-		size_t numPoints = 1;
-		
-		for( i = 0; i < numDim; i++ ){
-			numPoints *= dimSize[i];
-		}
+		points_ = new TextureList(height, width, numCh);
 
-		points_ = new float(numPoints * numCh);
+		tex.addressMode[0] = cudaAddressModeWrap;
+		tex.addressMode[1] = cudaAddressModeWrap;
+		tex.filterMode = cudaFilterModeLinear;
+		tex.normalized = false; 
 	}
 
-	DenseImage(const size_t numDim, const size_t numCh,  const size_t* dimSize, float* points): 
-		Scan(numDim,numCh,dimSize)
+	DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points): 
+		Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh))
 	{
-		int i;
-		size_t numPoints = 1;
-		
-		for( i = 0; i < numDim; i++ ){
-			numPoints *= dimSize[i];
-		}
-
 		points_ = points;
+
+		tex.addressMode[0] = cudaAddressModeWrap;
+		tex.addressMode[1] = cudaAddressModeWrap;
+		tex.filterMode = cudaFilterModeLinear;
+		tex.normalized = false; 
 	}
+
+	~DenseImage(void){
+		delete points_;
+	}
+
+	void d_interpolate(SparseScan* scan){
+		//create texture
+		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(sizeof(float),0,0,0,cudaChannelFormatKindFloat);
+	
+		for(int i = 0; i < scan.getNumCh(); i++){
+			cudaBindTextureToArray(tex, ((cudaArray**)(points_->GetGpuPointer()))[i], &channelDesc);
+
+			TextureList* texPoints = (TextureList*)points_;
+			scan->getPointsPointer();
+			interpolateKernel<<<gridSize(texPoints->GetHeight() * texPoints->GetWidth()) ,BLOCK_SIZE>>>
+				(texPoints->GetWidth(), texPoints->GetHeight(), scan->getLocPointer(), scan->getPointsPointer(), scan->getDimSize(0));
+		}
+	}
+
 
 private:
+
+	texture<float, 2, cudaReadModeElementType> tex;
 
 	size_t* setDimSize(const size_t width, const size_t height, const size_t numCh){
 		size_t* out = new size_t(3);
 		out[0] = width;
 		out[1] = height;
 		out[2] = numCh;
+	}
+
+	__global__ void interpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints){
+		unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+		if(i >= numPoints){
+			valsOut[i] = 0.0f;
+			return;
+		}
+
+		bool inside =
+			-0.5f < locIn[i] && locIn[i] < (width - 0.5f) &&
+			-0.5f < locIn[i + numPoints] && locIn[i + numPoints] < (height - 0.5f);
+
+		if (!inside){
+			valsOut[i] = 0.0f;
+		}
+		else{
+			valsOut[i] = cubicTex2D(tex, locIn[i]+0.5f, locIn[i + numPoints]+0.5f);
+		}
 	}
 
 };

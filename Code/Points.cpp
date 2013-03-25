@@ -33,12 +33,12 @@ public:
 		return numEntries_;
 	}
 
-	float* GetGpuPointer(){
+	void* GetGpuPointer(){
 		if(!onGpu_){
 			TRACE_WARNING("points were not on GPU, creating gpu pointer first\n");
 			AllocateGpu();
 		}
-		return (float*)d_points_;
+		return d_points_;
 	}
 
 	bool GetOnGpu(){

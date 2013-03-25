@@ -2,7 +2,9 @@
 #define SCAN_H
 
 #include "Points.h"
-#include "trace.h"
+#include "common.h"
+
+#define IMAGE_DIM 2
 
 class Scan {
 protected:

@@ -22,7 +22,7 @@ public:
 	void ClearGpu(void);
 	void GpuToCpu(void);
 	void CpuToGpu(void);
-}
+};
 
 class TextureList: public PointsList {
 protected:
@@ -43,6 +43,6 @@ public:
 	void GpuToCpu(void);
 	void CpuToGpu(void);
 	void PrefilterTexture(void);
-}
+};
 
 #endif //POINTS_H
