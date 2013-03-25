@@ -16,7 +16,7 @@ public:
 	PointsList(const size_t numEntries);
 	~PointsList();
 	size_t GetNumEntries();
-	float* GetGpuPointer();
+	void* GetGpuPointer();
 	bool GetOnGpu();
 	void AllocateGpu(void);
 	void ClearGpu(void);
@@ -37,7 +37,7 @@ public:
 	size_t GetHeight(void);
 	size_t GetWidth(void);
 	size_t GetDepth(void);
-	cudaArray* GetGpuPointer();
+	cudaArray** GetGpuPointer();
 	void AllocateGpu(void);
 	void ClearGpu(void);
 	void GpuToCpu(void);

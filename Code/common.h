@@ -12,6 +12,6 @@
 
 inline size_t gridSize(size_t num){
 	return (size_t)ceil(((float)(num))/((float)(BLOCK_SIZE)));
-}
+};
 
 #endif //COMMON_H

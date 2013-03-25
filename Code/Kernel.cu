@@ -1,4 +1,4 @@
-#include "Scan.h"
+#include "Kernel.h"
 
 __global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
