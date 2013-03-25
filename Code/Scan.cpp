@@ -100,15 +100,13 @@ public:
 
 			TextureList* texPoints = (TextureList*)points_;
 			scan->getPointsPointer();
-			interpolateKernel<<<gridSize(texPoints->GetHeight() * texPoints->GetWidth()) ,BLOCK_SIZE>>>
+			DenseImageInterpolateKernel<<<gridSize(texPoints->GetHeight() * texPoints->GetWidth()) ,BLOCK_SIZE>>>
 				(texPoints->GetWidth(), texPoints->GetHeight(), scan->getLocPointer(), scan->getPointsPointer(), scan->getDimSize(0));
 		}
 	}
 
 
 private:
-
-	texture<float, 2, cudaReadModeElementType> tex;
 
 	size_t* setDimSize(const size_t width, const size_t height, const size_t numCh){
 		size_t* out = new size_t(3);

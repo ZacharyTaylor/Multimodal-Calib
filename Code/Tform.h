@@ -2,6 +2,7 @@
 #define TFORM_H
 
 #include "common.h"
+#include "Kernel.h"
 #include "Scan.h"
 
 #define CAM_WIDTH 4
@@ -49,8 +50,6 @@ public:
 private:
 
 	const Camera* d_cam_;
-
-	__global__ void CameraTransformKernel(const float* tform, const float* cam, const float* pointsIn, float* pointsOut, const size_t numPoints, const bool panoramic);
 };
 
 class AffineTform: public Tform {
@@ -58,10 +57,6 @@ public:
 
 	AffineTform(void);
 	void d_Transform(SparseScan* in, SparseScan* out);
-
-private:
-
-	__global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints);
 };
 
 #endif //TFORM_H
