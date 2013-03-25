@@ -2,7 +2,7 @@
 
 class PointsList {
 protected:
-	const size_t numPoints_;
+	const size_t numEntries_;
 	bool onGpu_;
 
 	const float* points_;
@@ -10,16 +10,16 @@ protected:
 
 public:
 
-	PointsList(float* points, const size_t numPoints):
+	PointsList(float* points, const size_t numEntries):
 	  points_(points),
-	  numPoints_(numPoints){
+	  numEntries_(numEntries){
 	  
 	  onGpu_ = false;
 	}
 
-	PointsList(const size_t numPoints):
-		numPoints_(numPoints),
-		points_(new float[numPoints]){}
+	PointsList(const size_t numEntries):
+		numEntries_(numEntries),
+		points_(new float[numEntries]){}
 
 	~PointsList(){
 		if(onGpu_){
@@ -29,8 +29,8 @@ public:
 		delete [] points_;
 	}
 
-	size_t GetNumPoints(){
-		return numPoints_;
+	size_t GetNumEntries(){
+		return numEntries_;
 	}
 
 	float* GetGpuPointer(){
@@ -46,7 +46,7 @@ public:
 	}
 	
 	void AllocateGpu(void){
-		cudaMalloc((void**)&(d_points_), numPoints_);
+		cudaMalloc((void**)&(d_points_), numEntries_);
 		onGpu_ = true;
 	}
 
@@ -62,7 +62,7 @@ public:
 
 	void GpuToCpu(void){
 		if(onGpu_){
-			cudaMemcpy(d_points_, points_, sizeof(float)*numPoints_, cudaMemcpyHostToDevice);
+			cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice);
 		}
 		else {
 			TRACE_ERROR("No memory was allocated on gpu, returning\n");
@@ -74,7 +74,7 @@ public:
 			TRACE_WARNING("No memory was allocated on gpu, allocating now\n");
 			AllocateGpu();
 		}
-		cudaMemcpy(d_points_, points_, sizeof(float)*numPoints_, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice);
 	}
 }
 

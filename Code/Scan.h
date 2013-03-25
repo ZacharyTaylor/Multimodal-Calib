@@ -42,6 +42,8 @@ public:
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points, PointsList* location);
 	SparseScan(DenseScan in);
 	SparseScan(DenseScan in, PointsList* location);
+
+	float* GetLocationPointer(void);
 };
 
 #endif //SCAN_H

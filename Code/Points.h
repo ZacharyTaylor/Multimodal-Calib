@@ -1,22 +1,21 @@
 #ifndef POINTS_H
 #define POINTS_H
 
-#include "trace.h"
-#include "cuda.h"
+#include "common.h"
 
 class PointsList {
 protected:
-	const size_t numPoints_;
+	const size_t numEntries_;
 	bool onGpu_;
 
 	const float* points_;
 	void* d_points_;
 
 public:
-	PointsList(float* points, const size_t numPoints);
-	PointsList(const size_t numPoints);
+	PointsList(float* points, const size_t numEntries);
+	PointsList(const size_t numEntries);
 	~PointsList();
-	size_t GetNumPoints();
+	size_t GetNumEntries();
 	float* GetGpuPointer();
 	bool GetOnGpu();
 	void AllocateGpu(void);

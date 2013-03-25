@@ -1,11 +1,14 @@
 #ifndef TFORM_H
 #define TFORM_H
 
-#include "cuda.h"
-#include "trace.h"
+#include "common.h"
 #include "Scan.h"
 
-#define CAM_SIZE 12
+#define CAM_WIDTH 4
+#define CAM_HEIGHT 3
+
+#define AFFINE_DIM 2
+#define CAM_DIM 3
 
 class Tform {
 protected:

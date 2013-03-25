@@ -18,6 +18,12 @@ public:
 		points_ = new PointsList(getNumPoints());		
 	}
 
+	Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize, PointsList* points) : 
+		numDim_(numDim),
+		numCh_(numCh),
+		dimSize_(dimSize),
+		points_(points){}
+
 	size_t getNumDim(void){
 		return numDim_;
 	}
@@ -57,10 +63,10 @@ public:
 };
 
 //dense scan points stored in a little endien (changing first dimension first) grid
-class DenseScan: public Scan {
+class DenseImage: public Scan {
 public:
-	DenseScan(const size_t numDim, const size_t numCh,  const size_t* dimSize): 
-		Scan(numDim,numCh,dimSize)
+	DenseImage(const size_t width, const size_t height, const size_t numCh): 
+		Scan(2,numCh,dimSize)
 	{
 		int i;
 		size_t numPoints = 1;
@@ -72,7 +78,7 @@ public:
 		points_ = new float(numPoints * numCh);
 	}
 
-	DenseScan(const size_t numDim, const size_t numCh,  const size_t* dimSize, float* points): 
+	DenseImage(const size_t numDim, const size_t numCh,  const size_t* dimSize, float* points): 
 		Scan(numDim,numCh,dimSize)
 	{
 		int i;
@@ -85,6 +91,15 @@ public:
 		points_ = points;
 	}
 
+private:
+
+	size_t* setDimSize(const size_t width, const size_t height, const size_t numCh){
+		size_t* out = new size_t(3);
+		out[0] = width;
+		out[1] = height;
+		out[2] = numCh;
+	}
+
 };
 
 //sparse scans have location and intesity
@@ -93,7 +108,7 @@ protected:
 
 	PointsList* location_;
 
-	size_t* setDimSize(const size_t numDim, const size_t numCh, const size_t numPoints){
+	size_t* setDimSize(const size_t numCh, const size_t numPoints){
 		size_t* out = new size_t(2);
 		out[0] = numPoints;
 		out[1] = numCh;
@@ -101,14 +116,14 @@ protected:
 
 public:
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints): 
-		Scan(numDim,numCh,setDimSize(numDim,numCh,numPoints))
+		Scan(numDim, numCh, setDimSize(numCh, numPoints))
 	{
 		points_ = new PointsList(numPoints * numCh);
 		location_ = new PointsList(numPoints * numDim);
 	}
 
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points, PointsList* location): 
-		Scan(numDim,numCh,setDimSize(numDim,numCh,numPoints))
+		Scan(numDim,numCh,setDimSize(numCh,numPoints))
 	{	
 		points_ = points;
 		location_ = location;
