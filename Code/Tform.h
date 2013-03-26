@@ -38,7 +38,7 @@ public:
 	~Tform(void);
 	void SetTform(float* tform);
 	float* d_GetTform(void);
-	virtual void d_Transform(SparseScan* in, SparseScan* out);
+	virtual void d_Transform(SparseScan* in, SparseScan* out) = 0;
 };
 
 class CameraTform: public Tform {

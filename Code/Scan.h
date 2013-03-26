@@ -23,8 +23,10 @@ public:
 	size_t getNumDim(void);
 	size_t getNumCh(void);
 	size_t getDimSize(size_t i);
-	size_t getNumPoints();
-	void* getPointsPointer();
+	size_t getNumPoints(void);
+	PointsList* getPoints(void);
+	void SetupGPU(void);
+	void ClearGPU(void);
 };
 
 //sparse scans have location and intesity
@@ -32,6 +34,7 @@ class SparseScan: public Scan {
 private:
 
 	static size_t* setDimSize(const size_t numCh, const size_t numPoints);
+	void GenLocation(void);
 
 protected:
 
@@ -41,9 +44,10 @@ public:
 
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints);
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points, PointsList* location);
+	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points);
 	SparseScan(Scan in);
 	SparseScan(Scan in, PointsList* location);
-	void* GetLocationPointer(void);
+	PointsList* GetLocation(void);
 };
 
 //dense scan points stored in a little endien (changing first dimension first) grid
@@ -52,6 +56,7 @@ public:
 
 	DenseImage(const size_t height, const size_t width, const size_t numCh = 1);
 	DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points);
+	DenseImage(const size_t height, const size_t width, const size_t numCh, float* pointsIn);
 	~DenseImage(void);
 	void d_interpolate(SparseScan* scan);
 
