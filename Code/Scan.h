@@ -2,7 +2,6 @@
 #define SCAN_H
 
 #include "Points.h"
-#include "Kernel.h"
 #include "common.h"
 
 #define IMAGE_DIM 2

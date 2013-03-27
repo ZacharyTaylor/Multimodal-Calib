@@ -1,4 +1,5 @@
 #include "Scan.h"
+#include "Kernel.h"
 
 Scan::Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize) : 
 	numDim_(numDim),

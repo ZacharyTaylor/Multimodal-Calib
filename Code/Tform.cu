@@ -54,12 +54,12 @@ void CameraTform::d_Transform(SparseScan* in, SparseScan* out){
 	}
 	if(in->getNumDim() != CAM_DIM){
 		TRACE_ERROR("affine transform can only operate on a 3d input, returning untransformed points");
-		cudaMemcpy(out->GetLocationPointer(), in->GetLocationPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
+		cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
 		return;
 	}
 
 	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>
-		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocationPointer(), (float*)out->GetLocationPointer(), in->getDimSize(0), cam_->IsPanoramic());
+		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocation()->GetGpuPointer(), (float*)out->GetLocation()->GetGpuPointer(), in->getDimSize(0), cam_->IsPanoramic());
 }
 
 AffineTform::AffineTform(void):
@@ -73,9 +73,9 @@ void AffineTform::d_Transform(SparseScan* in, SparseScan* out){
 	}
 	if(in->getNumDim() != AFFINE_DIM){
 		TRACE_ERROR("affine transform can only operate on a 2d input, returning untransformed points");
-		cudaMemcpy(out->GetLocationPointer(), in->GetLocationPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
+		cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
 		return;
 	}
 
-	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>(d_tform_, (float*)in->GetLocationPointer(), (float*)out->GetLocationPointer(), in->getDimSize(0));
+	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>(d_tform_, (float*)in->GetLocation()->GetGpuPointer(), (float*)out->GetLocation()->GetGpuPointer(), in->getDimSize(0));
 }

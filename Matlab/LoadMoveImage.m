@@ -1,9 +1,9 @@
-function [] = LoadBaseImage(imgNum, img)
+function [] = LoadMoveImage(imgNum, img)
 %LOADBASEIMAGE creates a copy of the image for use with library
 
 %check inputs
 if(~isinteger(imgNum) || (imgNum < 0))
-    TRACE_ERROR('number of base scans must be a positive integer, returning without setting');
+    TRACE_ERROR('number of move scans must be a positive integer, returning without setting');
     return;
 end
 
@@ -16,12 +16,12 @@ end
 CheckLoaded();
 
 %creating local copy of data that user can't mess with
-numBase = calllib('Multimodal-Calib','genNumBase');
+numMove = calllib('Multimodal-Calib','genNumMove');
 persistent imgStore;
-imgStore{numBase} = float(img);
+imgStore{numMove} = float(img);
 
 %setting base image
-calllib('Multimodal-Calib','setBaseImage', imgNum, size(img,1), size(img,2), size(img,3), imgStore{numBase});
+calllib('Multimodal-Calib','setMoveImage', imgNum, size(img,1), size(img,2), size(img,3), imgStore{numMove});
 
 end
 

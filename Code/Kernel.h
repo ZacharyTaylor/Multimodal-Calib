@@ -1,7 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#include <cuda.h>
+#include "common.h"
 
 //ugly but textures cannot be passed into functions so must be declared globally
 texture<float, 2, cudaReadModeElementType> tex;

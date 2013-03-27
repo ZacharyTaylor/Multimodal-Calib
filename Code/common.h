@@ -10,7 +10,7 @@
 
 #define BLOCK_SIZE 512
 
-inline size_t gridSize(size_t num){
+__inline size_t gridSize(size_t num){
 	return (size_t)ceil(((float)(num))/((float)(BLOCK_SIZE)));
 };
 
