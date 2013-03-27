@@ -25,7 +25,7 @@ size_t PointsList::GetNumEntries(){
 
 void* PointsList::GetGpuPointer(){
 	if(!onGpu_){
-		TRACE_WARNING("points were not on GPU, creating gpu pointer first\n");
+		TRACE_WARNING("points were not on GPU, creating gpu pointer first");
 		AllocateGpu();
 	}
 	return d_points_;
@@ -46,7 +46,7 @@ void PointsList::ClearGpu(void){
 		onGpu_ = false;
 	}
 	else{
-		TRACE_WARNING("nothing on gpu to clear\n");
+		TRACE_WARNING("nothing on gpu to clear");
 	}
 }
 
@@ -55,13 +55,13 @@ void PointsList::GpuToCpu(void){
 		cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice);
 	}
 	else {
-		TRACE_ERROR("No memory was allocated on gpu, returning\n");
+		TRACE_ERROR("No memory was allocated on gpu, returning");
 	}
 }
 
 void PointsList::CpuToGpu(void){
 	if(!onGpu_){
-		TRACE_WARNING("No memory was allocated on gpu, allocating now\n");
+		TRACE_WARNING("No memory was allocated on gpu, allocating now");
 		AllocateGpu();
 	}
 	cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice);
@@ -108,7 +108,7 @@ size_t TextureList::GetDepth(void){
 
 cudaArray** TextureList::GetGpuPointer(){
 	if(!onGpu_){
-		TRACE_WARNING("points were not on GPU, creating gpu pointer first\n");
+		TRACE_WARNING("points were not on GPU, creating gpu pointer first");
 		AllocateGpu();
 	}
 	return (cudaArray**)d_points_;
@@ -134,7 +134,7 @@ void TextureList::ClearGpu(void){
 		onGpu_ = false;
 	}
 	else{
-		TRACE_WARNING("nothing on gpu to clear\n");
+		TRACE_WARNING("nothing on gpu to clear");
 	}
 }
 
@@ -145,13 +145,13 @@ void TextureList::GpuToCpu(void){
 		}
 	}
 	else {
-		TRACE_ERROR("No memory was allocated on gpu, returning\n");
+		TRACE_ERROR("No memory was allocated on gpu, returning");
 	}
 }
 
 void TextureList::CpuToGpu(void){
 	if(!onGpu_){
-		TRACE_WARNING("No memory was allocated on gpu, allocating now\n");
+		TRACE_WARNING("No memory was allocated on gpu, allocating now");
 		AllocateGpu();
 	}
 
@@ -162,7 +162,7 @@ void TextureList::CpuToGpu(void){
 
 void TextureList::PrefilterTexture(void){
 	if(!onGpu_){
-		TRACE_WARNING("Gpu must be set up for filtering, allocating memory and copying data now\n");
+		TRACE_WARNING("Gpu must be set up for filtering, allocating memory and copying data now");
 		AllocateGpu();
 		CpuToGpu();
 	}

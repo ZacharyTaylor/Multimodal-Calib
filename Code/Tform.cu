@@ -53,7 +53,7 @@ void CameraTform::d_Transform(SparseScan* in, SparseScan* out){
 		return;
 	}
 	if(in->getNumDim() != CAM_DIM){
-		TRACE_ERROR("affine transform can only operate on a 3d input, returning untransformed points\n");
+		TRACE_ERROR("affine transform can only operate on a 3d input, returning untransformed points");
 		cudaMemcpy(out->GetLocationPointer(), in->GetLocationPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
 		return;
 	}
@@ -72,7 +72,7 @@ void AffineTform::d_Transform(SparseScan* in, SparseScan* out){
 		return;
 	}
 	if(in->getNumDim() != AFFINE_DIM){
-		TRACE_ERROR("affine transform can only operate on a 2d input, returning untransformed points\n");
+		TRACE_ERROR("affine transform can only operate on a 2d input, returning untransformed points");
 		cudaMemcpy(out->GetLocationPointer(), in->GetLocationPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice);
 		return;
 	}

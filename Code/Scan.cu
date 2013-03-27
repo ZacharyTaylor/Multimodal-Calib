@@ -24,7 +24,7 @@ size_t Scan::getNumCh(void){
 
 size_t Scan::getDimSize(size_t i){
 	if(i >= numDim_){
-		TRACE_ERROR("tried to get size of dimension %i, where only %i dimensions exist\n",(i+1),numDim_);
+		TRACE_ERROR("tried to get size of dimension %i, where only %i dimensions exist",(i+1),numDim_);
 		return 0;
 	}
 	else {
@@ -180,6 +180,24 @@ SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t nu
 {	
 	points_ = points;
 	GenLocation();
+}
+
+SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn): 
+	Scan(numDim,numCh,setDimSize(numCh,numPoints))
+{	
+	PointsList* points = new PointsList(pointsIn, numDim*numPoints);
+	points_ = points;
+	GenLocation();
+}
+
+SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn): 
+	Scan(numDim,numCh,setDimSize(numCh,numPoints))
+{	
+	PointsList* points = new PointsList(pointsIn, numCh*numPoints);
+	points_ = points;
+
+	PointsList* location = new PointsList(locationIn, numDim*numPoints);
+	location_ = location;
 }
 
 /*SparseScan::SparseScan(Scan in):
