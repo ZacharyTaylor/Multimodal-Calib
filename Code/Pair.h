@@ -5,6 +5,7 @@
 #include "Scan.h"
 #include "Tform.h"
 #include "common.h"
+#include "trace.h"
 
 class Pair{
 private:

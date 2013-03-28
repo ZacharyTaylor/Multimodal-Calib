@@ -4,6 +4,7 @@
 #include "common.h"
 #include "Kernel.h"
 #include "Scan.h"
+#include "trace.h"
 
 #define CAM_WIDTH 4
 #define CAM_HEIGHT 3

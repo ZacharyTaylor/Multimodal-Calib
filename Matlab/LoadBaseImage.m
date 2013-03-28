@@ -16,12 +16,12 @@ end
 CheckLoaded();
 
 %creating local copy of data that user can't mess with
-numBase = calllib('Multimodal-Calib','genNumBase');
+numBase = calllib('LibCal','getNumBase');
 persistent imgStore;
 imgStore{numBase} = float(img);
 
 %setting base image
-calllib('Multimodal-Calib','setBaseImage', imgNum, size(img,1), size(img,2), size(img,3), imgStore{numBase});
+calllib('LibCal','setBaseImage', imgNum, size(img,1), size(img,2), size(img,3), imgStore{numBase});
 
 end
 

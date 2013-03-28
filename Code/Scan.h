@@ -3,6 +3,7 @@
 
 #include "Points.h"
 #include "common.h"
+#include "trace.h"
 
 #define IMAGE_DIM 2
 

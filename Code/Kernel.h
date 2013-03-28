@@ -2,6 +2,7 @@
 #define KERNEL_H
 
 #include "common.h"
+#include "trace.h"
 
 //ugly but textures cannot be passed into functions so must be declared globally
 texture<float, 2, cudaReadModeElementType> tex;

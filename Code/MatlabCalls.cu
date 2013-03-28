@@ -1,8 +1,11 @@
 #include "MatlabCalls.h"
 
+#include "common.h"
+#include "trace.h"
 #include "Points.h"
 #include "Scan.h"
 #include "Pair.h"
+
 
 //global so that matlab never has to see them
 SparseScan** moveStore = NULL;
@@ -14,19 +17,19 @@ unsigned int numBase = 0;
 Pair** pairs = NULL;
 unsigned int numPairs = 0;
 
-unsigned int getNumMove(void){
+DllExport unsigned int getNumMove(void){
 	return numMove;
 }
 
-unsigned int getNumBase(void){
+DllExport unsigned int getNumBase(void){
 	return numBase;
 }
 
-unsigned int getNumPairs(void){
+DllExport unsigned int getNumPairs(void){
 	return numPairs;
 }
 
-void clearScans(void){
+DllExport void clearScans(void){
 	if(moveStore != NULL){
 		for(unsigned int i = 0; i < numMove; i++){
 			delete moveStore[i];
@@ -46,10 +49,10 @@ void clearScans(void){
 	}	
 }
 
-void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn){
+DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn){
 	
 	if((moveStore != NULL) || (baseStore != NULL) || (pairs != NULL)){
-		TRACE_INFO("Scans already initalized, clearing and writing new data\n");
+		TRACE_INFO("Scans already initalized, clearing and writing new data");
 		clearScans();
 	}
 
@@ -78,7 +81,7 @@ void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int
 	}
 }
 
-void setBaseImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* base){
+DllExport void setBaseImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* base){
 	
 	if(scanNum >= numBase){
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numBase);
@@ -93,7 +96,7 @@ void setBaseImage(unsigned int scanNum, unsigned int height, unsigned int width,
 	baseStore[scanNum] = new DenseImage(height, width, numCh, base);
 }
 
-void setMoveImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* move){
+DllExport void setMoveImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* move){
 	
 	if(scanNum >= numMove){
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numMove);
@@ -108,7 +111,7 @@ void setMoveImage(unsigned int scanNum, unsigned int height, unsigned int width,
 	moveStore[scanNum] = new SparseScan(IMAGE_DIM,numCh,height*width, move);
 }
 
-void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned int numCh, unsigned int numPoints, float* move){
+DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned int numCh, unsigned int numPoints, float* move){
 	
 	if(scanNum >= numMove){
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numMove);

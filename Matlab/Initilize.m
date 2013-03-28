@@ -9,22 +9,22 @@ function [] = Initilize( numBase, numMove, numPairs )
 CheckLoaded();
 
 %check inputs
-if(~isinteger(numBase) || (numBase < 0))
+if((numBase ~= round(numBase)) || (numBase < 0))
     TRACE_ERROR('number of base scans must be a positive integer');
     numBase = 0;
 end
 
-if(~isinteger(numMove) || (numMove < 0))
+if((numMove ~= round(numMove)) || (numMove < 0))
     TRACE_ERROR('number of move scans must be a positive integer');
     numMove = 0;
 end
 
-if(~isinteger(numPairs) || (numPairs < 0))
+if((numPairs ~= round(numPairs)) || (numPairs < 0))
     TRACE_ERROR('number of scan pairs must be a positive integer');
     numPairs = 0;
 end
 
-calllib('Multimodal-Calib','initalizeScans', numBase, numMove, numPairs);
+calllib('LibCal','initalizeScans', numBase, numMove, numPairs);
 
 end
 

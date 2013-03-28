@@ -2,6 +2,7 @@
 #define POINTS_H
 
 #include "common.h"
+#include "trace.h"
 
 class PointsList {
 protected:

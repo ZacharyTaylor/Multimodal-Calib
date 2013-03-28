@@ -2,26 +2,33 @@
 #ifndef TRACE_H
 #define TRACE_H
 
+#include "common.h"
 #include <crtdbg.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
+
 //trace 0 = off, 1 = errors, 2 = warnings, 3 = info
 #define DEBUG_TRACE 3
+
+#define BUFF_SIZE 4096
 
 #ifdef DEBUG_TRACE 
 	#if(DEBUG_TRACE > 0)
 
 		#define FILE (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-		__inline void TRACE_IN(const char* format, ...)
+		inline void TRACE_IN(const char* format, ...)
 		{
 			va_list argptr;
 			va_start(argptr, format);
-			vfprintf(stderr, format, argptr);
+			
+			char buff[BUFF_SIZE];
+			vsnprintf(buff,BUFF_SIZE, format, argptr);
 			va_end(argptr);
 
+			printf("%s",buff);
 			printf("\n");
 		}
 
