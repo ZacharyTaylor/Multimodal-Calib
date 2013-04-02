@@ -23,6 +23,10 @@ size_t PointsList::GetNumEntries(){
 	return numEntries_;
 }
 
+const float* PointsList::GetCpuPointer(){
+	return points_;
+}
+
 void* PointsList::GetGpuPointer(){
 	if(!onGpu_){
 		TRACE_WARNING("points were not on GPU, creating gpu pointer first");

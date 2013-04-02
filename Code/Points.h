@@ -18,6 +18,7 @@ public:
 	~PointsList();
 	size_t GetNumEntries();
 	void* GetGpuPointer();
+	const float* GetCpuPointer();
 	bool GetOnGpu();
 	void AllocateGpu(void);
 	void ClearGpu(void);

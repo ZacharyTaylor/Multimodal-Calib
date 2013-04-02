@@ -34,7 +34,6 @@ class SparseScan: public Scan {
 private:
 
 	static size_t* setDimSize(const size_t numCh, const size_t numPoints);
-	void GenLocation(void);
 
 protected:
 
@@ -42,11 +41,11 @@ protected:
 	
 public:
 
+	static float* SparseScan::GenLocation(size_t numDim, size_t* dimSize);
+
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints);
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points, PointsList* location);
-	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points);
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn);
-	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn);
 	SparseScan(Scan in);
 	SparseScan(Scan in, PointsList* location);
 	PointsList* GetLocation(void);

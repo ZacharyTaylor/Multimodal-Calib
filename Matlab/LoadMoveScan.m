@@ -2,7 +2,7 @@ function [] = LoadMoveScan(scanNum, scan, numDim)
 %LOADBASEIMAGE creates a copy of the image for use with library
 
 %check inputs
-if(~isinteger(scanNum) || (scanNum < 0))
+if((imgNum ~= round(imgNum)) || (scanNum < 0))
     TRACE_ERROR('number of move scans must be a positive integer, returning without setting');
     return;
 end
@@ -23,7 +23,7 @@ CheckLoaded();
 %creating local copy of data that user can't mess with
 numMove = calllib('LibCal','getNumMove');
 persistent imgStore;
-imgStore{numMove} = float(scan);
+imgStore{numMove} = single(scan);
 
 %setting base image
 calllib('LibCal','setMoveScan', scanNum, numDim, (size(scan,2)-numDim), size(scan,1), imgStore{numMove});

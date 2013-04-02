@@ -13,10 +13,19 @@
 DllExport unsigned int getNumMove(void);
 DllExport unsigned int getNumBase(void);
 DllExport unsigned int getNumPairs(void);
+
 DllExport void clearScans(void);
 DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn);
+
 DllExport void setBaseImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* base);
 DllExport void setMoveImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* move);
 DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned int numCh, unsigned int numPoints, float* move);
+
+DllExport const float* getMoveLocs(unsigned int scanNum);
+DllExport const float* getMovePoints(unsigned int scanNum);
+
+DllExport int getMoveNumCh(unsigned int scanNum);
+DllExport int getMoveNumDim(unsigned int scanNum);
+DllExport int getMoveNumPoints(unsigned int scanNum);
 
 #endif //MATLAB_CALLS_H

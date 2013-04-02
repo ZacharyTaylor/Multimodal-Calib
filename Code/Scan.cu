@@ -120,18 +120,18 @@ size_t* SparseScan::setDimSize(const size_t numCh, const size_t numPoints){
 	return out;
 }
 
-void SparseScan::GenLocation(void){
+float* SparseScan::GenLocation(size_t numDim, size_t* dimSize){
 
-	size_t* iter = new size_t[numDim_];
+	size_t* iter = new size_t[numDim];
 
 	size_t numEntries = 1;
 		
-	for( size_t i = 0; i < numDim_; i++ ){
+	for( size_t i = 0; i < numDim; i++ ){
 		iter[i] = 0;
-		numEntries *= dimSize_[i];
+		numEntries *= dimSize[i];
 	}
 
-	float* loc = new float[numEntries * numDim_];
+	float* loc = new float[numEntries * numDim];
 
 	size_t j = 0;
 	bool run = true;
@@ -139,18 +139,24 @@ void SparseScan::GenLocation(void){
 	//iterate over every point to fill in image locations
 	while(run){
 	
-		for( size_t i = 0; i < numDim_; i++ ){
-			loc[j + numEntries] = (float)iter[i];
+		for( size_t i = 0; i < numDim; i++ ){
+			loc[j + numEntries*i] = (float)iter[i];
 		}
 
 		j++;
 		iter[0]++;
-		for( size_t i = 0; i < numDim_; i++ ){
-			if(iter[i] >= dimSize_[i]){
-				iter[i+1]++;
+		for( size_t i = 0; i < numDim; i++ ){
+			if(iter[i] == 319){
+				iter[i] = 319;
+			}
+			if(iter[i] >= dimSize[i]){
+				if(i != (numDim-1)){
+					iter[i+1]++;
+				}
 				iter[i] = 0;
 			}
 			else {
+				run = true;
 				break;
 			}
 			run = false;
@@ -159,7 +165,7 @@ void SparseScan::GenLocation(void){
 
 	delete[] iter;
 
-	location_ = new PointsList(loc, numEntries * numDim_);
+	return loc;
 }
 
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints): 
@@ -174,21 +180,6 @@ SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t nu
 {	
 	points_ = points;
 	location_ = location;
-}
-
-SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points): 
-	Scan(numDim,numCh,setDimSize(numCh,numPoints))
-{	
-	points_ = points;
-	GenLocation();
-}
-
-SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn): 
-	Scan(numDim,numCh,setDimSize(numCh,numPoints))
-{	
-	PointsList* points = new PointsList(pointsIn, numDim*numPoints);
-	points_ = points;
-	GenLocation();
 }
 
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn): 

@@ -108,7 +108,9 @@ DllExport void setMoveImage(unsigned int scanNum, unsigned int height, unsigned 
 		moveStore[scanNum] = NULL;
 	}
 
-	moveStore[scanNum] = new SparseScan(IMAGE_DIM,numCh,height*width, move);
+	size_t dimSize[2] = {height, width};
+	float* loc = SparseScan::GenLocation(IMAGE_DIM, dimSize);
+	moveStore[scanNum] = new SparseScan(IMAGE_DIM,numCh,height*width, move, loc);
 }
 
 DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned int numCh, unsigned int numPoints, float* move){
@@ -124,4 +126,89 @@ DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned i
 	}
 
 	moveStore[scanNum] = new SparseScan(numDim,numCh,numPoints,&move[numDim*numPoints],move);
+}
+
+DllExport const float* getMoveLocs(unsigned int scanNum){
+	
+	if(scanNum >= numMove){
+		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
+		return NULL;
+	}
+	if(moveStore[scanNum] == NULL){
+		TRACE_ERROR("Move %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	//copy gpu info so that most up to date map is on cpu
+	if(moveStore[scanNum]->GetLocation()->GetOnGpu()){
+		moveStore[scanNum]->GetLocation()->CpuToGpu();
+	}
+
+	const float* out = moveStore[scanNum]->GetLocation()->GetCpuPointer();
+	return out;
+}
+
+DllExport const float* getMovePoints(unsigned int scanNum){
+	
+	if(scanNum >= numMove){
+		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
+		return NULL;
+	}
+	if(moveStore[scanNum] == NULL){
+		TRACE_ERROR("Move %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	//copy gpu info so that most up to date map is on cpu
+	if(moveStore[scanNum]->getPoints()->GetOnGpu()){
+		moveStore[scanNum]->getPoints()->CpuToGpu();
+	}
+
+	const float* out = moveStore[scanNum]->getPoints()->GetCpuPointer();
+	return out;
+}
+
+DllExport int getMoveNumCh(unsigned int scanNum){
+	
+	if(scanNum >= numMove){
+		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
+		return NULL;
+	}
+	if(moveStore[scanNum] == NULL){
+		TRACE_ERROR("Move %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	int out = moveStore[scanNum]->getNumCh();
+	return out;
+}
+
+DllExport int getMoveNumDim(unsigned int scanNum){
+	
+	if(scanNum >= numMove){
+		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
+		return NULL;
+	}
+	if(moveStore[scanNum] == NULL){
+		TRACE_ERROR("Move %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	int out = moveStore[scanNum]->getNumDim();
+	return out;
+}
+
+DllExport int getMoveNumPoints(unsigned int scanNum){
+	
+	if(scanNum >= numMove){
+		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
+		return NULL;
+	}
+	if(moveStore[scanNum] == NULL){
+		TRACE_ERROR("Move %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	int out = moveStore[scanNum]->getNumPoints();
+	return out;
 }

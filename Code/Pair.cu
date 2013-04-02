@@ -1,19 +1,5 @@
 #include "Pair.h"
 
-void Pair::SetMove(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locIn){
-
-	PointsList* points = new PointsList(pointsIn, numPoints*numCh);
-	PointsList* loc = new PointsList(locIn, numPoints*numDim);
-
-	move_ = new SparseScan(numDim, numCh,  numPoints, points, loc);
-}
-
-void Pair::SetMove(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn){
-
-	PointsList* points = new PointsList(pointsIn, numPoints*numCh);
-	move_ = new SparseScan(numDim, numCh,  numPoints, points);
-}
-
 void Pair::MoveSetupGpu(void){
 	move_->GetLocation()->AllocateGpu();
 	move_->GetLocation()->CpuToGpu();
