@@ -32,4 +32,15 @@ DllExport int getBaseDim(unsigned int scanNum, unsigned int dim);
 DllExport int getBaseNumCh(unsigned int scanNum);
 DllExport const float* getBaseImage(unsigned int scanNum);
 
+DllExport void setupCamera(int panoramic);
+DllExport void setupTformAffine(void);
+DllExport void setupCameraTform(void);
+
+DllExport void setCameraMatrix(float* camMat);
+DllExport void setTformMatrix(float* tMat);
+
+DllExport void transform(unsigned int imgNum);
+
+DllExport const float* getGenLocs(void);
+
 #endif //MATLAB_CALLS_H

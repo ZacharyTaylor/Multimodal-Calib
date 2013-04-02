@@ -4,7 +4,7 @@
 #include "trace.h"
 #include "Points.h"
 #include "Scan.h"
-#include "Pair.h"
+#include "Tform.h"
 
 
 //global so that matlab never has to see them
@@ -14,8 +14,11 @@ unsigned int numMove = 0;
 DenseImage** baseStore = NULL;
 unsigned int numBase = 0;
 
-Pair** pairs = NULL;
-unsigned int numPairs = 0;
+Camera* camera = NULL;
+
+Tform* tform = NULL;
+
+SparseScan* gen = NULL;
 
 DllExport unsigned int getNumMove(void){
 	return numMove;
@@ -23,10 +26,6 @@ DllExport unsigned int getNumMove(void){
 
 DllExport unsigned int getNumBase(void){
 	return numBase;
-}
-
-DllExport unsigned int getNumPairs(void){
-	return numPairs;
 }
 
 DllExport void clearScans(void){
@@ -41,24 +40,17 @@ DllExport void clearScans(void){
 			delete baseStore[i];
 		}
 	}	
-
-	if(pairs != NULL){
-		for(unsigned int i = 0; i < numPairs; i++){
-			delete pairs[i];
-		}
-	}	
 }
 
 DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn){
 	
-	if((moveStore != NULL) || (baseStore != NULL) || (pairs != NULL)){
+	if((moveStore != NULL) || (baseStore != NULL)){
 		TRACE_INFO("Scans already initalized, clearing and writing new data");
 		clearScans();
 	}
 
 	numMove = numMoveIn;
 	numBase = numBaseIn;
-	numPairs = numPairsIn;
 
 	baseStore = new DenseImage*[numBase];
 	
@@ -72,12 +64,6 @@ DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, un
 	//setting null so can tell if it is allocated
 	for(unsigned int i = 0; i < numMove; i++){
 		moveStore[i] = NULL;
-	}
-
-	pairs = new Pair*[numPairs];
-	//setting null so can tell if it is allocated
-	for(unsigned int i = 0; i < numPairs; i++){
-		pairs[i] = NULL;
 	}
 }
 
@@ -264,5 +250,94 @@ DllExport const float* getBaseImage(unsigned int scanNum){
 	}
 
 	const float* out = baseStore[scanNum]->getPoints()->GetCpuPointer();
+	return out;
+}
+
+DllExport void setupCamera(int panoramic){
+	if(camera != NULL){
+		TRACE_INFO("Camera already setup, clearing");
+		delete camera;
+	}
+
+	bool panBool = (panoramic != 0)?true:false;
+	camera = new Camera(panBool);
+}
+
+DllExport void setupTformAffine(void){
+	if(tform != NULL){
+		TRACE_INFO("Tform already setup, clearing");
+		delete tform;
+	}
+	tform = new AffineTform();
+}
+
+DllExport void setupCameraTform(void){
+	if(tform != NULL){
+		TRACE_INFO("Tform already setup, clearing");
+		delete tform;
+	}
+
+	if(camera == NULL){
+		TRACE_WARNING("Camera has not been set up, tform will be unable to run until this is performed");
+	}
+
+	tform = new CameraTform(camera);
+}
+
+DllExport void setCameraMatrix(float* camMat){
+	if(tform == NULL){
+		TRACE_ERROR("Camera not setup, returning");
+		return;
+	}
+	camera->SetCam(camMat);
+}
+
+DllExport void setTformMatrix(float* tMat){
+	if(tform == NULL){
+		TRACE_ERROR("Tform not setup, returning");
+		return;
+	}
+	tform->SetTform(tMat);
+}
+
+DllExport void transform(unsigned int imgNum){
+	SparseScan* move = moveStore[imgNum];
+
+	if(imgNum >= numMove){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",imgNum,numMove);
+		return;
+	}
+
+	if(gen != NULL){
+		TRACE_INFO("Clearing generated image ready for new transform");
+		delete gen;
+		gen = NULL;
+	}
+
+	//setup generated image
+	gen = new SparseScan(move->getNumDim(), 0, move->getNumPoints());
+	gen->GetLocation()->AllocateGpu();
+
+	//ensure move is setup
+	if(!move->GetLocation()->GetOnGpu()){
+		move->GetLocation()->AllocateGpu();
+		move->GetLocation()->CpuToGpu();
+	}
+
+	tform->d_Transform(move, gen);
+}
+
+
+DllExport const float* getGenLocs(void){
+	
+	if(gen == NULL){
+		TRACE_ERROR("No image Generated, returning");
+		return NULL;
+	}
+
+	//copy gpu info so that most up to date map is on cpu
+	gen->getPoints()->CpuToGpu();
+	
+	const float* out = gen->GetLocation()->GetCpuPointer();
 	return out;
 }
