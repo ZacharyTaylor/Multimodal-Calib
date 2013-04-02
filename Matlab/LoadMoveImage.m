@@ -15,17 +15,8 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-%creating local copy of data that user can't mess with
-persistent imgStore;
-if isempty(imgStore) 
-    numMove = calllib('LibCal','getNumMove');
-    imgStore = cell(numMove,1);
-end
-
-imgStore{imgNum} = single(img);
-
 %setting move image
-calllib('LibCal','setMoveImage', imgNum, size(img,1), size(img,2), size(img,3), imgStore{imgNum});
+calllib('LibCal','setMoveImage', imgNum, size(img,1), size(img,2), size(img,3), single(img));
 
 end
 

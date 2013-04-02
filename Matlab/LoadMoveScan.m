@@ -20,13 +20,8 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-%creating local copy of data that user can't mess with
-numMove = calllib('LibCal','getNumMove');
-persistent imgStore;
-imgStore{numMove} = single(scan);
-
 %setting base image
-calllib('LibCal','setMoveScan', scanNum, numDim, (size(scan,2)-numDim), size(scan,1), imgStore{numMove});
+calllib('LibCal','setMoveScan', scanNum, numDim, (size(scan,2)-numDim), size(scan,1), scan);
 
 end
 

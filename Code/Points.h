@@ -12,8 +12,10 @@ protected:
 	const float* points_;
 	void* d_points_;
 
+	static float* PointsSetup(float* points, const size_t numEntries, bool copy);
+
 public:
-	PointsList(float* points, const size_t numEntries);
+	PointsList(float* points, const size_t numEntries, bool copy);
 	PointsList(const size_t numEntries);
 	~PointsList();
 	size_t GetNumEntries();
@@ -33,7 +35,7 @@ protected:
 	const size_t depth_;
 public:
 
-	TextureList(float* points, const size_t height = 1, const size_t width = 1, const size_t depth = 1);
+	TextureList(float* points, bool copy, const size_t height = 1, const size_t width = 1, const size_t depth = 1);
 	TextureList(const size_t height = 1, const size_t width = 1, const size_t depth = 1);
 	~TextureList();
 	size_t GetHeight(void);

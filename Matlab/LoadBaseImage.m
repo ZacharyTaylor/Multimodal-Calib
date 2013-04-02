@@ -15,13 +15,8 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-%creating local copy of data that user can't mess with
-numBase = calllib('LibCal','getNumBase');
-persistent imgStore;
-imgStore{numBase} = single(img);
-
 %setting base image
-calllib('LibCal','setBaseImage', imgNum, size(img,1), size(img,2), size(img,3), imgStore{numBase});
+calllib('LibCal','setBaseImage', imgNum, size(img,1), size(img,2), size(img,3), single(img));
 
 end
 

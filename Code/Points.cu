@@ -1,7 +1,20 @@
 #include "Points.h"
 
-PointsList::PointsList(float* points, const size_t numEntries):
-	points_(points),
+float* PointsList::PointsSetup(float* points, const size_t numEntries, bool copy){
+	if(copy){
+		float* out = new float[numEntries];
+		for(size_t i = 0; i < numEntries; i++){
+			out[i] = points[i];
+		}
+		return out;
+	}
+	else{
+		return points;
+	}
+}
+
+PointsList::PointsList(float* points, const size_t numEntries, bool copy):
+	points_(PointsSetup(points,numEntries,copy)),
 	numEntries_(numEntries){
 	  
 	onGpu_ = false;
@@ -72,8 +85,8 @@ void PointsList::CpuToGpu(void){
 }
 
 
-TextureList::TextureList(float* points, const size_t height, const size_t width, const size_t depth):
-	PointsList(points, height*width*depth),
+TextureList::TextureList(float* points, bool copy, const size_t height, const size_t width, const size_t depth):
+	PointsList(points, height*width*depth, copy),
 	height_(height),
 	width_(width),
 	depth_(depth){

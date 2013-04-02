@@ -60,30 +60,25 @@ DenseImage::DenseImage(const size_t height, const size_t width, const size_t num
 }
 
 DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points): 
-	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh))
+	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),points)
 {
-	points_ = points;
-
 	tex.addressMode[0] = cudaAddressModeWrap;
 	tex.addressMode[1] = cudaAddressModeWrap;
 	tex.filterMode = cudaFilterModeLinear;
 	tex.normalized = false; 
 }
 
+//creates own copy of data
 DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, float* pointsIn):
-	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh))
+	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),NULL)
 {
-	TextureList* points = new TextureList(pointsIn, height, width, numCh);
+	TextureList* points = new TextureList(pointsIn, true, height, width, numCh);
 	points_ = points;
 
 	tex.addressMode[0] = cudaAddressModeWrap;
 	tex.addressMode[1] = cudaAddressModeWrap;
 	tex.filterMode = cudaFilterModeLinear;
 	tex.normalized = false; 
-}
-
-DenseImage::~DenseImage(void){
-	delete points_;
 }
 
 size_t* DenseImage::setDimSize(const size_t width, const size_t height, const size_t numCh){
@@ -169,26 +164,27 @@ float* SparseScan::GenLocation(size_t numDim, size_t* dimSize){
 }
 
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints): 
-	Scan(numDim, numCh, setDimSize(numCh, numPoints))
+	Scan(numDim, numCh, setDimSize(numCh, numPoints),NULL)
 {
 	points_ = new PointsList(numPoints * numCh);
 	location_ = new PointsList(numPoints * numDim);
 }
 
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points, PointsList* location): 
-	Scan(numDim,numCh,setDimSize(numCh,numPoints))
+	Scan(numDim,numCh,setDimSize(numCh,numPoints),NULL)
 {	
 	points_ = points;
 	location_ = location;
 }
 
+//creates own copies of data
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn): 
-	Scan(numDim,numCh,setDimSize(numCh,numPoints))
+	Scan(numDim,numCh,setDimSize(numCh,numPoints),NULL)
 {	
-	PointsList* points = new PointsList(pointsIn, numCh*numPoints);
+	PointsList* points = new PointsList(pointsIn, numCh*numPoints, true);
 	points_ = points;
 
-	PointsList* location = new PointsList(locationIn, numDim*numPoints);
+	PointsList* location = new PointsList(locationIn, numDim*numPoints, true);
 	location_ = location;
 }
 

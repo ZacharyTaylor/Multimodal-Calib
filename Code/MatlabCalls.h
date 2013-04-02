@@ -28,4 +28,8 @@ DllExport int getMoveNumCh(unsigned int scanNum);
 DllExport int getMoveNumDim(unsigned int scanNum);
 DllExport int getMoveNumPoints(unsigned int scanNum);
 
+DllExport int getBaseDim(unsigned int scanNum, unsigned int dim);
+DllExport int getBaseNumCh(unsigned int scanNum);
+DllExport const float* getBaseImage(unsigned int scanNum);
+
 #endif //MATLAB_CALLS_H

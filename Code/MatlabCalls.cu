@@ -179,7 +179,7 @@ DllExport int getMoveNumCh(unsigned int scanNum){
 		return NULL;
 	}
 
-	int out = moveStore[scanNum]->getNumCh();
+	int out = (int)moveStore[scanNum]->getNumCh();
 	return out;
 }
 
@@ -194,7 +194,7 @@ DllExport int getMoveNumDim(unsigned int scanNum){
 		return NULL;
 	}
 
-	int out = moveStore[scanNum]->getNumDim();
+	int out = (int)moveStore[scanNum]->getNumDim();
 	return out;
 }
 
@@ -209,6 +209,60 @@ DllExport int getMoveNumPoints(unsigned int scanNum){
 		return NULL;
 	}
 
-	int out = moveStore[scanNum]->getNumPoints();
+	int out = (int)moveStore[scanNum]->getNumPoints();
+	return out;
+}
+
+DllExport int getBaseDim(unsigned int scanNum, unsigned int dim){
+	
+	if(dim >= IMAGE_DIM){
+		TRACE_ERROR("Cannot get dimension %i as image is only 2d",dim);
+		return NULL;
+	}
+	if(scanNum >= numBase){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",scanNum,numBase);
+		return NULL;
+	}
+	if(baseStore[scanNum] == NULL){
+		TRACE_ERROR("Base %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	int out = (int)baseStore[scanNum]->getDimSize(dim);
+	return out;
+}
+
+DllExport int getBaseNumCh(unsigned int scanNum){
+	
+	if(scanNum >= numBase){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",scanNum,numBase);
+		return NULL;
+	}
+	if(baseStore[scanNum] == NULL){
+		TRACE_ERROR("Base %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	int out = (int)baseStore[scanNum]->getNumCh();
+	return out;
+}
+
+DllExport const float* getBaseImage(unsigned int scanNum){
+	
+	if(scanNum >= numBase){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",scanNum,numBase);
+		return NULL;
+	}
+	if(baseStore[scanNum] == NULL){
+		TRACE_ERROR("Base %i has not been allocated, returning", scanNum);
+		return NULL;
+	}
+
+	//copy gpu info so that most up to date map is on cpu
+	if(baseStore[scanNum]->getPoints()->GetOnGpu()){
+		baseStore[scanNum]->getPoints()->CpuToGpu();
+	}
+
+	const float* out = baseStore[scanNum]->getPoints()->GetCpuPointer();
 	return out;
 }
