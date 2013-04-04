@@ -114,7 +114,7 @@ DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned i
 	moveStore[scanNum] = new SparseScan(numDim,numCh,numPoints,&move[numDim*numPoints],move);
 }
 
-DllExport const float* getMoveLocs(unsigned int scanNum){
+DllExport float* getMoveLocs(unsigned int scanNum){
 	
 	if(scanNum >= numMove){
 		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
@@ -127,14 +127,14 @@ DllExport const float* getMoveLocs(unsigned int scanNum){
 
 	//copy gpu info so that most up to date map is on cpu
 	if(moveStore[scanNum]->GetLocation()->GetOnGpu()){
-		moveStore[scanNum]->GetLocation()->CpuToGpu();
+		moveStore[scanNum]->GetLocation()->GpuToCpu();
 	}
 
-	const float* out = moveStore[scanNum]->GetLocation()->GetCpuPointer();
+	float* out = moveStore[scanNum]->GetLocation()->GetCpuPointer();
 	return out;
 }
 
-DllExport const float* getMovePoints(unsigned int scanNum){
+DllExport float* getMovePoints(unsigned int scanNum){
 	
 	if(scanNum >= numMove){
 		TRACE_ERROR("Cannot get scan %i as only %i scans exist",scanNum,numMove);
@@ -147,10 +147,10 @@ DllExport const float* getMovePoints(unsigned int scanNum){
 
 	//copy gpu info so that most up to date map is on cpu
 	if(moveStore[scanNum]->getPoints()->GetOnGpu()){
-		moveStore[scanNum]->getPoints()->CpuToGpu();
+		moveStore[scanNum]->getPoints()->GpuToCpu();
 	}
 
-	const float* out = moveStore[scanNum]->getPoints()->GetCpuPointer();
+	float* out = moveStore[scanNum]->getPoints()->GetCpuPointer();
 	return out;
 }
 
@@ -233,7 +233,7 @@ DllExport int getBaseNumCh(unsigned int scanNum){
 	return out;
 }
 
-DllExport const float* getBaseImage(unsigned int scanNum){
+DllExport float* getBaseImage(unsigned int scanNum){
 	
 	if(scanNum >= numBase){
 		TRACE_ERROR("Cannot get image %i as only %i images exist",scanNum,numBase);
@@ -246,10 +246,10 @@ DllExport const float* getBaseImage(unsigned int scanNum){
 
 	//copy gpu info so that most up to date map is on cpu
 	if(baseStore[scanNum]->getPoints()->GetOnGpu()){
-		baseStore[scanNum]->getPoints()->CpuToGpu();
+		baseStore[scanNum]->getPoints()->GpuToCpu();
 	}
 
-	const float* out = baseStore[scanNum]->getPoints()->GetCpuPointer();
+	float* out = baseStore[scanNum]->getPoints()->GetCpuPointer();
 	return out;
 }
 
@@ -267,6 +267,7 @@ DllExport void setupTformAffine(void){
 	if(tform != NULL){
 		TRACE_INFO("Tform already setup, clearing");
 		delete tform;
+		tform = NULL;
 	}
 	tform = new AffineTform();
 }
@@ -313,6 +314,11 @@ DllExport void transform(unsigned int imgNum){
 		delete gen;
 		gen = NULL;
 	}
+	
+	if(move == NULL){
+		TRACE_ERROR("A moving image is required to transform");
+		return;
+	}
 
 	//setup generated image
 	gen = new SparseScan(move->getNumDim(), 0, move->getNumPoints());
@@ -328,7 +334,7 @@ DllExport void transform(unsigned int imgNum){
 }
 
 
-DllExport const float* getGenLocs(void){
+DllExport float* getGenLocs(void){
 	
 	if(gen == NULL){
 		TRACE_ERROR("No image Generated, returning");
@@ -336,8 +342,12 @@ DllExport const float* getGenLocs(void){
 	}
 
 	//copy gpu info so that most up to date map is on cpu
-	gen->getPoints()->CpuToGpu();
+	gen->GetLocation()->GpuToCpu();
 	
-	const float* out = gen->GetLocation()->GetCpuPointer();
+	float* out = gen->GetLocation()->GetCpuPointer();
 	return out;
+}
+
+DllExport void checkCudaErrors(void){
+	CudaCheckError();
 }

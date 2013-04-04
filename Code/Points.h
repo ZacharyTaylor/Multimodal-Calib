@@ -9,7 +9,7 @@ protected:
 	const size_t numEntries_;
 	bool onGpu_;
 
-	const float* points_;
+	float* points_;
 	void* d_points_;
 
 	static float* PointsSetup(float* points, const size_t numEntries, bool copy);
@@ -20,7 +20,7 @@ public:
 	~PointsList();
 	size_t GetNumEntries();
 	void* GetGpuPointer();
-	const float* GetCpuPointer();
+	float* GetCpuPointer();
 	bool GetOnGpu();
 	void AllocateGpu(void);
 	void ClearGpu(void);

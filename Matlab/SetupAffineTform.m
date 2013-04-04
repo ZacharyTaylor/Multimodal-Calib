@@ -4,6 +4,6 @@ function [] = SetupAffineTform()
 %ensures the library is loaded
 CheckLoaded();
 
-calllib('LibCal','SetupAffineTform');
+calllib('LibCal','setupTformAffine');
 
 end

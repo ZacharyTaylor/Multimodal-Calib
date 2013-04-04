@@ -21,8 +21,8 @@ DllExport void setBaseImage(unsigned int scanNum, unsigned int height, unsigned 
 DllExport void setMoveImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* move);
 DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned int numCh, unsigned int numPoints, float* move);
 
-DllExport const float* getMoveLocs(unsigned int scanNum);
-DllExport const float* getMovePoints(unsigned int scanNum);
+DllExport float* getMoveLocs(unsigned int scanNum);
+DllExport float* getMovePoints(unsigned int scanNum);
 
 DllExport int getMoveNumCh(unsigned int scanNum);
 DllExport int getMoveNumDim(unsigned int scanNum);
@@ -30,7 +30,7 @@ DllExport int getMoveNumPoints(unsigned int scanNum);
 
 DllExport int getBaseDim(unsigned int scanNum, unsigned int dim);
 DllExport int getBaseNumCh(unsigned int scanNum);
-DllExport const float* getBaseImage(unsigned int scanNum);
+DllExport float* getBaseImage(unsigned int scanNum);
 
 DllExport void setupCamera(int panoramic);
 DllExport void setupTformAffine(void);
@@ -41,6 +41,8 @@ DllExport void setTformMatrix(float* tMat);
 
 DllExport void transform(unsigned int imgNum);
 
-DllExport const float* getGenLocs(void);
+DllExport float* getGenLocs(void);
+
+DllExport void checkCudaErrors(void);
 
 #endif //MATLAB_CALLS_H

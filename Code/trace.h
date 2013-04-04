@@ -17,8 +17,6 @@
 #ifdef DEBUG_TRACE 
 	#if(DEBUG_TRACE > 0)
 
-		#define FILE (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-
 		inline void TRACE_IN(const char* format, ...)
 		{
 			va_list argptr;

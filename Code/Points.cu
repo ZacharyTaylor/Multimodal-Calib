@@ -16,13 +16,15 @@ float* PointsList::PointsSetup(float* points, const size_t numEntries, bool copy
 PointsList::PointsList(float* points, const size_t numEntries, bool copy):
 	points_(PointsSetup(points,numEntries,copy)),
 	numEntries_(numEntries){
-	  
-	onGpu_ = false;
+		TRACE_INFO("%i points set",numEntries);  
+		onGpu_ = false;
 }
 
 PointsList::PointsList(const size_t numEntries):
 	numEntries_(numEntries),
-	points_(new float[numEntries]){}
+	points_(new float[numEntries]){
+		TRACE_INFO("%i points set",numEntries);
+	}
 
 PointsList::~PointsList(){
 	if(onGpu_){
@@ -36,7 +38,7 @@ size_t PointsList::GetNumEntries(){
 	return numEntries_;
 }
 
-const float* PointsList::GetCpuPointer(){
+float* PointsList::GetCpuPointer(){
 	return points_;
 }
 
@@ -53,13 +55,13 @@ bool PointsList::GetOnGpu(){
 }
 	
 void PointsList::AllocateGpu(void){
-	cudaMalloc((void**)&(d_points_), numEntries_);
+	CudaSafeCall(cudaMalloc((void**)&(d_points_), sizeof(float)*numEntries_));
 	onGpu_ = true;
 }
 
 void PointsList::ClearGpu(void){
 	if(onGpu_){
-		cudaFree(d_points_);
+		CudaSafeCall(cudaFree(d_points_));
 		onGpu_ = false;
 	}
 	else{
@@ -69,7 +71,7 @@ void PointsList::ClearGpu(void){
 
 void PointsList::GpuToCpu(void){
 	if(onGpu_){
-		cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice);
+		CudaSafeCall(cudaMemcpy(points_, d_points_, numEntries_*sizeof(float), cudaMemcpyDeviceToHost));
 	}
 	else {
 		TRACE_ERROR("No memory was allocated on gpu, returning");
@@ -81,7 +83,8 @@ void PointsList::CpuToGpu(void){
 		TRACE_WARNING("No memory was allocated on gpu, allocating now");
 		AllocateGpu();
 	}
-	cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice);
+	TRACE_INFO("%i points to be copied to host from device", numEntries_);
+	CudaSafeCall(cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice));
 }
 
 
@@ -138,7 +141,7 @@ void TextureList::AllocateGpu(void){
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(sizeof(float),0,0,0,cudaChannelFormatKindFloat);
 
 	for(size_t i = 0; i < depth_; i++){
-		cudaMallocArray(&(((cudaArray**)d_points_)[i]), &channelDesc, width_, height_);
+		CudaSafeCall(cudaMallocArray(&(((cudaArray**)d_points_)[i]), &channelDesc, width_, height_));
 	}
 	onGpu_ = true;
 }
@@ -146,7 +149,7 @@ void TextureList::AllocateGpu(void){
 void TextureList::ClearGpu(void){
 	if(onGpu_){	
 		for(size_t i = 0; i < depth_; i++){
-			cudaFreeArray(((cudaArray**)d_points_)[i]);
+			CudaSafeCall(cudaFreeArray(((cudaArray**)d_points_)[i]));
 		}
 		onGpu_ = false;
 	}
@@ -158,7 +161,7 @@ void TextureList::ClearGpu(void){
 void TextureList::GpuToCpu(void){
 	if(onGpu_){
 		for(size_t i = 0; i < depth_; i++){
-			cudaMemcpy2DFromArray((void*)(&points_[i*width_*height_]), sizeof(float), ((cudaArray **)d_points_)[i], 0, 0, width_, height_, cudaMemcpyDeviceToHost);
+			CudaSafeCall(cudaMemcpy2DFromArray((void*)(&points_[i*width_*height_]), sizeof(float), ((cudaArray **)d_points_)[i], 0, 0, width_, height_, cudaMemcpyDeviceToHost));
 		}
 	}
 	else {
@@ -173,7 +176,7 @@ void TextureList::CpuToGpu(void){
 	}
 
 	for(size_t i = 0; i < depth_; i++){
-		cudaMemcpy2DToArray(((cudaArray **)d_points_)[i], 0, 0, &points_[i*width_*height_], sizeof(float), width_, height_, cudaMemcpyHostToDevice);
+		CudaSafeCall(cudaMemcpy2DToArray(((cudaArray **)d_points_)[i], 0, 0, &points_[i*width_*height_], sizeof(float), width_, height_, cudaMemcpyHostToDevice));
 	}
 }
 
