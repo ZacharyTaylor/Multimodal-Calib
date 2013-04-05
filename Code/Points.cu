@@ -83,7 +83,7 @@ void PointsList::CpuToGpu(void){
 		TRACE_WARNING("No memory was allocated on gpu, allocating now");
 		AllocateGpu();
 	}
-	TRACE_INFO("%i points to be copied to host from device", numEntries_);
+	TRACE_INFO("%i points to be copied from host to device", numEntries_);
 	CudaSafeCall(cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice));
 }
 

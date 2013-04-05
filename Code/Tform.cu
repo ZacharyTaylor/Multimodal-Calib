@@ -61,12 +61,12 @@ void CameraTform::d_Transform(SparseScan* in, SparseScan* out){
 	}
 	if(in->getNumDim() != CAM_DIM){
 		TRACE_ERROR("camera transform can only operate on a 3d input, returning untransformed points");
-		 CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
+		CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 		return;
 	}
 	if(cam_ == NULL){
 		TRACE_ERROR("camera transform requires a setup camera, returning untransformed points");
-		 CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
+		 CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 		return;
 	}
 
@@ -86,7 +86,7 @@ void AffineTform::d_Transform(SparseScan* in, SparseScan* out){
 	}
 	if(in->getNumDim() != AFFINE_DIM){
 		TRACE_ERROR("affine transform can only operate on a 2d input, returning untransformed points");
-		CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
+		CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 		return;
 	}
 

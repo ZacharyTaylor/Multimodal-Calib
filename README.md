@@ -5,4 +5,4 @@ Software used to automatically calibrate the extrinsic parameters of several sen
 
 Currently restructuring software to be more user friendly / stop it segfaulting everywhere.
 
-Code should be atleast partly working by easter, fully working a week or two later
+Currently loading image to device and back and affine transforms are working

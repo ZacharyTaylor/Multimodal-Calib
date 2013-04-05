@@ -11,6 +11,6 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-calllib('LibCal','SetupCamera', panoramic);
+calllib('LibCal','setupCamera', panoramic);
 
 end

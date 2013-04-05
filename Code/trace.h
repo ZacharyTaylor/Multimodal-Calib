@@ -30,14 +30,14 @@
 			printf("\n");
 		}
 
-		#define TRACE_ERROR printf("Error: %s(%d): ", FILE, __LINE__); TRACE_IN
+		#define TRACE_ERROR printf("C++ Error at %s(%d): ", FILE, __LINE__); TRACE_IN
 	
 		#if (DEBUG_TRACE > 1)
-			#define TRACE_WARNING printf("Warning: %s(%d): ", FILE, __LINE__); TRACE_IN
+			#define TRACE_WARNING printf("C++ Warning at %s(%d): ", FILE, __LINE__); TRACE_IN
 
 		
 			#if (DEBUG_TRACE > 2)
-				#define TRACE_INFO printf("Info: %s(%d): ", FILE, __LINE__); TRACE_IN
+				#define TRACE_INFO printf("C++ Info at %s(%d): ", FILE, __LINE__); TRACE_IN
 			#else
 				#define TRACE_INFO ((void)0)
 			#endif

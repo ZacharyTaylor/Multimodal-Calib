@@ -5,15 +5,17 @@ Initilize(5,5,5);
 
 a = getImages;
 
-LoadMoveImage(1,a);
+LoadMoveScan(1,a,3);
 out = GetMove(1);
 
 LoadBaseImage(2,a);
 
-SetupAffineTform();
+SetupCamera(1);
+camera = [100 0 100 0; 0 100 100 0; 0 0 1 0];
+SetCameraMatrix(camera);
 
-% 
-tform = [1 0 0; 0 1 0; 0 0 1];
+SetupCameraTform();
+tform = [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
 SetTformMatrix(tform);
 
 Transform(1);

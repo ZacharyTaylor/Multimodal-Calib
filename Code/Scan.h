@@ -33,7 +33,7 @@ public:
 class SparseScan: public Scan {
 private:
 
-	static size_t* setDimSize(const size_t numCh, const size_t numPoints);
+	static size_t* setDimSize(const size_t numCh, const size_t numDim, const size_t numPoints);
 
 protected:
 
@@ -48,6 +48,7 @@ public:
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn);
 	SparseScan(Scan in);
 	SparseScan(Scan in, PointsList* location);
+	size_t getNumPoints(void);
 	PointsList* GetLocation(void);
 };
 

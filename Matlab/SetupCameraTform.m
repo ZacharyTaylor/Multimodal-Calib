@@ -4,6 +4,6 @@ function [] = SetupCameraTform()
 %ensures the library is loaded
 CheckLoaded();
 
-calllib('LibCal','SetupCameraTform');
+calllib('LibCal','setupCameraTform');
 
 end

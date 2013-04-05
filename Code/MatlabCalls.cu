@@ -257,6 +257,7 @@ DllExport void setupCamera(int panoramic){
 	if(camera != NULL){
 		TRACE_INFO("Camera already setup, clearing");
 		delete camera;
+		camera = NULL;
 	}
 
 	bool panBool = (panoramic != 0)?true:false;
@@ -276,6 +277,7 @@ DllExport void setupCameraTform(void){
 	if(tform != NULL){
 		TRACE_INFO("Tform already setup, clearing");
 		delete tform;
+		tform = NULL;
 	}
 
 	if(camera == NULL){
@@ -286,7 +288,7 @@ DllExport void setupCameraTform(void){
 }
 
 DllExport void setCameraMatrix(float* camMat){
-	if(tform == NULL){
+	if(camera == NULL){
 		TRACE_ERROR("Camera not setup, returning");
 		return;
 	}

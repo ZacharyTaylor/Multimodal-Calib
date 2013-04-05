@@ -10,6 +10,6 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-calllib('LibCal','SetCameraMatrix', single(camMat));
+calllib('LibCal','setCameraMatrix', single(camMat));
 
 end

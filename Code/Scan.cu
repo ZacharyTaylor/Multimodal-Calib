@@ -109,12 +109,16 @@ void DenseImage::d_interpolate(SparseScan* scan){
 
 
 
-size_t* SparseScan::setDimSize(const size_t numCh, const size_t numPoints){
+size_t* SparseScan::setDimSize(const size_t numCh, const size_t numDim, const size_t numPoints){
 	size_t* out = new size_t(2);
 	out[0] = numPoints;
-	out[1] = numCh;
+	out[1] = numCh + numDim;
 
 	return out;
+}
+
+size_t SparseScan::getNumPoints(void){
+	return dimSize_[0];
 }
 
 float* SparseScan::GenLocation(size_t numDim, size_t* dimSize){
@@ -166,14 +170,14 @@ float* SparseScan::GenLocation(size_t numDim, size_t* dimSize){
 }
 
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints): 
-	Scan(numDim, numCh, setDimSize(numCh, numPoints),NULL)
+	Scan(numDim, numCh, setDimSize(numCh, numDim, numPoints),NULL)
 {
 	points_ = new PointsList(numPoints * numCh);
 	location_ = new PointsList(numPoints * numDim);
 }
 
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, PointsList* points, PointsList* location): 
-	Scan(numDim,numCh,setDimSize(numCh,numPoints),NULL)
+	Scan(numDim,numCh,setDimSize(numCh, numDim, numPoints),NULL)
 {	
 	points_ = points;
 	location_ = location;
@@ -181,7 +185,7 @@ SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t nu
 
 //creates own copies of data
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn): 
-	Scan(numDim,numCh,setDimSize(numCh,numPoints),NULL)
+	Scan(numDim,numCh,setDimSize(numCh, numDim, numPoints),NULL)
 {	
 	PointsList* points = new PointsList(pointsIn, numCh*numPoints, true);
 	points_ = points;
