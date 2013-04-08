@@ -126,7 +126,7 @@ DllExport float* getMoveLocs(unsigned int scanNum){
 	}
 
 	//copy gpu info so that most up to date map is on cpu
-	if(moveStore[scanNum]->GetLocation()->GetOnGpu()){
+	if(moveStore[scanNum]->GetLocation()->IsOnGpu()){
 		moveStore[scanNum]->GetLocation()->GpuToCpu();
 	}
 
@@ -146,7 +146,7 @@ DllExport float* getMovePoints(unsigned int scanNum){
 	}
 
 	//copy gpu info so that most up to date map is on cpu
-	if(moveStore[scanNum]->getPoints()->GetOnGpu()){
+	if(moveStore[scanNum]->getPoints()->IsOnGpu()){
 		moveStore[scanNum]->getPoints()->GpuToCpu();
 	}
 
@@ -245,7 +245,7 @@ DllExport float* getBaseImage(unsigned int scanNum){
 	}
 
 	//copy gpu info so that most up to date map is on cpu
-	if(baseStore[scanNum]->getPoints()->GetOnGpu()){
+	if(baseStore[scanNum]->getPoints()->IsOnGpu()){
 		baseStore[scanNum]->getPoints()->GpuToCpu();
 	}
 
@@ -327,7 +327,7 @@ DllExport void transform(unsigned int imgNum){
 	gen->GetLocation()->AllocateGpu();
 
 	//ensure move is setup
-	if(!move->GetLocation()->GetOnGpu()){
+	if(!move->GetLocation()->IsOnGpu()){
 		move->GetLocation()->AllocateGpu();
 		move->GetLocation()->CpuToGpu();
 	}
