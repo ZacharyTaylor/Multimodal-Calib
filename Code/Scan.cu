@@ -48,18 +48,6 @@ PointsList* Scan::getPoints(void){
 	return points_;
 }
 
-//dense scan points stored in a little endien (changing first dimension first) grid
-DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh): 
-	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh))
-{
-	points_ = new TextureList(height, width, numCh);
-
-	tex.addressMode[0] = cudaAddressModeWrap;
-	tex.addressMode[1] = cudaAddressModeWrap;
-	tex.filterMode = cudaFilterModeLinear;
-	tex.normalized = false; 
-}
-
 DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points): 
 	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),points)
 {
@@ -67,6 +55,7 @@ DenseImage::DenseImage(const size_t height, const size_t width, const size_t num
 	tex.addressMode[1] = cudaAddressModeWrap;
 	tex.filterMode = cudaFilterModeLinear;
 	tex.normalized = false; 
+
 }
 
 //creates own copy of data

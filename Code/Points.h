@@ -7,7 +7,6 @@
 class PointsList {
 protected:
 	const size_t numEntries_;
-	bool onGpu_;
 
 	float* points_;
 	void* d_points_;
@@ -21,7 +20,7 @@ public:
 	size_t GetNumEntries();
 	void* GetGpuPointer();
 	float* GetCpuPointer();
-	bool GetOnGpu();
+	bool IsOnGpu();
 	void AllocateGpu(void);
 	void ClearGpu(void);
 	void GpuToCpu(void);
@@ -29,6 +28,13 @@ public:
 };
 
 class TextureList: public PointsList {
+
+private:
+	bool texInMem_;
+
+	void PrefilterArray(void);
+	void ArrayToTexture(void);
+
 protected:
 	const size_t height_;
 	const size_t width_;
@@ -36,17 +42,13 @@ protected:
 public:
 
 	TextureList(float* points, bool copy, const size_t height = 1, const size_t width = 1, const size_t depth = 1);
-	TextureList(const size_t height = 1, const size_t width = 1, const size_t depth = 1);
-	~TextureList();
 	size_t GetHeight(void);
 	size_t GetWidth(void);
 	size_t GetDepth(void);
-	cudaArray** GetGpuPointer();
 	void AllocateGpu(void);
-	void ClearGpu(void);
 	void GpuToCpu(void);
 	void CpuToGpu(void);
-	void PrefilterTexture(void);
+	void ClearGpu(void);
 };
 
 #endif //POINTS_H
