@@ -8,8 +8,7 @@ Currently restructuring software to be more user friendly / stop it segfaulting 
 Working-
 Loading Moving Image / scan
 Loading Base Image
-Error reporting
-Affine Transform
+Error reporting Affine Transform
 Camera Transform
 Returning generated scan
 
