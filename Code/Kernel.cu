@@ -1,8 +1,11 @@
 #include "Kernel.h"
+#include <vector_types.h>
+#include "CI.h"
+
 
 texture<float> texRef;
 
-__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints){
+__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, const float layer, float* valsOut, const size_t numPoints){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
@@ -10,15 +13,20 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 		return;
 	}
 
+	float3 loc;
+	loc.x = locIn[i + numPoints]+0.5f;
+	loc.y = locIn[i]+0.5f;
+	loc.z = layer + 0.5f;
+
 	bool inside =
-		-0.5f < locIn[i] && locIn[i] < (width - 0.5f) &&
-		-0.5f < locIn[i + numPoints] && locIn[i + numPoints] < (height - 0.5f);
+		0 < loc.x && loc.x < width &&
+		0 < loc.y && loc.y < height;
 
 	if (!inside){
 		valsOut[i] = 0.0f;
 	}
 	else{
-		//valsOut[i] = cubicTex2D(tex, locIn[i]+0.5f, locIn[i + numPoints]+0.5f);
+		valsOut[i] = tex2D(tex, loc.x,loc.y);
 	}
 }
 
@@ -87,4 +95,8 @@ __global__ void CameraTransformKernel(const float* tform, const float* cam, cons
 	//output points
 	pointsOut[i + 0*numPoints] = x;
 	pointsOut[i + 1*numPoints] = y;
+}
+
+void RunBSplineKernel(float* volume, size_t width, size_t height, size_t depth){
+	CubicBSplinePrefilter3D(volume, sizeof(float), width,height,depth);
 }

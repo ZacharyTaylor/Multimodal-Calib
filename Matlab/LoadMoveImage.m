@@ -7,7 +7,7 @@ if((imgNum ~= round(imgNum)) || (imgNum < 0))
     return;
 end
 
-if(~ismatrix(img) || (ndims(img) < 2))
+if((ndims(img) < 2))
     TRACE_ERROR('image must be a matrix with atleast 2 dimensions, returning without setting');
     return;
 end

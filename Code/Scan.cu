@@ -81,21 +81,29 @@ size_t* DenseImage::setDimSize(const size_t width, const size_t height, const si
 }
 
 void DenseImage::d_interpolate(SparseScan* scan){
-	//create texture
-	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(sizeof(float),0,0,0,cudaChannelFormatKindFloat);
+	if(!points_->IsOnGpu()){
+		TRACE_WARNING("Dense image not on gpu, loading now");
+		points_->AllocateGpu();
+		points_->CpuToGpu();
+		}
 	
+	//create texture
+	cudaChannelFormatDesc channelDescCoeff = cudaCreateChannelDesc<float>();
+	
+	CudaSafeCall(cudaBindTextureToArray(&tex, (cudaArray_t)(points_->GetGpuPointer()), &channelDescCoeff));
+	TextureList* texPoints = (TextureList*)points_;
+
 	for(size_t i = 0; i < scan->getNumCh(); i++){
 
-		CudaSafeCall(cudaBindTextureToArray(&tex, ((cudaArray**)(points_->GetGpuPointer()))[i], &channelDesc));
-
-		TextureList* texPoints = (TextureList*)points_;
-
-		DenseImageInterpolateKernel<<<gridSize(texPoints->GetHeight() * texPoints->GetWidth()) ,BLOCK_SIZE>>>
-			(texPoints->GetWidth(), texPoints->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
+		DenseImageInterpolateKernel<<<gridSize(texPoints->GetHeight() * texPoints->GetWidth()) ,BLOCK_SIZE>>>	
+			(texPoints->GetWidth(), texPoints->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), (float)i, (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
 		CudaCheckError();
 	}
 }
 
+TextureList* DenseImage::getPoints(void){
+	return (TextureList*)points_;
+}
 
 
 size_t* SparseScan::setDimSize(const size_t numCh, const size_t numDim, const size_t numPoints){

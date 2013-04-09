@@ -13,7 +13,6 @@ protected:
 	const size_t numCh_;
 
 	const size_t* dimSize_;
-	
 	PointsList* points_;
 
 public:
@@ -58,6 +57,7 @@ public:
 
 	DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points);
 	DenseImage(const size_t height, const size_t width, const size_t numCh, float* pointsIn);
+	TextureList* getPoints(void);
 	void d_interpolate(SparseScan* scan);
 
 private:

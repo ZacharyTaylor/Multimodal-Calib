@@ -304,12 +304,13 @@ DllExport void setTformMatrix(float* tMat){
 }
 
 DllExport void transform(unsigned int imgNum){
-	SparseScan* move = moveStore[imgNum];
 
 	if(imgNum >= numMove){
 		TRACE_ERROR("Cannot get image %i as only %i images exist",imgNum,numMove);
 		return;
 	}
+
+	SparseScan* move = moveStore[imgNum];
 
 	if(gen != NULL){
 		TRACE_INFO("Clearing generated image ready for new transform");
@@ -350,6 +351,70 @@ DllExport float* getGenLocs(void){
 	return out;
 }
 
+DllExport float* getGenPoints(void){
+	
+	if(gen == NULL){
+		TRACE_ERROR("No image Generated, returning");
+		return NULL;
+	}
+
+	//copy gpu info so that most up to date map is on cpu
+	gen->getPoints()->GpuToCpu();
+	
+	float* out = gen->getPoints()->GetCpuPointer();
+	return out;
+}
+
 DllExport void checkCudaErrors(void){
 	CudaCheckError();
+}
+
+DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum){
+	if(baseNum >= numBase){
+		TRACE_ERROR("Cannot get base image %i as only %i images exist",baseNum,numBase);
+		return;
+	}
+
+	if(moveNum >= numMove){
+		TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
+		return;
+	}
+
+	if(gen != NULL){
+		TRACE_INFO("Clearing generated image ready for new transform");
+		delete gen;
+		gen = NULL;
+	}
+
+	SparseScan* move = moveStore[moveNum];
+	DenseImage* base = baseStore[baseNum];
+	
+	if(move == NULL){
+		TRACE_ERROR("A moving image is required to interpolate from");
+		return;
+	}
+	if(base == NULL){
+		TRACE_ERROR("A base image is required to interpolate");
+		return;
+	}
+
+	//setup generated image
+	PointsList* points = new PointsList(base->getNumCh()*move->getNumPoints());
+	gen = new SparseScan(move->getNumDim(), base->getNumCh(), move->getNumPoints(), points, move->GetLocation());
+
+	gen->getPoints()->AllocateGpu();
+
+	//ensure gen is setup
+	if(!gen->GetLocation()->IsOnGpu()){
+		gen->GetLocation()->AllocateGpu();
+		gen->GetLocation()->CpuToGpu();
+	}
+
+	//ensure base is setup
+	if(!base->getPoints()->IsOnGpu()){
+		base->getPoints()->AllocateGpu();
+		base->getPoints()->CpuToGpu();
+	}
+
+	base->d_interpolate(gen);
 }

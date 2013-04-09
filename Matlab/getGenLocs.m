@@ -1,4 +1,4 @@
-function [ gen ] = getGenerated(imgNum)
+function [ gen ] = getGenLocs(imgNum)
 %GETGENERATED outputs moving image imNum from scan
 
 %check inputs

@@ -42,6 +42,9 @@ DllExport void setTformMatrix(float* tMat);
 DllExport void transform(unsigned int imgNum);
 
 DllExport float* getGenLocs(void);
+DllExport float* getGenPoints(void);
+
+DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum);
 
 DllExport void checkCudaErrors(void);
 

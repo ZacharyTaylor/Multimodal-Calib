@@ -8,7 +8,13 @@ a = getImages;
 %LoadMoveScan(1,a,3);
 %out = GetMove(1);
 
+LoadMoveImage(1,a);
 LoadBaseImage(2,a);
+CheckCudaErrors();
+InterpolateBaseValues(1,2);
+
+out = getGenVals(1);
+out2 = GetBase(2);
 
 % SetupCamera(1);
 % camera = [100 0 100 0; 0 100 100 0; 0 0 1 0];
