@@ -4,13 +4,15 @@ DEBUG_TRACE = 3;
 Initilize(5,5,5);
 
 a = getImages;
+a(:,:,2) = a;
+a(:,:,3) = a(:,:,1);
 
 %LoadMoveScan(1,a,3);
 %out = GetMove(1);
 
 LoadMoveImage(1,a);
 LoadBaseImage(2,a);
-CheckCudaErrors();
+
 InterpolateBaseValues(1,2);
 
 out = getGenVals(1);

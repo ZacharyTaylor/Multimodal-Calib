@@ -2,9 +2,6 @@
 #include <vector_types.h>
 #include "CI.h"
 
-
-texture<float> texRef;
-
 __global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, const float layer, float* valsOut, const size_t numPoints){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -26,7 +23,7 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 		valsOut[i] = 0.0f;
 	}
 	else{
-		valsOut[i] = tex2D(tex, loc.x,loc.y);
+		valsOut[i] = cubicTex3D(tex, loc);
 	}
 }
 
@@ -97,6 +94,33 @@ __global__ void CameraTransformKernel(const float* tform, const float* cam, cons
 	pointsOut[i + 1*numPoints] = y;
 }
 
+__global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= length){
+		return;
+	}
+
+	const float* magA = &A[0];
+	const float* magB = &B[0];
+	const float* phaseA = &A[length];
+	const float* phaseB = &B[length];
+	
+	float phase = PI*abs(phaseA[i] - phaseB[i])/180;
+    phase = (cos(2*phase)+1)/2;
+    float mag = magA[i]*magB[i];
+
+	//ignore zeros
+	if((phaseA[i] == 0) || (phaseB[i] == 0)){
+		mag = 0;
+	}
+
+    phaseOut[i] =  mag*phase;
+	magOut[i] =  mag;
+}
+
 void RunBSplineKernel(float* volume, size_t width, size_t height, size_t depth){
 	CubicBSplinePrefilter3D(volume, sizeof(float), width,height,depth);
 }
+

@@ -53,6 +53,7 @@ DenseImage::DenseImage(const size_t height, const size_t width, const size_t num
 {
 	tex.addressMode[0] = cudaAddressModeWrap;
 	tex.addressMode[1] = cudaAddressModeWrap;
+	tex.addressMode[2] = cudaAddressModeWrap;
 	tex.filterMode = cudaFilterModeLinear;
 	tex.normalized = false; 
 
@@ -67,6 +68,7 @@ DenseImage::DenseImage(const size_t height, const size_t width, const size_t num
 
 	tex.addressMode[0] = cudaAddressModeWrap;
 	tex.addressMode[1] = cudaAddressModeWrap;
+	tex.addressMode[2] = cudaAddressModeWrap;
 	tex.filterMode = cudaFilterModeLinear;
 	tex.normalized = false; 
 }
@@ -81,22 +83,21 @@ size_t* DenseImage::setDimSize(const size_t width, const size_t height, const si
 }
 
 void DenseImage::d_interpolate(SparseScan* scan){
-	if(!points_->IsOnGpu()){
+	if(!getPoints()->IsOnGpu()){
 		TRACE_WARNING("Dense image not on gpu, loading now");
-		points_->AllocateGpu();
-		points_->CpuToGpu();
+		getPoints()->AllocateGpu();
+		getPoints()->CpuToGpu();
 		}
 	
 	//create texture
 	cudaChannelFormatDesc channelDescCoeff = cudaCreateChannelDesc<float>();
 	
-	CudaSafeCall(cudaBindTextureToArray(&tex, (cudaArray_t)(points_->GetGpuPointer()), &channelDescCoeff));
-	TextureList* texPoints = (TextureList*)points_;
+	CudaSafeCall(cudaBindTextureToArray(&tex, (cudaArray*)(getPoints()->GetGpuPointer()), &channelDescCoeff));
 
 	for(size_t i = 0; i < scan->getNumCh(); i++){
 
-		DenseImageInterpolateKernel<<<gridSize(texPoints->GetHeight() * texPoints->GetWidth()) ,BLOCK_SIZE>>>	
-			(texPoints->GetWidth(), texPoints->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), (float)i, (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
+		DenseImageInterpolateKernel<<<gridSize(getPoints()->GetHeight() * getPoints()->GetWidth()) ,BLOCK_SIZE>>>	
+			(getPoints()->GetWidth(), getPoints()->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), (float)i, (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
 		CudaCheckError();
 	}
 }

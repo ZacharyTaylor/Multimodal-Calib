@@ -97,14 +97,15 @@ void TextureList::AllocateGpu(void){
 		TRACE_WARNING("d_points_ already full, clearing and overwriting");
 		ClearGpu();
 	}
-	const cudaExtent extent = make_cudaExtent(sizeof(float)*width_, height_, depth_);
+	/*const cudaExtent extent = make_cudaExtent(sizeof(float)*width_, height_, depth_);
 	d_points_ = new cudaPitchedPtr;
-	CudaSafeCall(cudaMalloc3D(((cudaPitchedPtr*)d_points_), extent));
+	CudaSafeCall(cudaMalloc3D(((cudaPitchedPtr*)d_points_), extent));*/
+	CudaSafeCall( cudaMalloc(&d_points_, sizeof(float)*width_*height_*depth_));
 }
 
 void TextureList::GpuToCpu(void){
 	if(IsOnGpu()){
-		cudaExtent extent;
+		/*cudaExtent extent;
 		cudaPitchedPtr points = make_cudaPitchedPtr( (void*)points_, sizeof(float)*width_, width_, height_*depth_);
 
 		cudaMemcpy3DParms copyParams = {0};
@@ -113,7 +114,7 @@ void TextureList::GpuToCpu(void){
 
 		if(texInMem_){
 			extent = make_cudaExtent(width_, height_, depth_);
-			copyParams.srcArray = (cudaArray_t)d_points_;
+			copyParams.srcArray = (cudaArray*)d_points_;
 		}
 		else {
 			extent = make_cudaExtent(sizeof(float)*width_, height_, depth_);
@@ -122,7 +123,8 @@ void TextureList::GpuToCpu(void){
 
 
 		copyParams.extent = extent;
-		CudaSafeCall( cudaMemcpy3D(&copyParams) ); 
+		CudaSafeCall( cudaMemcpy3D(&copyParams) ); */
+		CudaSafeCall( cudaMemcpy(points_, d_points_, sizeof(float)*width_*height_*depth_, cudaMemcpyDeviceToHost));
 	}
 	else {
 		TRACE_ERROR("No memory was allocated on gpu, returning");
@@ -136,7 +138,7 @@ void TextureList::CpuToGpu(void){
 	}
 	TRACE_INFO("%i points to be copied from host to device", numEntries_);
 	
-	cudaExtent extent;
+	/*cudaExtent extent;
 	
 	cudaPitchedPtr points = make_cudaPitchedPtr( (void*)points_, sizeof(float)*width_, width_, height_*depth_);
 
@@ -146,7 +148,7 @@ void TextureList::CpuToGpu(void){
 
 	if(texInMem_){
 		extent = make_cudaExtent(width_, height_, depth_);
-		copyParams.dstArray = (cudaArray_t)d_points_;
+		copyParams.dstArray = (cudaArray*)d_points_;
 	}
 	else {
 		extent = make_cudaExtent(sizeof(float)*width_, height_, depth_);
@@ -154,16 +156,18 @@ void TextureList::CpuToGpu(void){
 	}
 
 	copyParams.extent = extent;
-	CudaSafeCall( cudaMemcpy3D(&copyParams) ); 
+	CudaSafeCall( cudaMemcpy3D(&copyParams) ); */
+	CudaSafeCall( cudaMemcpy(d_points_, points_, sizeof(float)*width_*height_*depth_, cudaMemcpyHostToDevice));
 }
 
 void TextureList::ClearGpu(void){
 	if(IsOnGpu()){
 		if(texInMem_){
-			CudaSafeCall(cudaFreeArray((cudaArray_t)d_points_));
+			CudaSafeCall(cudaFreeArray((cudaArray*)d_points_));
 		}
 		else {
-			CudaSafeCall(cudaFree(((cudaPitchedPtr*)d_points_)->ptr));
+			//CudaSafeCall(cudaFree(((cudaPitchedPtr*)d_points_)->ptr));
+			CudaSafeCall(cudaFree(d_points_));
 			free(d_points_);
 		}
 		d_points_ = NULL;
@@ -209,7 +213,7 @@ void TextureList::ArrayToTexture(void){
 	cudaArray* temp;
 	
 	CudaSafeCall(cudaMalloc3DArray(&temp, &channelDescCoeff, extent));
-
+	/*
 	cudaPitchedPtr points = make_cudaPitchedPtr( (void*)points_, sizeof(float)*width_, width_, height_*depth_);
 
 	cudaMemcpy3DParms copyParams = {0};
@@ -217,8 +221,9 @@ void TextureList::ArrayToTexture(void){
 	copyParams.extent = extent;
 	copyParams.kind = cudaMemcpyDeviceToDevice;
 	copyParams.srcPtr = *((cudaPitchedPtr*)d_points_);
-	CudaSafeCall( cudaMemcpy3D(&copyParams) ); 
-
+	CudaSafeCall( cudaMemcpy3D(&copyParams) );*/
+	//CudaSafeCall(cudaMallocArray(&temp, &channelDescCoeff, width_*height_*depth_));
+	CudaSafeCall(cudaMemcpyToArray(temp, 0, 0, d_points_, sizeof(float)*width_*height_*depth_, cudaMemcpyDeviceToDevice));
 	//CudaSafeCall(cudaBindTextureToArray(tex, temp, *channelDescCoeff));
 	
 	tex.normalized = false;  // access with normalized texture coordinates
@@ -240,10 +245,8 @@ void TextureList::PrefilterArray(void){
 		
 	//inialize texture values
 	//this may have red underlines everywhere but it is right
-	float* ptr = (float*)(((cudaPitchedPtr*)d_points_)->ptr);
-	//cudaMalloc(&ptr, 1000*sizeof(float));
-	//cudaMemset(ptr,0,1000*sizeof(float));
-	RunBSplineKernel(ptr, width_,height_,depth_);
+	//float* ptr = (float*)(((cudaPitchedPtr*)d_points_)->ptr);
+	RunBSplineKernel((float*)d_points_, width_,height_,depth_);
 
 	GpuToCpu();
 }
