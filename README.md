@@ -6,19 +6,29 @@ Software used to automatically calibrate the extrinsic parameters of several sen
 Currently restructuring software to be more user friendly / stop it segfaulting everywhere.
 
 Working-
+
 Loading Moving Image / scan
+
 Loading Base Image
-Error reporting
-Affine Transform
+
+Error reporting Affine Transform
+
 Camera Transform
+
 Returning generated scan
 
 In Progress-
+
 Interpolation
+
 Visualization
 
 Still to do-
+
 metrics
+
 general build/make files
+
 tidy up documentation
+
 add info to wiki
