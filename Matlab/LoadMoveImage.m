@@ -15,8 +15,9 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-%setting move image
-calllib('LibCal','setMoveImage', imgNum, size(img,1), size(img,2), size(img,3), single(img));
+%setting move image (dim 2 before 1 because (y,x,z) is way too confusing
+%system to use
+calllib('LibCal','setMoveImage', imgNum, size(img,2), size(img,1), size(img,3), single(img)');
 
 end
 

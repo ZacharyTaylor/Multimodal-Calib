@@ -1,8 +1,8 @@
 #include "Kernel.h"
 #include <vector_types.h>
-#include "CI.h"
+//#include "CI.h"
 
-__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, const float layer, float* valsOut, const size_t numPoints){
+__global__ void DenseImageNNKernel(cudaPitchedPtr in, const float* locIn, float* valsOut, const size_t numPoints){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
@@ -10,10 +10,38 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 		return;
 	}
 
-	float3 loc;
+	int2 loc;
+	loc.x = floor(locIn[i]+0.5f);
+	loc.y = floor(locIn[i + numPoints]+0.5f);
+
+	int2 maxSize;
+	maxSize.x = in.xsize/sizeof(float);
+	maxSize.y = in.ysize;
+
+	bool inside =
+		0 <= loc.x && loc.x < maxSize.x &&
+		0 <= loc.y && loc.y < maxSize.y;
+
+	if (!inside){
+		valsOut[i] = 0.0f;
+	}
+	else{
+		//void* inLoc = //((unsigned char*)in.ptr) + (loc.x + in.pitch*loc.y)*sizeof(float);
+		valsOut[i] = ((float*)(in.ptr))[loc.x + (in.pitch/sizeof(float))*loc.y];//*((float*)(inLoc));
+	}
+}
+
+__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints){
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= numPoints){
+		valsOut[i] = 0.0f;
+		return;
+	}
+
+	float2 loc;
 	loc.x = locIn[i + numPoints]+0.5f;
 	loc.y = locIn[i]+0.5f;
-	loc.z = layer + 0.5f;
 
 	bool inside =
 		0 < loc.x && loc.x < width &&
@@ -23,7 +51,7 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 		valsOut[i] = 0.0f;
 	}
 	else{
-		valsOut[i] = cubicTex3D(tex, loc);
+		valsOut[i] = tex2D(tex, loc.x,loc.y);
 	}
 }
 
@@ -120,7 +148,7 @@ __global__ void GOMKernel(const float* A, const float* B, const size_t length, f
 	magOut[i] =  mag;
 }
 
-void RunBSplineKernel(float* volume, size_t width, size_t height, size_t depth){
-	CubicBSplinePrefilter3D(volume, sizeof(float), width,height,depth);
+void RunBSplineKernel(float* volume, size_t width, size_t height){
+	//CubicBSplinePrefilter2D(volume, sizeof(float), width,height);
 }
 

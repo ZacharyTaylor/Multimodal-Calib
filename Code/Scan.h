@@ -55,8 +55,8 @@ public:
 class DenseImage: public Scan {
 public:
 
-	DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points);
-	DenseImage(const size_t height, const size_t width, const size_t numCh, float* pointsIn);
+	DenseImage(const size_t width, const size_t height, const size_t numCh, TextureList* points);
+	DenseImage(const size_t width, const size_t height, const size_t numCh, float* pointsIn);
 	TextureList* getPoints(void);
 	void d_interpolate(SparseScan* scan);
 

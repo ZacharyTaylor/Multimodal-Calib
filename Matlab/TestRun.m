@@ -4,8 +4,6 @@ DEBUG_TRACE = 3;
 Initilize(5,5,5);
 
 a = getImages;
-a(:,:,2) = a;
-a(:,:,3) = a(:,:,1);
 
 %LoadMoveScan(1,a,3);
 %out = GetMove(1);

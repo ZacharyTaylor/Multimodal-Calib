@@ -67,7 +67,7 @@ DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, un
 	}
 }
 
-DllExport void setBaseImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* base){
+DllExport void setBaseImage(unsigned int scanNum, unsigned int width, unsigned int height, unsigned int numCh, float* base){
 	
 	if(scanNum >= numBase){
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numBase);
@@ -79,10 +79,10 @@ DllExport void setBaseImage(unsigned int scanNum, unsigned int height, unsigned 
 		baseStore[scanNum] = NULL;
 	}
 
-	baseStore[scanNum] = new DenseImage(height, width, numCh, base);
+	baseStore[scanNum] = new DenseImage(width, height, numCh, base);
 }
 
-DllExport void setMoveImage(unsigned int scanNum, unsigned int height, unsigned int width, unsigned int numCh, float* move){
+DllExport void setMoveImage(unsigned int scanNum, unsigned int width, unsigned int height, unsigned int numCh, float* move){
 	
 	if(scanNum >= numMove){
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numMove);
@@ -94,7 +94,7 @@ DllExport void setMoveImage(unsigned int scanNum, unsigned int height, unsigned 
 		moveStore[scanNum] = NULL;
 	}
 
-	size_t dimSize[2] = {height, width};
+	size_t dimSize[2] = {width, height};
 	float* loc = SparseScan::GenLocation(IMAGE_DIM, dimSize);
 	moveStore[scanNum] = new SparseScan(IMAGE_DIM,numCh,height*width, move, loc);
 }

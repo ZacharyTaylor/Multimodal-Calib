@@ -41,7 +41,7 @@ protected:
 	const size_t depth_;
 public:
 
-	TextureList(float* points, bool copy, const size_t height = 1, const size_t width = 1, const size_t depth = 1);
+	TextureList(float* points, bool copy, const size_t width = 1, const size_t height = 1, const size_t depth = 1);
 	size_t GetHeight(void);
 	size_t GetWidth(void);
 	size_t GetDepth(void);

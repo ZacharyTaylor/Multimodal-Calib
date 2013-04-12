@@ -11,7 +11,9 @@ Loading Moving Image / scan
 
 Loading Base Image
 
-Error reporting Affine Transform
+Error reporting 
+
+Affine Transform
 
 Camera Transform
 
@@ -23,9 +25,9 @@ Interpolation
 
 Visualization
 
-Still to do-
-
 metrics
+
+Still to do-
 
 general build/make files
 

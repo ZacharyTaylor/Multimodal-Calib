@@ -60,10 +60,10 @@ DenseImage::DenseImage(const size_t height, const size_t width, const size_t num
 }
 
 //creates own copy of data
-DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, float* pointsIn):
+DenseImage::DenseImage(const size_t width, const size_t height, const size_t numCh, float* pointsIn):
 	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),NULL)
 {
-	TextureList* points = new TextureList(pointsIn, true, height, width, numCh);
+	TextureList* points = new TextureList(pointsIn, true, width, height, numCh);
 	points_ = points;
 
 	tex.addressMode[0] = cudaAddressModeWrap;
@@ -75,8 +75,8 @@ DenseImage::DenseImage(const size_t height, const size_t width, const size_t num
 
 size_t* DenseImage::setDimSize(const size_t width, const size_t height, const size_t numCh){
 	size_t* out = new size_t[3];
-	out[0] = height;
-	out[1] = width;
+	out[0] = width;
+	out[1] = height;
 	out[3] = numCh;
 
 	return out;
@@ -88,18 +88,27 @@ void DenseImage::d_interpolate(SparseScan* scan){
 		getPoints()->AllocateGpu();
 		getPoints()->CpuToGpu();
 		}
-	
-	//create texture
-	cudaChannelFormatDesc channelDescCoeff = cudaCreateChannelDesc<float>();
-	
-	CudaSafeCall(cudaBindTextureToArray(&tex, (cudaArray*)(getPoints()->GetGpuPointer()), &channelDescCoeff));
 
-	for(size_t i = 0; i < scan->getNumCh(); i++){
+	DenseImageNNKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
+		(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[0], 
+		(float*)scan->GetLocation()->GetGpuPointer(),
+		(float*)scan->getPoints()->GetGpuPointer(),
+		scan->getDimSize(0));
+	//DenseImageInterpolateKernel<<<gridSize(320*2014) ,BLOCK_SIZE>>>	
+	//	(2014, 320, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
 
-		DenseImageInterpolateKernel<<<gridSize(getPoints()->GetHeight() * getPoints()->GetWidth()) ,BLOCK_SIZE>>>	
-			(getPoints()->GetWidth(), getPoints()->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), (float)i, (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
+
+		//cudaArray* arr = *(((cudaArray***)(getPoints()->GetGpuPointer()))[i]);
+		//CudaSafeCall(cudaBindTextureToArray(&tex, arr, &channelDescCoeff));
+
+		//float* points = &(((float*)scan->getPoints()->GetGpuPointer())[i*getPoints()->GetWidth() * getPoints()->GetHeight()]);
+		//float* points = (float*)(scan->getPoints()->GetGpuPointer());
+		//DenseImageInterpolateKernel<<<gridSize(getPoints()->GetHeight() * getPoints()->GetWidth()) ,BLOCK_SIZE>>>	
+		//	(getPoints()->GetWidth(), getPoints()->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), points, scan->getDimSize(0));
+
+
 		CudaCheckError();
-	}
+	//}
 }
 
 TextureList* DenseImage::getPoints(void){
@@ -145,9 +154,6 @@ float* SparseScan::GenLocation(size_t numDim, size_t* dimSize){
 		j++;
 		iter[0]++;
 		for( size_t i = 0; i < numDim; i++ ){
-			if(iter[i] == 319){
-				iter[i] = 319;
-			}
 			if(iter[i] >= dimSize[i]){
 				if(i != (numDim-1)){
 					iter[i+1]++;

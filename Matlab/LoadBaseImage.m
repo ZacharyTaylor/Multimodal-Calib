@@ -16,7 +16,7 @@ end
 CheckLoaded();
 
 %setting base image
-calllib('LibCal','setBaseImage', imgNum, size(img,1), size(img,2), size(img,3), single(img));
+calllib('LibCal','setBaseImage', imgNum, size(img,2), size(img,1), size(img,3), single(img)');
 
 end
 
