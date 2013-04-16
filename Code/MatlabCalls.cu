@@ -5,6 +5,8 @@
 #include "Points.h"
 #include "Scan.h"
 #include "Tform.h"
+#include "Metric.h"
+#include "Render.h"
 
 
 //global so that matlab never has to see them
@@ -18,7 +20,11 @@ Camera* camera = NULL;
 
 Tform* tform = NULL;
 
+Metric* metric = NULL;
+
 SparseScan* gen = NULL;
+
+Render render;
 
 DllExport unsigned int getNumMove(void){
 	return numMove;
@@ -33,13 +39,34 @@ DllExport void clearScans(void){
 		for(unsigned int i = 0; i < numMove; i++){
 			delete moveStore[i];
 		}
+		delete moveStore;
+		moveStore = NULL;
 	}	
 
 	if(baseStore != NULL){
 		for(unsigned int i = 0; i < numBase; i++){
 			delete baseStore[i];
 		}
-	}	
+		delete baseStore;
+		baseStore = NULL;
+	}
+	if(gen != NULL){
+		delete gen;
+		gen = NULL;
+	}
+}
+
+DllExport void clearTform(void){
+	delete tform;
+	tform = NULL;
+}
+
+DllExport void clearMetric(void){
+	delete metric;
+	metric = NULL;
+}
+
+DllExport void clearRender(void){
 }
 
 DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn){
@@ -94,9 +121,13 @@ DllExport void setMoveImage(unsigned int scanNum, unsigned int width, unsigned i
 		moveStore[scanNum] = NULL;
 	}
 
-	size_t dimSize[2] = {width, height};
+	size_t* dimSize = new size_t[2];
+	dimSize[0] = width;
+	dimSize[1] = height;
 	float* loc = SparseScan::GenLocation(IMAGE_DIM, dimSize);
 	moveStore[scanNum] = new SparseScan(IMAGE_DIM,numCh,height*width, move, loc);
+	delete[] loc;
+	loc = NULL;
 }
 
 DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned int numCh, unsigned int numPoints, float* move){
@@ -400,14 +431,14 @@ DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum){
 
 	//setup generated image
 	PointsList* points = new PointsList(base->getNumCh()*move->getNumPoints());
-	gen = new SparseScan(move->getNumDim(), base->getNumCh(), move->getNumPoints(), points, move->GetLocation());
+	gen = new SparseScan(0, base->getNumCh(), move->getNumPoints(), points, NULL);
 
 	gen->getPoints()->AllocateGpu();
 
 	//ensure gen is setup
-	if(!gen->GetLocation()->IsOnGpu()){
-		gen->GetLocation()->AllocateGpu();
-		gen->GetLocation()->CpuToGpu();
+	if(!move->GetLocation()->IsOnGpu()){
+		move->GetLocation()->AllocateGpu();
+		move->GetLocation()->CpuToGpu();
 	}
 
 	//ensure base is setup
@@ -416,5 +447,88 @@ DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum){
 		base->getPoints()->CpuToGpu();
 	}
 
-	base->d_interpolate(gen);
+	base->d_interpolate(points, move->GetLocation(), move->getNumPoints());
 }
+
+DllExport void setupMIMetric(void){
+	if(metric != NULL){
+		TRACE_INFO("A metric already exists, overwriting it");
+		delete metric;
+		metric = NULL;
+	}
+
+	metric = new MI();
+}
+DllExport void setupGOMMetric(void){
+	if(metric != NULL){
+		TRACE_INFO("A metric already exists, overwriting it");
+		delete metric;
+		metric = NULL;
+	}
+
+	metric = new GOM();
+}
+
+DllExport void setupLivMetric(void){
+	if(metric != NULL){
+		TRACE_INFO("A metric already exists, overwriting it");
+		delete metric;
+		metric = NULL;
+	}
+
+	metric = new LIV();
+}
+
+DllExport float getMetricVal(unsigned int moveNum){
+	if(metric == NULL){
+		TRACE_ERROR("No metric setup, returning");
+		return 0;
+	}
+
+	if(moveNum >= numMove){
+		TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
+		return 0;
+	}
+
+	SparseScan* move = moveStore[moveNum];
+	
+	if(move == NULL){
+		TRACE_ERROR("A moving image is required");
+		return 0;
+	}
+	if(gen == NULL){
+		TRACE_ERROR("A generated image is required");
+		return 0;
+	}
+
+	//ensure gen is setup
+	if(!gen->getPoints()->IsOnGpu()){
+		gen->getPoints()->AllocateGpu();
+		gen->getPoints()->CpuToGpu();
+	}
+
+	//ensure move is setup
+	if(!move->getPoints()->IsOnGpu()){
+		move->getPoints()->AllocateGpu();
+		move->getPoints()->CpuToGpu();
+	}
+
+	return metric->EvalMetric(move, gen);
+}
+
+DllExport float* outputImage(unsigned int width, unsigned int height){
+	if(gen == NULL){
+		TRACE_ERROR("A generated image is required");
+		return 0;
+	}
+
+	//ensure gen is setup
+	if(!gen->getPoints()->IsOnGpu()){
+		gen->getPoints()->AllocateGpu();
+		gen->getPoints()->CpuToGpu();
+	}
+
+	render.GetImage(gen, width, height);
+	return render.out_;
+}
+

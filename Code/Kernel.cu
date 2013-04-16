@@ -2,6 +2,27 @@
 #include <vector_types.h>
 //#include "CI.h"
 
+__global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t numPoints){
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= numPoints){
+		out[i] = 0.0f;
+		return;
+	}
+
+	int2 loc;
+	loc.x = floor(locs[i]+0.5f);
+	loc.y = floor(locs[i + numPoints]+0.5f);
+
+	bool inside =
+		0 <= loc.x && loc.x < width &&
+		0 <= loc.y && loc.y < height;
+
+	if (inside){
+		out[loc.x + width*loc.y] = vals[i];
+	}
+}
+
 __global__ void DenseImageNNKernel(cudaPitchedPtr in, const float* locIn, float* valsOut, const size_t numPoints){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 

@@ -33,7 +33,8 @@ PointsList::~PointsList(){
 		ClearGpu();
 	}
 
-	delete [] points_;
+	delete[] points_;
+	points_ = NULL;
 }
 
 size_t PointsList::GetNumEntries(){
@@ -90,6 +91,12 @@ void PointsList::CpuToGpu(void){
 	}
 	TRACE_INFO("%i points to be copied from host to device", numEntries_);
 	CudaSafeCall(cudaMemcpy(d_points_, points_, sizeof(float)*numEntries_, cudaMemcpyHostToDevice));
+}
+
+TextureList::~TextureList(){
+	if(IsOnGpu()){
+		ClearGpu();
+	}
 }
 
 void TextureList::AllocateGpu(void){

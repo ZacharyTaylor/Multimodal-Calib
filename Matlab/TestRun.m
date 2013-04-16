@@ -2,29 +2,31 @@ global DEBUG_TRACE
 DEBUG_TRACE = 3;
 
 Initilize(5,5,5);
+SetupMIMetric();
 
 a = getImages;
-
-%LoadMoveScan(1,a,3);
-%out = GetMove(1);
 
 LoadMoveImage(1,a);
 LoadBaseImage(2,a);
 
-InterpolateBaseValues(1,2);
-
-out = getGenVals(1);
-out2 = GetBase(2);
-
-% SetupCamera(1);
-% camera = [100 0 100 0; 0 100 100 0; 0 0 1 0];
-% SetCameraMatrix(camera);
+% InterpolateBaseValues(1,0);
 % 
-% SetupCameraTform();
-% tform = [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
-% SetTformMatrix(tform);
-% 
-% Transform(1);
+% out = EvalMetric(1);
+
+%out2 = OutputImage(2000,300);
+
+%out = getGenVals(1);
+%out2 = GetBase(2);
+
+SetupCamera(1);
+camera = [100 0 100 0; 0 100 100 0; 0 0 1 0];
+SetCameraMatrix(camera);
+
+SetupCameraTform();
+tform = [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
+SetTformMatrix(tform);
+
+Transform(1);
 % 
 % out = getGenerated(1);
 

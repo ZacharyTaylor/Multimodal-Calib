@@ -19,6 +19,7 @@ public:
 
 	Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize);
 	Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize, PointsList* points);
+	~Scan(void);
 	size_t getNumDim(void);
 	size_t getNumCh(void);
 	size_t getDimSize(size_t i);
@@ -47,6 +48,7 @@ public:
 	SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints, float* pointsIn, float* locationIn);
 	SparseScan(Scan in);
 	SparseScan(Scan in, PointsList* location);
+	~SparseScan(void);
 	size_t getNumPoints(void);
 	PointsList* GetLocation(void);
 };
@@ -57,8 +59,9 @@ public:
 
 	DenseImage(const size_t width, const size_t height, const size_t numCh, TextureList* points);
 	DenseImage(const size_t width, const size_t height, const size_t numCh, float* pointsIn);
+	~DenseImage(void);
 	TextureList* getPoints(void);
-	void d_interpolate(SparseScan* scan);
+	void d_interpolate(PointsList* loc, PointsList* points, size_t numPoints);
 
 private:
 

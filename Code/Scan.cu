@@ -14,6 +14,13 @@ Scan::Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize, Poin
 	dimSize_(dimSize),
 	points_(points){}
 
+Scan::~Scan(void){
+	delete[] dimSize_;
+	dimSize_ = NULL;
+	delete points_;
+	points_ = NULL;
+}
+
 size_t Scan::getNumDim(void){
 	return numDim_;
 }
@@ -73,27 +80,33 @@ DenseImage::DenseImage(const size_t width, const size_t height, const size_t num
 	tex.normalized = false; 
 }
 
+DenseImage::~DenseImage(void){
+	delete (TextureList*)points_;
+	points_ = NULL;
+}
+
 size_t* DenseImage::setDimSize(const size_t width, const size_t height, const size_t numCh){
 	size_t* out = new size_t[3];
 	out[0] = width;
 	out[1] = height;
-	out[3] = numCh;
+	out[2] = numCh;
 
 	return out;
 }
 
-void DenseImage::d_interpolate(SparseScan* scan){
+void DenseImage::d_interpolate(PointsList* loc, PointsList* points, size_t numPoints){
 	if(!getPoints()->IsOnGpu()){
 		TRACE_WARNING("Dense image not on gpu, loading now");
 		getPoints()->AllocateGpu();
 		getPoints()->CpuToGpu();
 		}
-
-	DenseImageNNKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
-		(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[0], 
-		(float*)scan->GetLocation()->GetGpuPointer(),
-		(float*)scan->getPoints()->GetGpuPointer(),
-		scan->getDimSize(0));
+	for(size_t i = 0; i < getPoints()->GetDepth(); i++){
+		DenseImageNNKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
+			(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[i], 
+			(float*)loc->GetGpuPointer(),
+			(float*)(&(((float*)points->GetGpuPointer())[numPoints*i])),
+			numPoints);
+	}
 	//DenseImageInterpolateKernel<<<gridSize(320*2014) ,BLOCK_SIZE>>>	
 	//	(2014, 320, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
 
@@ -117,7 +130,7 @@ TextureList* DenseImage::getPoints(void){
 
 
 size_t* SparseScan::setDimSize(const size_t numCh, const size_t numDim, const size_t numPoints){
-	size_t* out = new size_t(2);
+	size_t* out = new size_t[2];
 	out[0] = numPoints;
 	out[1] = numCh + numDim;
 
@@ -196,6 +209,11 @@ SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t nu
 
 	PointsList* location = new PointsList(locationIn, numDim*numPoints, true);
 	location_ = location;
+}
+
+SparseScan::~SparseScan(void){
+	delete location_;
+	location_ = NULL;
 }
 
 /*SparseScan::SparseScan(Scan in):

@@ -1,3 +1,20 @@
+#ifndef RENDER_H
+#define RENDER_H
+
+#include "common.h"
+#include "trace.h"
+#include "Scan.h"
+
+class Render{
+public:
+	float* out_;
+	Render(void);
+	~Render(void);
+	void GetImage(SparseScan* in, size_t width, size_t height);
+};
+
+#endif //RENDER_H
+
 /*#ifndef RENDER_H
 #define RENDER_H
 

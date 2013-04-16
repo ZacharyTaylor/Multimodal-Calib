@@ -46,6 +46,7 @@ class CameraTform: public Tform {
 public:
 
 	CameraTform(Camera* cam);
+	~CameraTform(void);
 	void d_Transform(SparseScan* in, SparseScan* out);
 
 private:
@@ -57,6 +58,7 @@ class AffineTform: public Tform {
 public:
 
 	AffineTform(void);
+	~AffineTform(void);
 	void d_Transform(SparseScan* in, SparseScan* out);
 };
 

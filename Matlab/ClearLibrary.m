@@ -5,6 +5,7 @@ function [] = ClearLibrary()
 if(libisloaded('LibCal'))
     TRACE_INFO('Clearing multimodal calibration library');
     
+    CleanUp();
     unloadlibrary('LibCal');
 end
 

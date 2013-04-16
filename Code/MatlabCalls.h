@@ -15,6 +15,10 @@ DllExport unsigned int getNumBase(void);
 DllExport unsigned int getNumPairs(void);
 
 DllExport void clearScans(void);
+DllExport void clearMetric(void);
+DllExport void clearTform(void);
+DllExport void clearRender(void);
+
 DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn);
 
 DllExport void setBaseImage(unsigned int scanNum, unsigned int width, unsigned int height, unsigned int numCh, float* base);
@@ -45,6 +49,14 @@ DllExport float* getGenLocs(void);
 DllExport float* getGenPoints(void);
 
 DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum);
+
+DllExport void setupMIMetric(void);
+DllExport void setupGOMMetric(void);
+DllExport void setupLivMetric(void);
+
+DllExport float getMetricVal(unsigned int moveNum);
+
+DllExport float* outputImage(unsigned int width, unsigned int height);
 
 DllExport void checkCudaErrors(void);
 

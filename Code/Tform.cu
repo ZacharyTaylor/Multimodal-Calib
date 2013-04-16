@@ -34,7 +34,7 @@ Tform::Tform(size_t sizeTform):
 }
 
 Tform::~Tform(void){
-	 CudaSafeCall(cudaFree(d_tform_));
+	CudaSafeCall(cudaFree(d_tform_));
 }
 
 void Tform::SetTform(float* tform){
@@ -50,6 +50,11 @@ float* Tform::d_GetTform(void){
 CameraTform::CameraTform(Camera* cam):
 	Tform(CAM_DIM + 1){
 	cam_ = cam;
+}
+
+CameraTform::~CameraTform(void){
+	CudaSafeCall(cudaFree(d_tform_));
+	delete cam_;
 }
 
 
@@ -77,6 +82,10 @@ void CameraTform::d_Transform(SparseScan* in, SparseScan* out){
 
 AffineTform::AffineTform(void):
 	Tform(AFFINE_DIM + 1){}
+
+AffineTform::~AffineTform(void){
+	CudaSafeCall(cudaFree(d_tform_));
+}
 
 void AffineTform::d_Transform(SparseScan* in, SparseScan* out){
 

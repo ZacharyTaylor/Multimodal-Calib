@@ -3,6 +3,10 @@
 
 extern "C" float cudaMIa(float* src1, float* src2, int length, int xbins, int ybins, struct cudaHistOptions* p_options, int device, int incZeros);
 
+float Metric::EvalMetric(SparseScan* A, SparseScan* B){
+	return 0;
+}
+
 float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	
 	//move scans to gpu if required
@@ -84,4 +88,9 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	float magRes = reduceOut[0];
 
 	return (phaseRes / magRes);
+}
+
+float LIV::EvalMetric(SparseScan* A, SparseScan* B){
+	TRACE_ERROR("Not yet implemented");
+	return 0;
 }
