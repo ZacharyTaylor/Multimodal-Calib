@@ -19,6 +19,9 @@ function f=alignImages(base, move, tform)
     Transform(0);
     InterpolateBaseValues(0);
     
+    gen = GetGen();
+    mov = GetMove(0);
+    
     f = EvalMetric(0)
     if(isnan(f) || isinf(f))
         f = 0;

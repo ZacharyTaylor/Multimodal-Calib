@@ -1,19 +1,5 @@
-function [ gen ] = GetGen(imgNum)
+function [ gen ] = GetGen()
 %GETGENERATED outputs moving image imNum from scan
-
-%check inputs
-if((imgNum ~= round(imgNum)) || (imgNum < 0))
-    TRACE_ERROR('number of move scans must be a positive integer, returning');
-    return;
-end
-
-imTot = calllib('LibCal','getNumMove');
-
-if(imTot <= imgNum)
-    string = sprintf('requested image %i of %i',imgNum,imTot);
-    TRACE_ERROR(string);
-    return;
-end
 
 %ensures the library is loaded
 CheckLoaded();
@@ -25,9 +11,9 @@ locs = calllib('LibCal','getGenLocs');
 points = calllib('LibCal','getGenPoints');
 
 %get size of pointers
-numPoints = calllib('LibCal','getMoveNumPoints', imgNum);
-numCh = calllib('LibCal','getMoveNumCh', imgNum);
-numDim = calllib('LibCal','getMoveNumDim', imgNum);
+numPoints = calllib('LibCal','getGenNumPoints');
+numCh = calllib('LibCal','getGenNumCh');
+numDim = calllib('LibCal','getGenNumDim');
 
 setdatatype(locs,'singlePtr',numPoints,numDim);
 setdatatype(points,'singlePtr',numPoints,numCh);

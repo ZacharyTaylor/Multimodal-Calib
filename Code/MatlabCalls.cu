@@ -367,32 +367,64 @@ DllExport void transform(unsigned int imgNum){
 	tform->d_Transform(move, gen);
 }
 
-
 DllExport float* getGenLocs(void){
 	
-	if(gen == NULL){
-		TRACE_ERROR("No image Generated, returning");
+	if((gen == NULL) || (gen->GetLocation() == NULL)){
+		TRACE_ERROR("Generated locations has not been allocated, returning");
 		return NULL;
 	}
 
 	//copy gpu info so that most up to date map is on cpu
 	gen->GetLocation()->GpuToCpu();
-	
+
 	float* out = gen->GetLocation()->GetCpuPointer();
 	return out;
 }
 
 DllExport float* getGenPoints(void){
 	
-	if(gen == NULL){
-		TRACE_ERROR("No image Generated, returning");
+	if((gen == NULL) || (gen->getPoints() == NULL)){
+		TRACE_ERROR("Generated points has not been allocated, returning");
 		return NULL;
 	}
 
 	//copy gpu info so that most up to date map is on cpu
 	gen->getPoints()->GpuToCpu();
-	
+
 	float* out = gen->getPoints()->GetCpuPointer();
+	return out;
+}
+
+DllExport int getGenNumCh(void){
+	
+	if((gen == NULL)){
+		TRACE_ERROR("Generated image has not been allocated, returning");
+		return NULL;
+	}
+
+	int out = (int)gen->getNumCh();
+	return out;
+}
+
+DllExport int getGenNumDim(void){
+	
+	if((gen == NULL)){
+		TRACE_ERROR("Generated image has not been allocated, returning");
+		return NULL;
+	}
+
+	int out = (int)gen->getNumDim();
+	return out;
+}
+
+DllExport int getGenNumPoints(void){
+	
+	if((gen == NULL)){
+		TRACE_ERROR("Generated image has not been allocated, returning");
+		return NULL;
+	}
+
+	int out = (int)gen->getNumPoints();
 	return out;
 }
 

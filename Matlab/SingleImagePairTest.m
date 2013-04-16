@@ -12,18 +12,13 @@ SetupAffineTform();
 
 %% input values
 
-tform = [0 0 0 1 1 0 0];
+tform = [0 0 0 3 2 0 0];
 
 %% get Data
 [base, move] = getImages();
 
-%normalize
-base = single(base)/255;
-move = single(move)/255;
-
-%hestogram equalize
-base = histeq(base);
-move = histeq(move);
+base = single(base);
+move = single(move);
 
 %% get image alignment
 
@@ -31,13 +26,3 @@ LoadMoveImage(0,move);
 LoadBaseImage(0,base);
 
 alignImages(base, move, tform);
-
-        
-
-%% display result
-
-
-%% clean up
-clearTexture(moveTexPtr);
-clearImage(baseD);
-unloadlibrary('cudaImage');

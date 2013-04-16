@@ -37,14 +37,6 @@ param.upper = initalGuess + range;
 %% get Data
 [base, move] = getImages();
 
-%normalize
-base = single(base)/255;
-move = single(move)/255;
-
-%hestogram equalize
-base = histeq(base);
-move = histeq(move);
-
 %% get image alignment
 
 LoadMoveImage(0,move);

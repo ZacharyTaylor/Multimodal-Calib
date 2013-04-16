@@ -48,6 +48,10 @@ DllExport void transform(unsigned int imgNum);
 DllExport float* getGenLocs(void);
 DllExport float* getGenPoints(void);
 
+DllExport int getGenNumCh(void);
+DllExport int getGenNumDim(void);
+DllExport int getGenNumPoints(void);
+
 DllExport void genBaseValues(unsigned int baseNum);
 
 DllExport void setupMIMetric(void);
