@@ -19,7 +19,7 @@ DllExport void clearMetric(void);
 DllExport void clearTform(void);
 DllExport void clearRender(void);
 
-DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn);
+DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn);
 
 DllExport void setBaseImage(unsigned int scanNum, unsigned int width, unsigned int height, unsigned int numCh, float* base);
 DllExport void setMoveImage(unsigned int scanNum, unsigned int width, unsigned int height, unsigned int numCh, float* move);
@@ -48,7 +48,7 @@ DllExport void transform(unsigned int imgNum);
 DllExport float* getGenLocs(void);
 DllExport float* getGenPoints(void);
 
-DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum);
+DllExport void genBaseValues(unsigned int baseNum);
 
 DllExport void setupMIMetric(void);
 DllExport void setupGOMMetric(void);

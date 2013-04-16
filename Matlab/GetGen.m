@@ -1,4 +1,4 @@
-function [ gen ] = getGenLocs(imgNum)
+function [ gen ] = GetGen(imgNum)
 %GETGENERATED outputs moving image imNum from scan
 
 %check inputs
@@ -22,7 +22,7 @@ CheckLoaded();
 locs = calllib('LibCal','getGenLocs');
 
 %get points
-points = calllib('LibCal','getMovePoints', imgNum);
+points = calllib('LibCal','getGenPoints');
 
 %get size of pointers
 numPoints = calllib('LibCal','getMoveNumPoints', imgNum);

@@ -1,14 +1,14 @@
 #include "Scan.h"
 #include "Kernel.h"
 
-Scan::Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize) : 
+Scan::Scan(size_t numDim, size_t numCh,  size_t* dimSize) : 
 	numDim_(numDim),
 	numCh_(numCh),
 	dimSize_(dimSize)
 {	
 }
 
-Scan::Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize, PointsList* points) : 
+Scan::Scan(size_t numDim, size_t numCh,  size_t* dimSize, PointsList* points) : 
 	numDim_(numDim),
 	numCh_(numCh),
 	dimSize_(dimSize),
@@ -94,7 +94,7 @@ size_t* DenseImage::setDimSize(const size_t width, const size_t height, const si
 	return out;
 }
 
-void DenseImage::d_interpolate(PointsList* loc, PointsList* points, size_t numPoints){
+void DenseImage::d_interpolate(SparseScan* scan){
 	if(!getPoints()->IsOnGpu()){
 		TRACE_WARNING("Dense image not on gpu, loading now");
 		getPoints()->AllocateGpu();
@@ -103,9 +103,9 @@ void DenseImage::d_interpolate(PointsList* loc, PointsList* points, size_t numPo
 	for(size_t i = 0; i < getPoints()->GetDepth(); i++){
 		DenseImageNNKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
 			(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[i], 
-			(float*)loc->GetGpuPointer(),
-			(float*)(&(((float*)points->GetGpuPointer())[numPoints*i])),
-			numPoints);
+			(float*)scan->GetLocation()->GetGpuPointer(),
+			(float*)(&(((float*)scan->getPoints()->GetGpuPointer())[scan->getNumPoints()*i])),
+			scan->getNumPoints());
 	}
 	//DenseImageInterpolateKernel<<<gridSize(320*2014) ,BLOCK_SIZE>>>	
 	//	(2014, 320, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
@@ -214,6 +214,11 @@ SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t nu
 SparseScan::~SparseScan(void){
 	delete location_;
 	location_ = NULL;
+}
+
+void SparseScan::changeNumCh(size_t numCh){
+		numCh_ = numCh;
+		dimSize_[1] = numCh_+numDim_;
 }
 
 /*SparseScan::SparseScan(Scan in):

@@ -6,7 +6,6 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
-		out[i] = 0.0f;
 		return;
 	}
 
@@ -15,8 +14,8 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 	loc.y = floor(locs[i + numPoints]+0.5f);
 
 	bool inside =
-		0 <= loc.x && loc.x < width &&
-		0 <= loc.y && loc.y < height;
+		((0 <= loc.x) && (loc.x < width) &&
+		(0 <= loc.y) && (loc.y < height));
 
 	if (inside){
 		out[loc.x + width*loc.y] = vals[i];

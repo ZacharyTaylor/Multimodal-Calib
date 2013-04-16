@@ -22,9 +22,12 @@ void Render::GetImage(SparseScan* in, size_t width, size_t height){
 
 	for(size_t i = 0; i < depth; i++){
 		generateOutputKernel<<<gridSize(in->getNumPoints()) ,BLOCK_SIZE>>>(
-			&(((float*)in->GetLocation()->GetGpuPointer())[in->getNumPoints()*i]),
-			&(((float*)in->getPoints()->GetGpuPointer())[in->getNumPoints()*i]), 
-			&(d_out[width*height*i]), 
+			((float*)in->GetLocation()->GetGpuPointer()),
+			((float*)in->getPoints()->GetGpuPointer()), 
+			d_out, 
+			//((float*)in->GetLocation()->GetGpuPointer()),
+			//&(((float*)in->getPoints()->GetGpuPointer())[in->getNumPoints()*i]), 
+			//&(d_out[width*height*i]), 
 			width, 
 			height, 
 			in->getNumPoints());

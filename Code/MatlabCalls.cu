@@ -69,7 +69,7 @@ DllExport void clearMetric(void){
 DllExport void clearRender(void){
 }
 
-DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numPairsIn){
+DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn){
 	
 	if((moveStore != NULL) || (baseStore != NULL)){
 		TRACE_INFO("Scans already initalized, clearing and writing new data");
@@ -400,45 +400,40 @@ DllExport void checkCudaErrors(void){
 	CudaCheckError();
 }
 
-DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum){
+DllExport void genBaseValues(unsigned int baseNum){
 	if(baseNum >= numBase){
 		TRACE_ERROR("Cannot get base image %i as only %i images exist",baseNum,numBase);
 		return;
 	}
 
-	if(moveNum >= numMove){
-		TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
+	if((gen == NULL) || (gen->GetLocation() == NULL)){
+		TRACE_ERROR("A generated location is required for interpolation");
 		return;
 	}
 
-	if(gen != NULL){
-		TRACE_INFO("Clearing generated image ready for new transform");
-		delete gen;
-		gen = NULL;
+	PointsList* points = gen->getPoints();
+	if(points != NULL){
+		TRACE_INFO("Clearing generated image ready for new interpolation");
+		delete points;
+		points = NULL;
 	}
 
-	SparseScan* move = moveStore[moveNum];
 	DenseImage* base = baseStore[baseNum];
-	
-	if(move == NULL){
-		TRACE_ERROR("A moving image is required to interpolate from");
-		return;
-	}
+	gen->changeNumCh(base->getNumCh());
+
 	if(base == NULL){
 		TRACE_ERROR("A base image is required to interpolate");
 		return;
 	}
 
 	//setup generated image
-	PointsList* points = new PointsList(base->getNumCh()*move->getNumPoints());
-	gen = new SparseScan(0, base->getNumCh(), move->getNumPoints(), points, NULL);
-
-	gen->getPoints()->AllocateGpu();
+	points = new PointsList(base->getNumCh()*gen->getNumPoints());
+	points->AllocateGpu();
 
 	//ensure gen is setup
-	if(!move->GetLocation()->IsOnGpu()){
-		move->GetLocation()->AllocateGpu();
-		move->GetLocation()->CpuToGpu();
+	if(!gen->GetLocation()->IsOnGpu()){
+		gen->GetLocation()->AllocateGpu();
+		gen->GetLocation()->CpuToGpu();
 	}
 
 	//ensure base is setup
@@ -447,7 +442,7 @@ DllExport void genBaseValues(unsigned int moveNum, unsigned int baseNum){
 		base->getPoints()->CpuToGpu();
 	}
 
-	base->d_interpolate(points, move->GetLocation(), move->getNumPoints());
+	base->d_interpolate(gen);
 }
 
 DllExport void setupMIMetric(void){
@@ -517,7 +512,7 @@ DllExport float getMetricVal(unsigned int moveNum){
 }
 
 DllExport float* outputImage(unsigned int width, unsigned int height){
-	if(gen == NULL){
+	if((gen == NULL) || (gen->getPoints() == NULL)){
 		TRACE_ERROR("A generated image is required");
 		return 0;
 	}

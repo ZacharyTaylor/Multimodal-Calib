@@ -10,7 +10,7 @@
 
 
 //trace 0 = off, 1 = errors, 2 = warnings, 3 = info
-#define DEBUG_TRACE 3
+#define DEBUG_TRACE 1
 
 #define BUFF_SIZE 4096
 

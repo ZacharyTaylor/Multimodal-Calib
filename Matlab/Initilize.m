@@ -1,9 +1,8 @@
-function [] = Initilize( numBase, numMove, numPairs )
+function [] = Initilize( numBase, numMove)
 %INITILIZE Sets up enviroment by loading library and setting up the
 %required memory
 %   numBase = number of Base images
 %   numMove = number of moving scans
-%   numPairs = number of pairs of base and moving images
 
 %load the library
 CheckLoaded();
@@ -19,12 +18,7 @@ if((numMove ~= round(numMove)) || (numMove < 0))
     numMove = 0;
 end
 
-if((numPairs ~= round(numPairs)) || (numPairs < 0))
-    TRACE_ERROR('number of scan pairs must be a positive integer');
-    numPairs = 0;
-end
-
-calllib('LibCal','initalizeScans', numBase, numMove, numPairs);
+calllib('LibCal','initalizeScans', numBase, numMove);
 
 end
 

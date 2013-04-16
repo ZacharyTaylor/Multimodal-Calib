@@ -9,16 +9,16 @@
 
 class Scan {
 protected:
-	const size_t numDim_;
-	const size_t numCh_;
+	size_t numDim_;
+	size_t numCh_;
 
-	const size_t* dimSize_;
+	size_t* dimSize_;
 	PointsList* points_;
 
 public:
 
-	Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize);
-	Scan(const size_t numDim, const size_t numCh,  const size_t* dimSize, PointsList* points);
+	Scan(size_t numDim, size_t numCh,  size_t* dimSize);
+	Scan(size_t numDim, size_t numCh,  size_t* dimSize, PointsList* points);
 	~Scan(void);
 	size_t getNumDim(void);
 	size_t getNumCh(void);
@@ -49,6 +49,7 @@ public:
 	SparseScan(Scan in);
 	SparseScan(Scan in, PointsList* location);
 	~SparseScan(void);
+	void changeNumCh(size_t numCh);
 	size_t getNumPoints(void);
 	PointsList* GetLocation(void);
 };
@@ -61,7 +62,7 @@ public:
 	DenseImage(const size_t width, const size_t height, const size_t numCh, float* pointsIn);
 	~DenseImage(void);
 	TextureList* getPoints(void);
-	void d_interpolate(PointsList* loc, PointsList* points, size_t numPoints);
+	void d_interpolate(SparseScan* scan);
 
 private:
 

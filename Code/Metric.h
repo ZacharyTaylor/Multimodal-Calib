@@ -7,7 +7,7 @@
 #include "Kernel.h"
 
 #define GOM_DEPTH 2 
-#define MI_BINS 255
+#define MI_BINS 50
 
 class Metric {
 public:

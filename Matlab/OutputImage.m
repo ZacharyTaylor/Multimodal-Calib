@@ -17,7 +17,7 @@ CheckLoaded();
 %get image
 out = calllib('LibCal','outputImage', width, height);
 
-setdatatype(out,'singlePtr',height,width);
+setdatatype(out,'singlePtr',width,height);
 
 %get data
 out = get(out);
