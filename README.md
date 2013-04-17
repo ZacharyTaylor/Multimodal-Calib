@@ -3,34 +3,15 @@ Multimodal-Calib
 
 Software used to automatically calibrate the extrinsic parameters of several sensors of different modalities
 
-Currently restructuring software to be more user friendly / stop it segfaulting everywhere.
+Currently restructuring software to be more user friendly. Currently only the MI metric is working
+and visualization and interpolation are only partly working.
 
-Working-
+Plan-
 
-Loading Moving Image / scan
+Metrics - should be working again by the 20th of April
 
-Loading Base Image
+Interpolation - working by the 26th of April
 
-Error reporting 
+General build/make files - added by the 26th of April
 
-Affine Transform
-
-Camera Transform
-
-Returning generated scan
-
-In Progress-
-
-Interpolation
-
-Visualization
-
-metrics
-
-Still to do-
-
-general build/make files
-
-tidy up documentation
-
-add info to wiki
+Visualization,tidying up documentation and info to wiki - sometime in May
