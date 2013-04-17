@@ -462,12 +462,6 @@ DllExport void genBaseValues(unsigned int baseNum){
 	points = new PointsList(base->getNumCh()*gen->getNumPoints());
 	points->AllocateGpu();
 
-	//ensure gen is setup
-	if(!gen->GetLocation()->IsOnGpu()){
-		gen->GetLocation()->AllocateGpu();
-		gen->GetLocation()->CpuToGpu();
-	}
-
 	//ensure base is setup
 	if(!base->getPoints()->IsOnGpu()){
 		base->getPoints()->AllocateGpu();
@@ -528,12 +522,6 @@ DllExport float getMetricVal(unsigned int moveNum){
 		return 0;
 	}
 
-	//ensure gen is setup
-	if(!gen->getPoints()->IsOnGpu()){
-		gen->getPoints()->AllocateGpu();
-		gen->getPoints()->CpuToGpu();
-	}
-
 	//ensure move is setup
 	if(!move->getPoints()->IsOnGpu()){
 		move->getPoints()->AllocateGpu();
@@ -547,12 +535,6 @@ DllExport float* outputImage(unsigned int width, unsigned int height){
 	if((gen == NULL) || (gen->getPoints() == NULL)){
 		TRACE_ERROR("A generated image is required");
 		return 0;
-	}
-
-	//ensure gen is setup
-	if(!gen->getPoints()->IsOnGpu()){
-		gen->getPoints()->AllocateGpu();
-		gen->getPoints()->CpuToGpu();
 	}
 
 	render.GetImage(gen, width, height);

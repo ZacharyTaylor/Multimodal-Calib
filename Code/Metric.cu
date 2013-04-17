@@ -10,7 +10,7 @@ float Metric::EvalMetric(SparseScan* A, SparseScan* B){
 float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	
 	//move scans to gpu if required
-	if(A->getPoints()->IsOnGpu()){
+	/*if(A->getPoints()->IsOnGpu()){
 		A->getPoints()->AllocateGpu();
 		A->getPoints()->CpuToGpu();
 	}
@@ -18,7 +18,7 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	if(B->getPoints()->IsOnGpu()){
 		B->getPoints()->AllocateGpu();
 		B->getPoints()->CpuToGpu();
-	}
+	}*/
 
 	size_t numElements;
 	//check scans of same size

@@ -4,10 +4,10 @@ function [ gen ] = GetGen()
 %ensures the library is loaded
 CheckLoaded();
 
-%get location
+% %get location
 locs = calllib('LibCal','getGenLocs');
 
-%get points
+get points
 points = calllib('LibCal','getGenPoints');
 
 %get size of pointers
@@ -28,5 +28,6 @@ gen = single(zeros(numPoints, (numDim+numCh)));
 gen(:,1:numDim) = locsVal.Value;
 gen(:,numDim+1:end) = pointsVal.Value;
 
+gen = 0;
 end
 
