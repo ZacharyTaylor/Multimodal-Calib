@@ -531,13 +531,24 @@ DllExport float getMetricVal(unsigned int moveNum){
 	return metric->EvalMetric(move, gen);
 }
 
-DllExport float* outputImage(unsigned int width, unsigned int height){
-	if((gen == NULL) || (gen->getPoints() == NULL)){
+DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum){
+	if(gen == NULL){
 		TRACE_ERROR("A generated image is required");
 		return 0;
 	}
+	if(moveNum >= numMove){
+		TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
+		return 0;
+	}
 
-	render.GetImage(gen, width, height);
+	SparseScan* move = moveStore[moveNum];
+	
+	if(move == NULL){
+		TRACE_ERROR("A moving image is required");
+		return 0;
+	}
+
+	render.GetImage(move->getPoints(), gen->GetLocation(), move->getNumPoints(), width, height, move->getNumCh());
 	return render.out_;
 }
 

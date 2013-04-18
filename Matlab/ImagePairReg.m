@@ -13,14 +13,14 @@ FIG.count = 0;
 
 param = struct;
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 80,...
+param.options = psooptimset('PopulationSize', 200,...
     'TolCon', 1e-1,...
     'StallGenLimit', 30,...
     'Generations', 200,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf},...
     'SocialAttraction',1.25);
 
-FIG.countMax = 20;
+FIG.countMax = 200;
 
 range = [30 30 1 0.1 0.1 0.01 0.01];
 
@@ -30,8 +30,8 @@ numMove = 1;
 numBase = 1;
 pairs = [1 1];
 
+metric = 'GOM';
 
-SetupMIMetric();
 SetupAffineTform();
 
 Initilize(numMove,numBase);
@@ -39,17 +39,49 @@ Initilize(numMove,numBase);
 param.lower = initalGuess - range;
 param.upper = initalGuess + range;
 
+%% setup Metric
+if(strcmp(metric,'MI'))
+    SetupMIMetric();
+elseif(strcmp(metric,'GOM'))   
+    SetupGOMMetric();
+else
+    error('Invalid metric type');
+end
+
 %% get Data
 move = getImagesStruct(numMove);
 
 for i = 1:numMove
-    m = single(move{i}.v)/255;
+    if(strcmp(metric,'MI'))
+        m = single(move{i}.v)/255;
+    elseif(strcmp(metric,'GOM'))   
+        m = single(move{i}.v)/255;
+        [mag,phase] = imgradient(m);
+        m = zeros([size(mag) 2]);
+        m(:,:,1) = mag;
+        m(:,:,2) = phase;
+    else
+        error('Invalid metric type');
+    end
+    
     LoadMoveImage(i-1,m);
 end
 
 base = getImagesStruct(numBase);
+
 for i = 1:numBase
-    b = single(base{i}.v)/255;
+    if(strcmp(metric,'MI'))
+        b = single(base{i}.v)/255;
+    elseif(strcmp(metric,'GOM'))
+        b = single(base{i}.v)/255;
+        [mag,phase] = imgradient(b);
+        b = zeros([size(mag) 2]);
+        b(:,:,1) = mag;
+        b(:,:,2) = phase;
+    else
+        error('Invalid metric type');
+    end
+    
     LoadBaseImage(i-1,b);
 end
 

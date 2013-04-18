@@ -15,8 +15,14 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
+%setting move image (dim 2 before 1 because (y,x,z) is way too confusing
+imgT = zeros([size(img,2),size(img,1),size(img,3)]);
+for i = 1:size(img,3)
+    imgT(:,:,i) = img(:,:,i)';
+end
+
 %setting base image
-calllib('LibCal','setBaseImage', imgNum, size(img,2), size(img,1), size(img,3), single(img)');
+calllib('LibCal','setBaseImage', imgNum, size(imgT,1), size(imgT,2), size(imgT,3), single(imgT));
 
 end
 

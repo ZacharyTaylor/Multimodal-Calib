@@ -7,10 +7,9 @@ Render::~Render(void){
 	delete[] out_;
 }
 
-void Render::GetImage(SparseScan* in, size_t width, size_t height){
+void Render::GetImage(PointsList* points, PointsList* loc, size_t numPoints, size_t width, size_t height, size_t depth){
 	float* d_out;
 
-	size_t depth = in->getNumCh();
 	CudaSafeCall(cudaMalloc(&d_out, sizeof(float)*width*height*depth));
 	CudaSafeCall(cudaMemset(d_out, 0, sizeof(float)*width*height*depth));
 
@@ -21,16 +20,13 @@ void Render::GetImage(SparseScan* in, size_t width, size_t height){
 	out_ = new float[width*height*depth];
 
 	for(size_t i = 0; i < depth; i++){
-		generateOutputKernel<<<gridSize(in->getNumPoints()) ,BLOCK_SIZE>>>(
-			((float*)in->GetLocation()->GetGpuPointer()),
-			((float*)in->getPoints()->GetGpuPointer()), 
+		generateOutputKernel<<<gridSize(numPoints) ,BLOCK_SIZE>>>(
+			((float*)loc->GetGpuPointer()),
+			((float*)points->GetGpuPointer()), 
 			d_out, 
-			//((float*)in->GetLocation()->GetGpuPointer()),
-			//&(((float*)in->getPoints()->GetGpuPointer())[in->getNumPoints()*i]), 
-			//&(d_out[width*height*i]), 
 			width, 
 			height, 
-			in->getNumPoints());
+			numPoints);
 		CudaCheckError();
 	}
 

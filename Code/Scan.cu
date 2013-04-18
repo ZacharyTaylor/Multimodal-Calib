@@ -99,7 +99,8 @@ void DenseImage::d_interpolate(SparseScan* scan){
 		TRACE_WARNING("Dense image not on gpu, loading now");
 		getPoints()->AllocateGpu();
 		getPoints()->CpuToGpu();
-		}
+	}
+
 	for(size_t i = 0; i < getPoints()->GetDepth(); i++){
 		DenseImageNNKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
 			(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[i], 

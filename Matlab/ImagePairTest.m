@@ -3,29 +3,64 @@ set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
 global DEBUG_TRACE
-DEBUG_TRACE = 2;
+DEBUG_TRACE = 3;
 
 Initilize(1,1);
 
-SetupMIMetric();
 SetupAffineTform();
 
 global FIG
 FIG.fig = figure;
 FIG.count = 0;
+FIG.countMax = 0;
 
 %% input values
 
 tform = [0 0 0 1 1 0 0];
+metric = 'GOM';
+
+
 
 %% get Data
-[base, move] = getImages();
+move = getImagesStruct(1);
+base = getImagesStruct(1);
 
+m = single(move{1}.v)/255;
+b = single(base{1}.v)/255;
+
+%% setup Metric
+if(strcmp(metric,'MI'))
+    
+    SetupMIMetric();
+    
+elseif(strcmp(metric,'GOM'))
+    
+    [mag,phase] = imgradient(m);
+    m(end,end,2) = 0;
+    m(:,:,1) = mag;
+    m(:,:,2) = phase;
+    
+    [mag,phase] = imgradient(b);
+    b(end,end,2) = 0;
+    b(:,:,1) = mag;
+    b(:,:,2) = phase;
+    
+    SetupGOMMetric();
+    
+else
+    
+    error('Invalid metric type');
+    
+end
+    
 %% get image alignment
-move = single(move)/255;
-base = single(base)/255;
 
-LoadMoveImage(0,move);
-LoadBaseImage(0,base);
+
+LoadMoveImage(0,m);
+LoadBaseImage(0,b);
 
 alignImages(base, move, [1,1], tform);
+
+%% clean up
+
+ClearLibrary();

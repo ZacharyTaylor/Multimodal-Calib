@@ -10,7 +10,7 @@ public:
 	float* out_;
 	Render(void);
 	~Render(void);
-	void GetImage(SparseScan* in, size_t width, size_t height);
+	void GetImage(PointsList* points, PointsList* loc, size_t numPoints, size_t width, size_t height, size_t depth);
 };
 
 #endif //RENDER_H

@@ -39,7 +39,7 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	
 	//move scans to gpu if required
-	if(A->getPoints()->IsOnGpu()){
+	/*if(A->getPoints()->IsOnGpu()){
 		A->getPoints()->AllocateGpu();
 		A->getPoints()->CpuToGpu();
 	}
@@ -47,7 +47,7 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	if(B->getPoints()->IsOnGpu()){
 		B->getPoints()->AllocateGpu();
 		B->getPoints()->CpuToGpu();
-	}
+	}*/
 
 	if(A->getNumCh() != GOM_DEPTH){
 		TRACE_ERROR("GOM requires two channels (mag, phase) to operate and Scan A has %i", A->getNumCh());
@@ -60,12 +60,12 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 
 	size_t numElements;
 	//check scans of same size
-	if(A->getPoints()->GetNumEntries() != B->getPoints()->GetNumEntries()){
-		numElements = (A->getPoints()->GetNumEntries() > B->getPoints()->GetNumEntries()) ? B->getPoints()->GetNumEntries() : A->getPoints()->GetNumEntries();
-		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getPoints()->GetNumEntries(),B->getPoints()->GetNumEntries(),numElements);
+	if(A->getNumPoints() != B->getNumPoints()){
+		numElements = (A->getNumPoints() > B->getNumPoints()) ? B->getNumPoints() : A->getNumPoints();
+		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getNumPoints(),B->getNumPoints(),numElements);
 	}
 	else{
-		numElements = A->getPoints()->GetNumEntries();
+		numElements = A->getNumPoints();
 	}
 
 	float* phaseOut;
@@ -78,14 +78,35 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 
 	//perform reduction
 
-	float* reduceOut;
+	/*float* reduceOut;
 	CudaSafeCall(cudaMalloc((void **) &reduceOut, BLOCK_SIZE*sizeof(float)));
 	
 	reduce<float>(numElements, 256, 64, 6, phaseOut, reduceOut);
-	float phaseRes = reduceOut[0];
+	float phaseRes;
+	CudaSafeCall(cudaMemcpy(&phaseRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));
 
 	reduce<float>(numElements, 256, 64, 6, magOut, reduceOut);
-	float magRes = reduceOut[0];
+	float magRes;
+	CudaSafeCall(cudaMemcpy(&magRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));*/
+	
+	float* reduceOut;
+	float phaseRes = 0;
+	float magRes = 0;
+	reduceOut = new float[numElements];
+
+	CudaSafeCall(cudaMemcpy(reduceOut,phaseOut,numElements*sizeof(float),cudaMemcpyDeviceToHost));
+	for(size_t i = 0; i < numElements; i++){
+		phaseRes += reduceOut[i];
+	}
+
+	CudaSafeCall(cudaMemcpy(reduceOut,magOut,numElements*sizeof(float),cudaMemcpyDeviceToHost));
+	for(size_t i = 0; i < numElements; i++){
+		magRes += reduceOut[i];
+	}
+
+	delete reduceOut;
+	CudaSafeCall(cudaFree(phaseOut));
+	CudaSafeCall(cudaFree(magOut));
 
 	return (phaseRes / magRes);
 }

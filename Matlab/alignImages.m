@@ -35,9 +35,9 @@ function f=alignImages(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = OutputImage(width, height);
+            b = uint8(255*OutputImage(width, height,pairs(i,1)-1));
 
-            comb = zeros([height width 3]);
+            comb = uint8(zeros([height width 3]));
             comb(:,:,1) = move{pairs(i,1)}.v;
             comb(:,:,2) = b;
 
@@ -54,6 +54,6 @@ function f=alignImages(base, move, pairs, tform)
         
         %change so cost function range is 0-1
         f = f / size(pairs,1);
-        f = 2 - f;
+        f = -f;
     end
 end
