@@ -46,8 +46,51 @@ __global__ void DenseImageNNKernel(cudaPitchedPtr in, const float* locIn, float*
 		valsOut[i] = 0.0f;
 	}
 	else{
-		//void* inLoc = //((unsigned char*)in.ptr) + (loc.x + in.pitch*loc.y)*sizeof(float);
-		valsOut[i] = ((float*)(in.ptr))[loc.x + (in.pitch/sizeof(float))*loc.y];//*((float*)(inLoc));
+		valsOut[i] = ((float*)(in.ptr))[loc.x + (in.pitch/sizeof(float))*loc.y];
+	}
+}
+
+__global__ void DenseImageLinKernel(cudaPitchedPtr in, const float* locIn, float* valsOut, const size_t numPoints){
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= numPoints){
+		valsOut[i] = 0.0f;
+		return;
+	}
+
+	int2 locF, locC;
+	locF.x = floor(locIn[i]);
+	locF.y = floor(locIn[i + numPoints]);
+	locC.x = ceil(locIn[i]);
+	locC.y = ceil(locIn[i + numPoints]);
+	
+	float2 loc;
+	loc.x = locIn[i];
+	loc.y = locIn[i + numPoints];
+
+	int2 maxSize;
+	maxSize.x = in.xsize/sizeof(float);
+	maxSize.y = in.ysize;
+
+	bool inside =
+		0 <= locC.x && locF.x < maxSize.x &&
+		0 <= locC.y && locF.y < maxSize.y;
+
+	if (!inside){
+		valsOut[i] = 0.0f;
+	}
+	else{
+		float ff = ((float*)(in.ptr))[locF.x + (in.pitch/sizeof(float))*locF.y];
+		float cf = ((float*)(in.ptr))[locC.x + (in.pitch/sizeof(float))*locF.y];
+		float fc = ((float*)(in.ptr))[locF.x + (in.pitch/sizeof(float))*locC.y];
+		float cc = ((float*)(in.ptr))[locC.x + (in.pitch/sizeof(float))*locC.y];
+
+		ff *= (loc.x - locF.x)*(loc.y - locF.y);
+		cf *= (locC.x - loc.x)*(loc.y - locF.y);
+		fc *= (loc.x - locF.x)*(locC.y - loc.y);
+		cc *= (locC.x - loc.x)*(locC.y - loc.y);
+
+		valsOut[i] = ff + cf + fc + cc;
 	}
 }
 
@@ -119,18 +162,24 @@ __global__ void CameraTransformKernel(const float* tform, const float* cam, cons
 	}
 	else{
 
-		//apply projective camera matrix
-		x = cam[0]*x + cam[3]*y + cam[6]*z + cam[9];
-		y = cam[1]*x + cam[4]*y + cam[7]*z + cam[10];
-		z = cam[2]*x + cam[5]*y + cam[8]*z + cam[11];
+		
 
 		if(panoramic){
 			//panoramic camera model
 			y = (y/sqrt(z*z + x*x));
 			x = atan2(x,z);
 
+			//apply projective camera matrix
+			x = cam[0]*x + cam[6];
+			y = cam[4]*y + cam[7];
+
 		}
 		else{
+			//apply projective camera matrix
+			x = cam[0]*x + cam[3]*y + cam[6]*z + cam[9];
+			y = cam[1]*x + cam[4]*y + cam[7]*z + cam[10];
+			z = cam[2]*x + cam[5]*y + cam[8]*z + cam[11];
+
 			//pin point camera model
 			y = y/z;
 			x = x/z;

@@ -11,6 +11,8 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 
 __global__ void DenseImageNNKernel(cudaPitchedPtr in, const float* locIn, float* valsOut, const size_t numPoints);
 
+__global__ void DenseImageLinKernel(cudaPitchedPtr in, const float* locIn, float* valsOut, const size_t numPoints);
+
 __global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints);
 
 __global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints);

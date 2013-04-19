@@ -102,7 +102,7 @@ void DenseImage::d_interpolate(SparseScan* scan){
 	}
 
 	for(size_t i = 0; i < getPoints()->GetDepth(); i++){
-		DenseImageNNKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
+		DenseImageLinKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
 			(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[i], 
 			(float*)scan->GetLocation()->GetGpuPointer(),
 			(float*)(&(((float*)scan->getPoints()->GetGpuPointer())[scan->getNumPoints()*i])),
