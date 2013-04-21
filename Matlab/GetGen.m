@@ -19,14 +19,17 @@ setdatatype(locs,'singlePtr',numPoints,numDim);
 setdatatype(points,'singlePtr',numPoints,numCh);
 
 %get data
-locsVal = get(locs);
-pointsVal = get(points);
-
 gen = single(zeros(numPoints, (numDim+numCh)));
 
+if(numDim ~= 0)
+    locsVal = get(locs);
+    gen(:,1:numDim) = locsVal.Value;
+end
 
-gen(:,1:numDim) = locsVal.Value;
-gen(:,numDim+1:end) = pointsVal.Value;
+if(numCh ~= 0)
+    pointsVal = get(points);
+    gen(:,numDim+1:end) = pointsVal.Value;
+end
 
 end
 

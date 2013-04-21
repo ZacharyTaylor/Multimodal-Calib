@@ -16,7 +16,7 @@ FIG.countMax = 0;
 
 %% input values
 
-tform = [0 0 0 1 1 0 0];
+tform = [0 0 20 1 1 0 0];
 metric = 'GOM';
 
 

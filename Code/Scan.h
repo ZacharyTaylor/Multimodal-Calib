@@ -25,6 +25,7 @@ public:
 	size_t getDimSize(size_t i);
 	size_t getNumPoints(void);
 	PointsList* getPoints(void);
+	void setPoints(PointsList* points);
 	void SetupGPU(void);
 	void ClearGPU(void);
 };

@@ -20,11 +20,11 @@ param.options = psooptimset('PopulationSize', 200,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf},...
     'SocialAttraction',1.25);
 
-FIG.countMax = 200;
+FIG.countMax = 500;
 
-range = [30 30 1 0.1 0.1 0.01 0.01];
+range = [30 30 10 0.1 0.1 0.01 0.01];
 
-initalGuess = [0 0 0 1 1 0 0];
+tform = [0 0 0 1 1 0 0];
 
 numMove = 1;
 numBase = 1;
@@ -32,16 +32,16 @@ pairs = [1 1];
 
 sigma = 0;
 
-numTrials = 1;
+numTrials = 10;
 
-metric = 'GOM';
+metric = 'MI';
 
 SetupAffineTform();
 
 Initilize(numMove,numBase);
 
-param.lower = initalGuess - range;
-param.upper = initalGuess + range;
+param.lower = tform - range;
+param.upper = tform + range;
 
 %% setup Metric
 if(strcmp(metric,'MI'))
@@ -59,9 +59,9 @@ move = getImagesStruct(numMove);
 
 for i = 1:numMove
     if(strcmp(metric,'MI'))
-        m = single(histeq(move{i}.v))/255;
+        m = single((move{i}.v))/255;
     elseif(strcmp(metric,'GOM'))   
-        m = single(histeq(move{i}.v))/255;
+        m = single((move{i}.v))/255;
         [mag,phase] = imgradient(m);
         
 %         mag = imfilter(mag,G,'same');
@@ -82,9 +82,9 @@ base = getImagesStruct(numBase);
 
 for i = 1:numBase
     if(strcmp(metric,'MI'))
-        b = single(histeq(base{i}.v))/255;
+        b = single((base{i}.v))/255;
     elseif(strcmp(metric,'GOM'))
-        b = single(histeq(base{i}.v))/255;
+        b = single((base{i}.v))/255;
         [mag,phase] = imgradient(b);
         
 %         mag = imfilter(mag,G,'same');
@@ -115,8 +115,8 @@ for i = 1:numTrials
     fTotal(i) = fOut;
 end
 
-tform = sumCols(tformTotal) / numTrials;
-f = sumCols(fTotal) / numTrials;
+tform = sum(tformTotal,1) / numTrials;
+f = sum(fTotal) / numTrials;
 
  fprintf('Final transform:\n     metric = %1.3f\n     translation = [%3.0f, %3.0f]\n     rotation = %1.2f\n     scale = [%1.2f,%1.2f]\n     shear = [%0.3f, %0.3f]\n\n',...
             f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6),tform(7));

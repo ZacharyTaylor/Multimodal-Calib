@@ -26,7 +26,7 @@ PointsList::PointsList(const size_t numEntries):
 	d_points_(NULL),
 	points_(new float[numEntries]){
 		TRACE_INFO("%i points set",numEntries);
-	}
+}
 
 PointsList::~PointsList(){
 	if(IsOnGpu()){

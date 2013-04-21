@@ -26,7 +26,6 @@ __global__ void DenseImageNNKernel(cudaPitchedPtr in, const float* locIn, float*
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
-		valsOut[i] = 0.0f;
 		return;
 	}
 
@@ -54,7 +53,6 @@ __global__ void DenseImageLinKernel(cudaPitchedPtr in, const float* locIn, float
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
-		valsOut[i] = 0.0f;
 		return;
 	}
 
@@ -85,10 +83,15 @@ __global__ void DenseImageLinKernel(cudaPitchedPtr in, const float* locIn, float
 		float fc = ((float*)(in.ptr))[locF.x + (in.pitch/sizeof(float))*locC.y];
 		float cc = ((float*)(in.ptr))[locC.x + (in.pitch/sizeof(float))*locC.y];
 
-		ff *= (loc.x - locF.x)*(loc.y - locF.y);
-		cf *= (locC.x - loc.x)*(loc.y - locF.y);
-		fc *= (loc.x - locF.x)*(locC.y - loc.y);
-		cc *= (locC.x - loc.x)*(locC.y - loc.y);
+		ff *= (loc.x - ((float)locF.x))*(loc.y - ((float)locF.y));
+		if(ff == 0){
+			valsOut[i] = cc;
+			return;
+		}
+
+		cf *= (((float)locC.x)- loc.x)*(loc.y - ((float)locF.y));
+		fc *= (loc.x - ((float)locF.x))*(((float)locC.y) - loc.y);
+		cc *= (((float)locC.x) - loc.x)*(((float)locC.y) - loc.y);
 
 		valsOut[i] = ff + cf + fc + cc;
 	}
@@ -98,7 +101,6 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
-		valsOut[i] = 0.0f;
 		return;
 	}
 
@@ -205,6 +207,7 @@ __global__ void GOMKernel(const float* A, const float* B, const size_t length, f
 	const float* phaseB = &B[length];
 	
 	float phase = PI*abs(phaseA[i] - phaseB[i])/180;
+
     phase = (cos(2*phase)+1)/2;
     float mag = magA[i]*magB[i];
 

@@ -55,6 +55,10 @@ PointsList* Scan::getPoints(void){
 	return points_;
 }
 
+void Scan::setPoints(PointsList* points){
+	points_ = points;
+}
+
 DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points): 
 	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),points)
 {
@@ -100,14 +104,19 @@ void DenseImage::d_interpolate(SparseScan* scan){
 		getPoints()->AllocateGpu();
 		getPoints()->CpuToGpu();
 	}
-
-	for(size_t i = 0; i < getPoints()->GetDepth(); i++){
-		DenseImageLinKernel<<<gridSize(this->getPoints()->GetWidth()*this->getPoints()->GetHeight()) ,BLOCK_SIZE>>>	
+	//printf("%i	%i	%i\n",scan->getNumCh(),scan->getNumPoints(),scan->getPoints()->GetNumEntries());
+	//CudaSafeCall(cudaMemset(scan->getPoints()->GetGpuPointer(), 0, scan->getNumPoints()*sizeof(float)));
+	
+	for(size_t i = 0; i < scan->getNumCh(); i++){
+		DenseImageNNKernel<<<gridSize(scan->getNumPoints()) ,BLOCK_SIZE>>>	
 			(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[i], 
 			(float*)scan->GetLocation()->GetGpuPointer(),
 			(float*)(&(((float*)scan->getPoints()->GetGpuPointer())[scan->getNumPoints()*i])),
 			scan->getNumPoints());
+			CudaCheckError();
 	}
+
+
 	//DenseImageInterpolateKernel<<<gridSize(320*2014) ,BLOCK_SIZE>>>	
 	//	(2014, 320, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
 
@@ -119,9 +128,6 @@ void DenseImage::d_interpolate(SparseScan* scan){
 		//float* points = (float*)(scan->getPoints()->GetGpuPointer());
 		//DenseImageInterpolateKernel<<<gridSize(getPoints()->GetHeight() * getPoints()->GetWidth()) ,BLOCK_SIZE>>>	
 		//	(getPoints()->GetWidth(), getPoints()->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), points, scan->getDimSize(0));
-
-
-		CudaCheckError();
 	//}
 }
 
@@ -190,7 +196,13 @@ float* SparseScan::GenLocation(size_t numDim, size_t* dimSize){
 SparseScan::SparseScan(const size_t numDim, const size_t numCh,  const size_t numPoints): 
 	Scan(numDim, numCh, setDimSize(numCh, numDim, numPoints),NULL)
 {
-	points_ = new PointsList(numPoints * numCh);
+	if(numDim != 0){
+		points_ = new PointsList(numPoints * numCh);
+	}
+	else{
+		points_ = NULL;
+	}
+
 	location_ = new PointsList(numPoints * numDim);
 }
 

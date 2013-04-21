@@ -4,12 +4,14 @@ function f=alignImages(base, move, pairs, tform)
         
     tform = double(tform);
     
+    midShift = [1,0,size(move{1}.v,2)/2;0,1,size(move{1}.v,1)/2;0,0,1];
     rot = [cosd(tform(3)),-sind(tform(3)),0;sind(tform(3)),cosd(tform(3)),0;0,0,1]; 
     scale = [tform(4),0,0;0,tform(5),0;0,0,1];
     shear = [1,tform(6),0;tform(7),1,0;0,0,1];
     trans = [1,0,tform(1);0,1,tform(2);0,0,1];
+    midBack = [1,0,-size(move{1}.v,2)/2;0,1,-size(move{1}.v,1)/2;0,0,1];
 
-    tformMat = single(trans*shear*scale*rot);
+    tformMat = single(midShift*trans*shear*scale*rot*midBack);
     
     SetTformMatrix(tformMat);
     
@@ -18,13 +20,16 @@ function f=alignImages(base, move, pairs, tform)
     for i = 1:size(pairs,1)
         FIG.count = FIG.count + 1;
 
-        width = size(move{pairs(i,1)}.v,2);
-        height = size(move{pairs(i,1)}.v,1);
+        width = size(base{pairs(i,1)}.v,2);
+        height = size(base{pairs(i,1)}.v,1);
 
         Transform(pairs(i,1)-1);
         InterpolateBaseValues(pairs(i,2)-1);
 
         temp = EvalMetric(pairs(i,1)-1);
+        if(isnan(temp))
+            a = 1;
+        end
         if(~(isnan(temp) || isinf(temp)))
             f = f + temp;
         end
@@ -35,14 +40,14 @@ function f=alignImages(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = uint8(255*OutputImage(width, height,pairs(i,1)-1));
+            m = uint8(255*OutputImage(width, height,pairs(i,1)-1));
 
             comb = uint8(zeros([height width 3]));
-            comb(:,:,1) = move{pairs(i,1)}.v;
-            comb(:,:,2) = b;
+            comb(:,:,1) = base{pairs(i,1)}.v;
+            comb(:,:,2) = m;
 
-            subplot(3,1,1); imshow(b);
-            subplot(3,1,2); imshow(move{pairs(i,2)}.v);
+            subplot(3,1,1); imshow(m);
+            subplot(3,1,2); imshow(base{pairs(i,2)}.v);
             subplot(3,1,3); imshow(comb);
 
             drawnow

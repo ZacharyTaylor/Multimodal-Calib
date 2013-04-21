@@ -443,11 +443,9 @@ DllExport void genBaseValues(unsigned int baseNum){
 		return;
 	}
 
-	PointsList* points = gen->getPoints();
-	if(points != NULL){
+	if(gen->getPoints() != NULL){
 		TRACE_INFO("Clearing generated image ready for new interpolation");
-		delete points;
-		points = NULL;
+		delete gen->getPoints();
 	}
 
 	DenseImage* base = baseStore[baseNum];
@@ -459,8 +457,8 @@ DllExport void genBaseValues(unsigned int baseNum){
 	}
 
 	//setup generated image
-	points = new PointsList(base->getNumCh()*gen->getNumPoints());
-	points->AllocateGpu();
+	gen->setPoints(new PointsList(base->getNumCh()*gen->getNumPoints()));
+	gen->getPoints()->AllocateGpu();
 
 	//ensure base is setup
 	if(!base->getPoints()->IsOnGpu()){
