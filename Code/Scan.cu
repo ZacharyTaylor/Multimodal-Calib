@@ -1,5 +1,6 @@
 #include "Scan.h"
 #include "Kernel.h"
+#include "CI\code\memcpy.cu"
 
 Scan::Scan(size_t numDim, size_t numCh,  size_t* dimSize) : 
 	numDim_(numDim),
@@ -62,11 +63,11 @@ void Scan::setPoints(PointsList* points){
 DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points): 
 	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),points)
 {
-	tex.addressMode[0] = cudaAddressModeWrap;
-	tex.addressMode[1] = cudaAddressModeWrap;
-	tex.addressMode[2] = cudaAddressModeWrap;
-	tex.filterMode = cudaFilterModeLinear;
-	tex.normalized = false; 
+	/*texRef.addressMode[0] = cudaAddressModeWrap;
+	texRef.addressMode[1] = cudaAddressModeWrap;
+	texRef.addressMode[2] = cudaAddressModeWrap;
+	texRef.filterMode = cudaFilterModeLinear;
+	texRef.normalized = false;*/ 
 
 }
 
@@ -77,11 +78,11 @@ DenseImage::DenseImage(const size_t width, const size_t height, const size_t num
 	TextureList* points = new TextureList(pointsIn, true, width, height, numCh);
 	points_ = points;
 
-	tex.addressMode[0] = cudaAddressModeWrap;
+	/*tex.addressMode[0] = cudaAddressModeWrap;
 	tex.addressMode[1] = cudaAddressModeWrap;
 	tex.addressMode[2] = cudaAddressModeWrap;
 	tex.filterMode = cudaFilterModeLinear;
-	tex.normalized = false; 
+	tex.normalized = false; */
 }
 
 DenseImage::~DenseImage(void){
@@ -98,37 +99,105 @@ size_t* DenseImage::setDimSize(const size_t width, const size_t height, const si
 	return out;
 }
 
+/*__global__ void transformKernel(float *outputData, int width, int height, float theta)
+{
+    // calculate normalized texture coordinates
+    unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
+    unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+    float u = x / (float) width;
+    float v = y / (float) height;
+
+    // transform coordinates
+    u -= 0.5f;
+    v -= 0.5f;
+    float tu = u*cosf(theta) - v*sinf(theta) + 0.5f;
+    float tv = v*cosf(theta) + u*sinf(theta) + 0.5f;
+
+    // read from texture and write to global memory
+    outputData[y*width + x] = tex2D(tex, tu, tv);
+}*/
+__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints){
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= numPoints){
+		return;
+	}
+
+	float2 loc;
+	loc.x = (locIn[i + numPoints]+0.5f) / ((float)width);
+	loc.y = (locIn[i]+0.5f) / ((float)height);
+
+	bool inside =
+		0 < loc.x && loc.x < 1 &&
+		0 < loc.y && loc.y < 1;
+
+	if (!inside){
+		valsOut[i] = 0.0f;
+	}
+	else{
+		valsOut[i] = tex2D(tex, loc.x,loc.y);
+	}
+}
+
 void DenseImage::d_interpolate(SparseScan* scan){
 	if(!getPoints()->IsOnGpu()){
 		TRACE_WARNING("Dense image not on gpu, loading now");
 		getPoints()->AllocateGpu();
 		getPoints()->CpuToGpu();
 	}
-	//printf("%i	%i	%i\n",scan->getNumCh(),scan->getNumPoints(),scan->getPoints()->GetNumEntries());
-	//CudaSafeCall(cudaMemset(scan->getPoints()->GetGpuPointer(), 0, scan->getNumPoints()*sizeof(float)));
 	
-	for(size_t i = 0; i < scan->getNumCh(); i++){
-		DenseImageNNKernel<<<gridSize(scan->getNumPoints()) ,BLOCK_SIZE>>>	
-			(((cudaPitchedPtr*)this->getPoints()->GetGpuPointer())[i], 
-			(float*)scan->GetLocation()->GetGpuPointer(),
-			(float*)(&(((float*)scan->getPoints()->GetGpuPointer())[scan->getNumPoints()*i])),
-			scan->getNumPoints());
-			CudaCheckError();
+	size_t width = this->getPoints()->GetWidth();
+	size_t height = this->getPoints()->GetHeight();
+	size_t size = width*height*sizeof(float);
+	size_t numPoints = scan->getNumPoints();
+
+	float *dData = NULL;
+    CudaSafeCall(cudaMalloc((void **) &dData, size));
+	
+	//this->getPoints()->ArrayToTexture();
+    
+	// Allocate array and copy image data
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+	
+	cudaArray *cuArray = ((cudaArray**)(this->getPoints()->GetGpuPointer()))[0];
+    /*cudaArray *cuArray;
+    CudaSafeCall(cudaMallocArray(&cuArray,
+                                    &channelDesc,
+                                    width,
+                                    height));
+    CudaSafeCall(cudaMemcpyToArray(cuArray,
+                                      0,
+                                      0,
+                                      testIn,
+                                      size,
+                                      cudaMemcpyDeviceToDevice));*/
+
+    // Set texture parameters
+    tex.addressMode[0] = cudaAddressModeWrap;
+    tex.addressMode[1] = cudaAddressModeWrap;
+    tex.filterMode = cudaFilterModeLinear;
+    tex.normalized = true;    // access with normalized texture coordinates
+
+    // Bind the array to the texture
+    CudaSafeCall(cudaBindTextureToArray(tex, cuArray, channelDesc));
+
+    // Warmup
+	
+	DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE>>>(width, height, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), numPoints);
+	CudaCheckError();
+
+	// Allocate mem for the result on host side
+    float *hOutputData = (float *) malloc(size);
+    // copy result from device to host
+    CudaSafeCall(cudaMemcpy(hOutputData,
+                               dData,
+                               size,
+                               cudaMemcpyDeviceToHost));
+
+	for(size_t i = 0; i < 100; i++){
+		printf("%i    %f\n",i,hOutputData[i]);
 	}
-
-
-	//DenseImageInterpolateKernel<<<gridSize(320*2014) ,BLOCK_SIZE>>>	
-	//	(2014, 320, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), scan->getDimSize(0));
-
-
-		//cudaArray* arr = *(((cudaArray***)(getPoints()->GetGpuPointer()))[i]);
-		//CudaSafeCall(cudaBindTextureToArray(&tex, arr, &channelDescCoeff));
-
-		//float* points = &(((float*)scan->getPoints()->GetGpuPointer())[i*getPoints()->GetWidth() * getPoints()->GetHeight()]);
-		//float* points = (float*)(scan->getPoints()->GetGpuPointer());
-		//DenseImageInterpolateKernel<<<gridSize(getPoints()->GetHeight() * getPoints()->GetWidth()) ,BLOCK_SIZE>>>	
-		//	(getPoints()->GetWidth(), getPoints()->GetHeight(), (float*)scan->GetLocation()->GetGpuPointer(), points, scan->getDimSize(0));
-	//}
 }
 
 TextureList* DenseImage::getPoints(void){
