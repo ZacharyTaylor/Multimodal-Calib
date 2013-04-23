@@ -31,9 +31,9 @@ class TextureList: public PointsList {
 
 private:
 	bool texInMem_;
-
-	void PrefilterArray(void);
 	void ArrayToTexture(void);
+	void PrefilterArray(void);
+	
 
 protected:
 	const size_t height_;
