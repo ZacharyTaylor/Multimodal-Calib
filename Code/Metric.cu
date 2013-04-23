@@ -78,18 +78,21 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 
 	//perform reduction
 
-	/*float* reduceOut;
-	CudaSafeCall(cudaMalloc((void **) &reduceOut, BLOCK_SIZE*sizeof(float)));
+	int numThreads = 256;
+	int numBlocks = 64;
 	
-	reduce<float>(numElements, 256, 64, 6, phaseOut, reduceOut);
+	float* reduceOut;
+	CudaSafeCall(cudaMalloc((void **) &reduceOut, numBlocks*sizeof(float)));
+	
+	reduce<float>(numElements, numThreads, numBlocks, 6, phaseOut, reduceOut);
 	float phaseRes;
 	CudaSafeCall(cudaMemcpy(&phaseRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));
 
-	reduce<float>(numElements, 256, 64, 6, magOut, reduceOut);
+	reduce<float>(numElements, numThreads, numBlocks, 6, magOut, reduceOut);
 	float magRes;
-	CudaSafeCall(cudaMemcpy(&magRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));*/
+	CudaSafeCall(cudaMemcpy(&magRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));
 	
-	float* reduceOut;
+	/*float* reduceOut;
 	float phaseRes = 0;
 	float magRes = 0;
 	reduceOut = new float[numElements];
@@ -102,7 +105,7 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	CudaSafeCall(cudaMemcpy(reduceOut,magOut,numElements*sizeof(float),cudaMemcpyDeviceToHost));
 	for(size_t i = 0; i < numElements; i++){
 		magRes += reduceOut[i];
-	}
+	}*/
 
 	delete reduceOut;
 	CudaSafeCall(cudaFree(phaseOut));

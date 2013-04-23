@@ -20,7 +20,7 @@ param.options = psooptimset('PopulationSize', 200,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf},...
     'SocialAttraction',1.25);
 
-FIG.countMax = 500;
+FIG.countMax = 50;
 
 range = [30 30 10 0.1 0.1 0.01 0.01];
 
@@ -59,9 +59,10 @@ move = getImagesStruct(numMove);
 
 for i = 1:numMove
     if(strcmp(metric,'MI'))
-        m = single((move{i}.v))/255;
+        m = single(move{i}.v)/255;
+        m = histeq(m);
     elseif(strcmp(metric,'GOM'))   
-        m = single((move{i}.v))/255;
+        m = single(move{i}.v)/255;
         [mag,phase] = imgradient(m);
         
 %         mag = imfilter(mag,G,'same');
@@ -82,9 +83,11 @@ base = getImagesStruct(numBase);
 
 for i = 1:numBase
     if(strcmp(metric,'MI'))
-        b = single((base{i}.v))/255;
+        b = single(base{i}.v)/255;
+        b = histeq(b);
     elseif(strcmp(metric,'GOM'))
-        b = single((base{i}.v))/255;
+        b = single(base{i}.v)/255;
+        b = histeq(b);
         [mag,phase] = imgradient(b);
         
 %         mag = imfilter(mag,G,'same');
