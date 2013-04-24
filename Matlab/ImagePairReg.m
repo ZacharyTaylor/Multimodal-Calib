@@ -1,4 +1,5 @@
 %% Setup
+loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
@@ -68,49 +69,14 @@ end
 move = getImagesC(numMove);
 
 for i = 1:numMove
-    if(strcmp(metric,'MI'))
-        m = single(move{i}.v)/255;
-        m = histeq(m);
-    elseif(strcmp(metric,'GOM'))   
-        m = single(move{i}.v)/255;
-        [mag,phase] = imgradient(m);
-        
-%         mag = imfilter(mag,G,'same');
-%         mag = mag/max(mag(:));
-%         phase = imfilter(phase,G,'same');
-
-        m = zeros([size(mag) 2]);
-        m(:,:,1) = mag;
-        m(:,:,2) = phase;
-    else
-        error('Invalid metric type');
-    end
-    
+    m = filterImage(move{i}, metric);
     LoadMoveImage(i-1,m);
 end
 
 base = getImagesC(numBase);
 
 for i = 1:numBase
-    if(strcmp(metric,'MI'))
-        b = single(base{i}.v)/255;
-        b = histeq(b);
-    elseif(strcmp(metric,'GOM'))
-        b = single(base{i}.v)/255;
-        b = histeq(b);
-        [mag,phase] = imgradient(b);
-        
-%         mag = imfilter(mag,G,'same');
-%         mag = mag/max(mag(:));
-%         phase = imfilter(phase,G,'same');
-        
-        b = zeros([size(mag) 2]);
-        b(:,:,1) = mag;
-        b(:,:,2) = phase;
-    else
-        error('Invalid metric type');
-    end
-    
+    b = filterImage(base{i}, metric);   
     LoadBaseImage(i-1,b);
 end
 
@@ -133,4 +99,7 @@ f = sum(fTotal) / numTrials;
 
  fprintf('Final transform:\n     metric = %1.3f\n     translation = [%3.0f, %3.0f]\n     rotation = %1.2f\n     scale = [%1.2f,%1.2f]\n     shear = [%0.3f, %0.3f]\n\n',...
             f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6),tform(7));
-        
+
+%% cleanup
+ClearLibrary;
+rmPaths;

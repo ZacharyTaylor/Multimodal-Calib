@@ -1,4 +1,5 @@
 %% Setup
+loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
@@ -75,34 +76,14 @@ end
 move = getPointClouds(numMove);
 
 for i = 1:numMove
-    if(strcmp(metric,'MI'))
-        m = single(move{i});
-    elseif(strcmp(metric,'GOM'))   
-        m = single(move{i});
-        [mag,phase] = getGradient(m);
-        m = [m(:,1:3),mag,phase];
-    else
-        error('Invalid metric type');
-    end
-    
+    m = filterScan(move{i}, metric);
     LoadMoveScan(i-1,m,3);
 end
 
-base = getImagesStruct(numBase);
+base = getImagesC(numBase);
 
 for i = 1:numBase
-    if(strcmp(metric,'MI'))
-        b = single(base{i}.v)/255;
-    elseif(strcmp(metric,'GOM'))
-        b = single(base{i}.v)/255;
-        [mag,phase] = imgradient(b);
-        b = zeros([size(mag) 2]);
-        b(:,:,1) = mag;
-        b(:,:,2) = phase;
-    else
-        error('Invalid metric type');
-    end
-    
+    b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
 end
 
@@ -125,4 +106,7 @@ f = sum(fTotal) / numTrials;
 
 fprintf('Final transform:\n     metric = %1.3f\n     translation = [%2.2f, %2.2f, %2.2f]\n     rotation = [%2.2f, %2.2f, %2.2f]\n\n',...
             f,tform(4),tform(5),tform(6),tform(1),tform(2),tform(3));
-        
+ 
+%% cleanup
+ClearLibrary;
+rmPaths;

@@ -1,4 +1,5 @@
 %% Setup
+loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
@@ -28,14 +29,12 @@ range = [30 30 30 0.1 0.1 0.01];
 
 %inital guess of parameters (rX, rY, rZ, x, y ,z) (rotate then translate,
 %rotation order ZYX)
-initalGuess = [-90 0 180 0 0 0];
+tform = [-90 0 180 0 0 0];
 
-%number of images
-numMove = 1;
-numBase = 1;
-
-%pairing [base image, move scan]
-pairs = [1 1];
+%base path
+path = 'C:\Data\Almond\';
+%range of images to use
+imRange = 27:28;
 
 %metric to use
 metric = 'MI';
@@ -49,7 +48,6 @@ camera = [1000 500 500];
 %number of times to run optimization
 numTrials = 2;
 
-
 %% setup transforms and images
 SetupCamera(panoramic);
 
@@ -57,7 +55,12 @@ cameraMat = cam2Pro(camera(1),camera(1),camera(2),camera(3));
 SetCameraMatrix(cameraMat);
 SetupCameraTform();
 
-Initilize(numMove,numBase);
+[basePaths, movePaths, pairs] = MatchImageScan( path, imRange );
+
+numBase = max(pairs(:,1));
+numMove = max(pairs(:,2));
+
+Initilize(numBase, numMove);
 
 param.lower = initalGuess - range;
 param.upper = initalGuess + range;
@@ -72,37 +75,28 @@ else
 end
 
 %% get Data
-move = getPointClouds(numMove);
-
+move = cell(numMove,1);
 for i = 1:numMove
-    if(strcmp(metric,'MI'))
-        m = single(move{i});
-    elseif(strcmp(metric,'GOM'))   
-        m = single(move{i});
-        [mag,phase] = getGradient(m);
-        m = [m(:,1:3),mag,phase];
-    else
-        error('Invalid metric type');
-    end
-    
+    move{i} = dlmread(movePaths{i},',');
+    m = filterScan(move{i}, metric);
     LoadMoveScan(i-1,m,3);
 end
 
-base = getImagesStruct(numBase);
-
+base = cell(numBase,1);
 for i = 1:numBase
-    if(strcmp(metric,'MI'))
-        b = single(base{i}.v)/255;
-    elseif(strcmp(metric,'GOM'))
-        b = single(base{i}.v)/255;
-        [mag,phase] = imgradient(b);
-        b = zeros([size(mag) 2]);
-        b(:,:,1) = mag;
-        b(:,:,2) = phase;
+    idx2 = mod(i-1,5)+1;
+    idx1 = (i - idx2)/5 + 1;
+    baseIn = imread(basePaths{idx1,idx2});
+
+    if(size(baseIn,3)==3)
+        base{i}.c = baseIn;
+        base{i}.v = rgb2gray(baseIn);
     else
-        error('Invalid metric type');
+        base{i}.c = baseIn(:,:,1);
+        base{i}.v = baseIn(:,:,1);
     end
-    
+            
+    b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
 end
 
@@ -113,7 +107,7 @@ tformTotal = zeros(numTrials,size(tform,2));
 fTotal = zeros(numTrials,1);
 
 for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignPoints(base, move, pairs, tform), 6,[],[],[],[],param.lower,param.upper,[],param.options);
+    [tformOut, fOut]=pso(@(tform) alignLadyVel(base, move, pairs, tform), 6,[],[],[],[],param.lower,param.upper,[],param.options);
 
     tformTotal(i,:) = tformOut;
     fTotal(i) = fOut;
@@ -126,3 +120,6 @@ f = sum(fTotal) / numTrials;
 fprintf('Final transform:\n     metric = %1.3f\n     translation = [%2.2f, %2.2f, %2.2f]\n     rotation = [%2.2f, %2.2f, %2.2f]\n\n',...
             f,tform(4),tform(5),tform(6),tform(1),tform(2),tform(3));
         
+%% cleanup
+ClearLibrary;
+rmPaths;

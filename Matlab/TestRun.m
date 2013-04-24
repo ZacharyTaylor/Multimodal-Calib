@@ -1,3 +1,4 @@
+loadPaths;
 global DEBUG_TRACE
 DEBUG_TRACE = 3;
 
@@ -35,4 +36,6 @@ imshow(out2,[0 255]);
 % 
 % out = getGenerated(1);
 
-ClearLibrary
+%% cleanup
+ClearLibrary;
+rmPaths;

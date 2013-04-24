@@ -1,4 +1,5 @@
 %% Setup
+loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
@@ -28,33 +29,9 @@ metric = 'MI';
 move = getImagesC(1);
 base = getImagesC(1);
 
-m = single(move{1}.v)/255;
-b = single(base{1}.v)/255;
-
 %% setup Metric
-if(strcmp(metric,'MI'))
-    
-    SetupMIMetric();
-    
-elseif(strcmp(metric,'GOM'))
-    
-    [mag,phase] = imgradient(m);
-    m(end,end,2) = 0;
-    m(:,:,1) = mag;
-    m(:,:,2) = phase;
-    
-    [mag,phase] = imgradient(b);
-    b(end,end,2) = 0;
-    b(:,:,1) = mag;
-    b(:,:,2) = phase;
-    
-    SetupGOMMetric();
-    
-else
-    
-    error('Invalid metric type');
-    
-end
+m = filterImage(move{1}, metric);
+b = filterImage(base{1}, metric);
     
 %% get image alignment
 LoadMoveImage(0,m);
@@ -62,6 +39,6 @@ LoadBaseImage(0,b);
 
 alignImages(base, move, [1,1], tform);
 
-%% clean up
-
-ClearLibrary();
+%% cleanup
+ClearLibrary;
+rmPaths;

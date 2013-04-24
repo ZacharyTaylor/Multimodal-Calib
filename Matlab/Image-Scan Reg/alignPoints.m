@@ -21,10 +21,10 @@ function f=alignPoints(base, move, pairs, tform)
         width = size(base{pairs(i,1)}.v,2);
         height = size(base{pairs(i,1)}.v,1);
 
-        Transform(pairs(i,1)-1);
+        Transform(pairs(i,2)-1);
         InterpolateBaseValues(pairs(i,2)-1);
 
-        temp = EvalMetric(pairs(i,1)-1);
+        temp = EvalMetric(pairs(i,2)-1);
         if(~(isnan(temp) || isinf(temp)))
             f = f + temp;
         end
@@ -35,14 +35,14 @@ function f=alignPoints(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = uint8(255*OutputImage(width, height,pairs(i,1)-1));
+            b = uint8(255*OutputImage(width, height,pairs(i,2)-1));
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
             comb(:,:,2) = b;
 
             subplot(3,1,1); imshow(b);
-            subplot(3,1,2); imshow(base{pairs(i,2)}.v);
+            subplot(3,1,2); imshow(base{pairs(i,1)}.v);
             subplot(3,1,3); imshow(comb);
 
             drawnow
