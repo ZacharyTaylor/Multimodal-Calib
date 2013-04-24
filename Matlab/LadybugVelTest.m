@@ -25,11 +25,7 @@ param.options = psooptimset('PopulationSize', 200,...
     'SocialAttraction',1.25);
 
 %how often to display an output frame
-FIG.countMax = 50;
-
-%range to search over (x, y ,z, rX, rY, rZ)
-range = [0.2 0.2 0.2 10 10 10];
-range(4:6) = pi*range(4:6)/180;
+FIG.countMax = 0;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
@@ -43,9 +39,6 @@ imRange = 27;
 %metric to use
 metric = 'MI';
 
-%number of times to run optimization
-numTrials = 2;
-
 %% setup transforms and images
 SetupCamera(0);
 SetupCameraTform();
@@ -56,9 +49,6 @@ numBase = max(pairs(:,1));
 numMove = max(pairs(:,2));
 
 Initilize(numBase, numMove);
-
-param.lower = tform - range;
-param.upper = tform + range;
 
 %% setup Metric
 if(strcmp(metric,'MI'))
@@ -97,22 +87,9 @@ for i = 1:numBase
 end
 
 %% get image alignment
-tformTotal = zeros(numTrials,size(tform,2));
-fTotal = zeros(numTrials,1);
-
-for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignLadyVel(base, move, pairs, tform, ladybugParam), 6,[],[],[],[],param.lower,param.upper,[],param.options);
-
-    tformTotal(i,:) = tformOut;
-    fTotal(i) = fOut;
-end
-
-tform = sum(tformTotal,1) / numTrials;
-f = sum(fTotal) / numTrials;
+alignLadyVel(base, move, pairs, tform, ladybugParam);
 
 
-fprintf('Final transform:\n     metric = %1.3f\n     translation = [%2.2f, %2.2f, %2.2f]\n     rotation = [%2.2f, %2.2f, %2.2f]\n\n',...
-            f,tform(4),tform(5),tform(6),tform(1),tform(2),tform(3));
         
 %% cleanup
 ClearLibrary;
