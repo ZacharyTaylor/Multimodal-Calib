@@ -16,14 +16,17 @@ FIG.countMax = 0;
 
 %% input values
 
+%transform to apply (x, y, r, sx, sy, kx, ky)
 tform = [0 0 0 1 1 0 0];
-metric = 'GOM';
+
+%metric to use
+metric = 'MI';
 
 
 
 %% get Data
-move = getImagesStruct(1);
-base = getImagesStruct(1);
+move = getImagesC(1);
+base = getImagesC(1);
 
 m = single(move{1}.v)/255;
 b = single(base{1}.v)/255;
@@ -54,8 +57,6 @@ else
 end
     
 %% get image alignment
-
-
 LoadMoveImage(0,m);
 LoadBaseImage(0,b);
 

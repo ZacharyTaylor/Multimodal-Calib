@@ -117,7 +117,7 @@ size_t* DenseImage::setDimSize(const size_t width, const size_t height, const si
     // read from texture and write to global memory
     outputData[y*width + x] = tex2D(tex, tu, tv);
 }*/
-__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const float* locIn, float* valsOut, const size_t numPoints){
+__global__ void DenseImageInterpolateKernel(const size_t width, const size_t height, const size_t depth, const float* locIn, float* valsOut, const size_t numPoints){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
@@ -125,18 +125,18 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 	}
 
 	float2 loc;
-	loc.x = (locIn[i + numPoints]+0.5f) / ((float)width);
-	loc.y = (locIn[i]+0.5f) / ((float)height);
+	loc.x = (locIn[i]+0.5f) / ((float)width);
+	loc.y = (locIn[i + numPoints]+0.5f) / ((float)height);
 
 	bool inside =
 		0 < loc.x && loc.x < 1 &&
 		0 < loc.y && loc.y < 1;
 
 	if (!inside){
-		valsOut[i] = 0.0f;
+		valsOut[i + numPoints*depth] = 0.0f;
 	}
 	else{
-		valsOut[i] = tex2D(tex, loc.x,loc.y);
+		valsOut[i + numPoints*depth] = tex2D(tex, loc.x,loc.y);
 	}
 }
 
@@ -146,32 +146,14 @@ void DenseImage::d_interpolate(SparseScan* scan){
 		getPoints()->AllocateGpu();
 		getPoints()->CpuToGpu();
 	}
-	
+
 	size_t width = this->getPoints()->GetWidth();
 	size_t height = this->getPoints()->GetHeight();
 	size_t size = width*height*sizeof(float);
 	size_t numPoints = scan->getNumPoints();
-
-	float *dData = NULL;
-    CudaSafeCall(cudaMalloc((void **) &dData, size));
-	
-	//this->getPoints()->ArrayToTexture();
-    
+   
 	// Allocate array and copy image data
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-	
-	cudaArray *cuArray = ((cudaArray**)(this->getPoints()->GetGpuPointer()))[0];
-    /*cudaArray *cuArray;
-    CudaSafeCall(cudaMallocArray(&cuArray,
-                                    &channelDesc,
-                                    width,
-                                    height));
-    CudaSafeCall(cudaMemcpyToArray(cuArray,
-                                      0,
-                                      0,
-                                      testIn,
-                                      size,
-                                      cudaMemcpyDeviceToDevice));*/
 
     // Set texture parameters
     tex.addressMode[0] = cudaAddressModeWrap;
@@ -179,24 +161,13 @@ void DenseImage::d_interpolate(SparseScan* scan){
     tex.filterMode = cudaFilterModeLinear;
     tex.normalized = true;    // access with normalized texture coordinates
 
-    // Bind the array to the texture
-    CudaSafeCall(cudaBindTextureToArray(tex, cuArray, channelDesc));
+    for(size_t i = 0; i < this->getPoints()->GetDepth(); i++){
+		// Bind the array to the texture
+		cudaArray *cuArray = ((cudaArray**)(this->getPoints()->GetGpuPointer()))[i];
+		CudaSafeCall(cudaBindTextureToArray(tex, cuArray, channelDesc));
 
-    // Warmup
-	
-	DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE>>>(width, height, (float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), numPoints);
-	CudaCheckError();
-
-	// Allocate mem for the result on host side
-    float *hOutputData = (float *) malloc(size);
-    // copy result from device to host
-    CudaSafeCall(cudaMemcpy(hOutputData,
-                               dData,
-                               size,
-                               cudaMemcpyDeviceToHost));
-
-	for(size_t i = 0; i < 100; i++){
-		printf("%i    %f\n",i,hOutputData[i]);
+		DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE>>>(width, height, i,(float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), numPoints);
+		CudaCheckError();
 	}
 }
 

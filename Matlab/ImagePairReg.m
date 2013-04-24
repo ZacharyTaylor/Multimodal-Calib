@@ -10,8 +10,8 @@ FIG.fig = figure;
 FIG.count = 0;
 
 %% input values
-
 param = struct;
+
 %options for swarm optimization
 param.options = psooptimset('PopulationSize', 200,...
     'TolCon', 1e-1,...
@@ -20,22 +20,32 @@ param.options = psooptimset('PopulationSize', 200,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf},...
     'SocialAttraction',1.25);
 
+%how often to display an output frame
 FIG.countMax = 50;
 
+%range to search over (x, y, r, sx, sy, kx, ky)
 range = [30 30 10 0.1 0.1 0.01 0.01];
 
+%inital guess of parameters (x, y, r, sx, sy, kx, ky)
 tform = [0 0 0 1 1 0 0];
 
+%number of images
 numMove = 1;
 numBase = 1;
+
+%pairing [base image, move image]
 pairs = [1 1];
 
+%blurring factor (currently not implemented)
 sigma = 0;
 
+%number of times to run
 numTrials = 10;
 
+%metric to use
 metric = 'MI';
 
+%% setup transform and images
 SetupAffineTform();
 
 Initilize(numMove,numBase);
@@ -55,7 +65,7 @@ end
 %G = fspecial('gaussian',[50 50],sigma);
 
 %% get Data
-move = getImagesStruct(numMove);
+move = getImagesC(numMove);
 
 for i = 1:numMove
     if(strcmp(metric,'MI'))
@@ -79,7 +89,7 @@ for i = 1:numMove
     LoadMoveImage(i-1,m);
 end
 
-base = getImagesStruct(numBase);
+base = getImagesC(numBase);
 
 for i = 1:numBase
     if(strcmp(metric,'MI'))

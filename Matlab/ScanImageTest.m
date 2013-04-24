@@ -23,12 +23,9 @@ param.options = psooptimset('PopulationSize', 200,...
 %how often to display an output frame
 FIG.countMax = 0;
 
-%range to search over (rX, rY, rZ, x, y ,z)
-range = [30 30 30 0.1 0.1 0.01];
-
-%inital guess of parameters (rX, rY, rZ, x, y ,z) (rotate then translate,
+%tform (rX, rY, rZ, x, y ,z) (rotate then translate,
 %rotation order ZYX)
-initalGuess = [-90 0 180 0 0 0];
+tform = [-90 0 180 0 0 0];
 
 %number of images
 numMove = 1;
@@ -45,9 +42,6 @@ panoramic = 1;
 
 %camera parameters (focal length, fX, fY)
 camera = [1000 500 500];
-
-%number of times to run optimization
-numTrials = 2;
 
 
 %% setup transforms and images
@@ -109,20 +103,4 @@ end
 
 
 %% get image alignment
-tformTotal = zeros(numTrials,size(tform,2));
-fTotal = zeros(numTrials,1);
-
-for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignPoints(base, move, pairs, tform), 6,[],[],[],[],param.lower,param.upper,[],param.options);
-
-    tformTotal(i,:) = tformOut;
-    fTotal(i) = fOut;
-end
-
-tform = sum(tformTotal,1) / numTrials;
-f = sum(fTotal) / numTrials;
-
-
-fprintf('Final transform:\n     metric = %1.3f\n     translation = [%2.2f, %2.2f, %2.2f]\n     rotation = [%2.2f, %2.2f, %2.2f]\n\n',...
-            f,tform(4),tform(5),tform(6),tform(1),tform(2),tform(3));
-        
+f = alignPoints(base, move, pairs, tform);       

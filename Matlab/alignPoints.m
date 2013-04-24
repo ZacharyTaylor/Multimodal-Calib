@@ -5,7 +5,7 @@ function f=alignPoints(base, move, pairs, tform)
     %get transformation matirx    
     tform = double(tform);   
     tformR = pi.*tform(1:3)./180;
-    tformMat = angle2dcm(tformR(1), tformR(2), tformR(3));
+    tformMat = angle2dcm(tformR(3), tformR(2), tformR(1));
     tformMat(4,4) = 1;
     tformMat(1,4) = tform(4);
     tformMat(2,4) = tform(5);
@@ -35,16 +35,15 @@ function f=alignPoints(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = uint8(255*OutputImage(1000, 1000,pairs(i,1)-1));
+            b = uint8(255*OutputImage(width, height,pairs(i,1)-1));
 
-            %comb = uint8(zeros([height width 3]));
-            %comb(:,:,1) = base{pairs(i,1)}.v;
-            %comb(:,:,2) = b;
+            comb = uint8(zeros([height width 3]));
+            comb(:,:,1) = base{pairs(i,1)}.v;
+            comb(:,:,2) = b;
 
-            imshow(b);
-            %subplot(3,1,1); imshow(b);
-            %subplot(3,1,2); imshow(base{pairs(i,2)}.v);
-            %subplot(3,1,3); imshow(comb);
+            subplot(3,1,1); imshow(b);
+            subplot(3,1,2); imshow(base{pairs(i,2)}.v);
+            subplot(3,1,3); imshow(comb);
 
             drawnow
             fprintf('current transform:\n     metric = %1.3f\n     rotation = [%1.2f, %1.2f, %1.2f]\n     translation = [%1.2f, %1.2f, %1.2f]\n\n',...
