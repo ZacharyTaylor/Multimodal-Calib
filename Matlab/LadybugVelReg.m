@@ -25,7 +25,7 @@ param.options = psooptimset('PopulationSize', 200,...
     'SocialAttraction',1.25);
 
 %how often to display an output frame
-FIG.countMax = 50;
+FIG.countMax = 1000;
 
 %range to search over (x, y ,z, rX, rY, rZ)
 range = [0.2 0.2 0.2 10 10 10];
@@ -36,15 +36,15 @@ range(4:6) = pi*range(4:6)/180;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Data\Almond\';
+path = 'E:\Work and Uni\Data\Almond\';
 %range of images to use
-imRange = 27;
+imRange = 50:10:200;
 
 %metric to use
 metric = 'MI';
 
 %number of times to run optimization
-numTrials = 2;
+numTrials = 1;
 
 %% setup transforms and images
 SetupCamera(0);

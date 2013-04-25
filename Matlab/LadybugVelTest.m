@@ -32,9 +32,9 @@ FIG.countMax = 0;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Data\Almond\';
+path = 'E:\Work and Uni\Data\Almond\';
 %range of images to use
-imRange = 27;
+imRange = 200;
 
 %metric to use
 metric = 'MI';

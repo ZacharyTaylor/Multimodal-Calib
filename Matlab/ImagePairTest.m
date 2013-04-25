@@ -23,7 +23,14 @@ tform = [0 0 0 1 1 0 0];
 %metric to use
 metric = 'MI';
 
-
+%% setup Metric
+if(strcmp(metric,'MI'))
+    SetupMIMetric();
+elseif(strcmp(metric,'GOM'))   
+    SetupGOMMetric();
+else
+    error('Invalid metric type');
+end
 
 %% get Data
 move = getImagesC(1);

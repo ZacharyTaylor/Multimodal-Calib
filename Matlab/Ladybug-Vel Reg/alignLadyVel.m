@@ -43,8 +43,8 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             sfigure(FIG.fig);
 
             b = uint8(255*OutputImage(width, height,pairs(i,2)-1));
-            %se = strel('ball',5,5);
-            %b = imdilate(b,se);
+            se = strel('ball',5,5);
+            b = imdilate(b,se);
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
