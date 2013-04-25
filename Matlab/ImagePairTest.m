@@ -21,13 +21,26 @@ FIG.countMax = 0;
 tform = [0 0 0 1 1 0 0];
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
-
+%% setup Metric
+if(strcmp(metric,'MI'))
+    SetupMIMetric();
+elseif(strcmp(metric,'GOM'))   
+    SetupGOMMetric();
+else
+    error('Invalid metric type');
+end
 
 %% get Data
 move = getImagesC(1);
+m = filterImage(move{1}, metric);
+LoadMoveImage(0,m);
+
+
 base = getImagesC(1);
+b = filterImage(base{1}, metric);   
+LoadBaseImage(0,b);
 
 %% setup Metric
 m = filterImage(move{1}, metric);

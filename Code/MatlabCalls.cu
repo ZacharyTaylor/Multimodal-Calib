@@ -529,7 +529,7 @@ DllExport float getMetricVal(unsigned int moveNum){
 	return metric->EvalMetric(move, gen);
 }
 
-DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum){
+DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){
 	if(gen == NULL){
 		TRACE_ERROR("A generated image is required");
 		return 0;
@@ -546,7 +546,7 @@ DllExport float* outputImage(unsigned int width, unsigned int height, unsigned i
 		return 0;
 	}
 
-	render.GetImage(move->getPoints(), gen->GetLocation(), move->getNumPoints(), width, height, move->getNumCh());
+	render.GetImage(move->getPoints(), gen->GetLocation(), move->getNumPoints(), width, height, move->getNumCh(), dilate);
 	return render.out_;
 }
 

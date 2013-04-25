@@ -41,10 +41,10 @@ pairs = [1 1];
 sigma = 0;
 
 %number of times to run
-numTrials = 10;
+numTrials = 1;
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %% setup transform and images
 SetupAffineTform();

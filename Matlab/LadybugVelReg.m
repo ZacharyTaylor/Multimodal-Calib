@@ -25,7 +25,7 @@ param.options = psooptimset('PopulationSize', 200,...
     'SocialAttraction',1.25);
 
 %how often to display an output frame
-FIG.countMax = 50;
+FIG.countMax = 500;
 
 %range to search over (x, y ,z, rX, rY, rZ)
 range = [0.2 0.2 0.2 10 10 10];
@@ -41,10 +41,10 @@ path = 'C:\Data\Almond\';
 imRange = 27;
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %number of times to run optimization
-numTrials = 2;
+numTrials = 1;
 
 %% setup transforms and images
 SetupCamera(0);
@@ -73,8 +73,11 @@ end
 move = cell(numMove,1);
 for i = 1:numMove
     move{i} = dlmread(movePaths{i},',');
-    move{i}(:,4) = move{i}(:,4)/255;
-    m = filterScan(move{i}, metric);
+    move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
+    move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
+    move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+    move{i}(:,4) = 1-histeq(move{i}(:,4));
+    m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
@@ -111,7 +114,7 @@ tform = sum(tformTotal,1) / numTrials;
 f = sum(fTotal) / numTrials;
 
 
-fprintf('Final transform:\n     metric = %1.3f\n     translation = [%2.2f, %2.2f, %2.2f]\n     rotation = [%2.2f, %2.2f, %2.2f]\n\n',...
+fprintf('Final transform:\n     metric = %1.3f\n     rotation = [%2.2f, %2.2f, %2.2f]\n     translation = [%2.2f, %2.2f, %2.2f]\n\n',...
             f,tform(4),tform(5),tform(6),tform(1),tform(2),tform(3));
         
 %% cleanup

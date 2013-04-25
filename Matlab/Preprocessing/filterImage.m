@@ -8,6 +8,9 @@ elseif(strcmp(metric,'GOM'))
     out = single(image.v)/255;
     out = histeq(out);
     [mag,phase] = imgradient(out);
+    
+    phase = abs(phase);
+    phase = abs(phase-90);
 
     out = zeros([size(mag) 2]);
     out(:,:,1) = mag;

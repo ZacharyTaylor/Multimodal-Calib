@@ -42,25 +42,26 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = uint8(255*OutputImage(width, height,pairs(i,2)-1));
-            se = strel('ball',5,5);
-            b = imdilate(b,se);
+            b = OutputImage(width, height,pairs(i,2)-1,5);
+            b = b(:,:,2)/90;
+            b(b ~=0) = histeq(b(b~=0));
+            b = uint8(255*b);          
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
             comb(:,:,2) = b;
 
-            subplot(3,5,i); imshow(b);
-            subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
-            subplot(3,5,10+i); imshow(comb);
+%             subplot(3,5,i); imshow(b);
+%             subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
+%             subplot(3,5,10+i); imshow(comb);
             
-%             subplot(1,3,1); imshow(b);
-%             subplot(1,3,2); imshow(base{pairs(i,1)}.v);
-%             subplot(1,3,3); imshow(comb);
+            subplot(1,3,1); imshow(b);
+            subplot(1,3,2); imshow(base{pairs(i,1)}.v);
+            subplot(1,3,3); imshow(comb);
 
             drawnow
-            fprintf('current transform:\n     metric = %1.3f\n     rotation = [%1.2f, %1.2f, %1.2f]\n     translation = [%1.2f, %1.2f, %1.2f]\n\n',...
-                (-f/i),tform(1),tform(2),tform(3),tform(4),tform(5),tform(6));
+            fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...
+                (-f/i),tform(1),tform(2),tform(3),(180*tform(4)/pi),(180*tform(5)/pi),(180*tform(6)/pi));
 
             sfigure(h);
         end

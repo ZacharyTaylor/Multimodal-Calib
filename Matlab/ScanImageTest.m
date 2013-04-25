@@ -24,9 +24,10 @@ param.options = psooptimset('PopulationSize', 200,...
 %how often to display an output frame
 FIG.countMax = 0;
 
-%tform (rX, rY, rZ, x, y ,z) (rotate then translate,
+%tform (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [-90 0 180 0 0 0];
+tform = [0 0 0 -100 0 180];
+tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
 numMove = 1;
@@ -36,7 +37,7 @@ numBase = 1;
 pairs = [1 1];
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %if camera panoramic
 panoramic = 1;
@@ -67,14 +68,14 @@ else
 end
 
 %% get Data
-move = getPointClouds(numMove);
+%move = getPointClouds(numMove);
 
 for i = 1:numMove
-    m = filterScan(move{i}, metric);
+    m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
-base = getImagesC(numBase);
+%base = getImagesC(numBase);
 
 for i = 1:numBase
     b = filterImage(base{i}, metric);

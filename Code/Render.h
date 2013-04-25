@@ -10,7 +10,7 @@ public:
 	float* out_;
 	Render(void);
 	~Render(void);
-	void GetImage(PointsList* points, PointsList* loc, size_t numPoints, size_t width, size_t height, size_t depth);
+	void GetImage(PointsList* points, PointsList* loc, size_t numPoints, size_t width, size_t height, size_t depth, size_t dilate);
 };
 
 #endif //RENDER_H
