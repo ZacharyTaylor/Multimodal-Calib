@@ -37,7 +37,7 @@ path = 'E:\Work and Uni\Data\Almond\';
 imRange = 200;
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %% setup transforms and images
 SetupCamera(0);

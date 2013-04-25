@@ -4,12 +4,11 @@ function f=alignPoints(base, move, pairs, tform)
     
     %get transformation matirx    
     tform = double(tform);   
-    tformR = pi.*tform(1:3)./180;
-    tformMat = angle2dcm(tformR(3), tformR(2), tformR(1));
+    tformMat = angle2dcm(tform(6), tform(5), tform(4));
     tformMat(4,4) = 1;
-    tformMat(1,4) = tform(4);
-    tformMat(2,4) = tform(5);
-    tformMat(3,4) = tform(6);
+    tformMat(1,4) = tform(1);
+    tformMat(2,4) = tform(2);
+    tformMat(3,4) = tform(3);
     
     SetTformMatrix(tformMat);
     
@@ -35,7 +34,10 @@ function f=alignPoints(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = uint8(255*OutputImage(width, height,pairs(i,2)-1));
+            b = OutputImage(width, height,pairs(i,2)-1,3);
+            b = b(:,:,2)/90;
+            b(b ~=0) = histeq(b(b~=0));
+            b = uint8(255*b);
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
@@ -46,8 +48,8 @@ function f=alignPoints(base, move, pairs, tform)
             subplot(3,1,3); imshow(comb);
 
             drawnow
-            fprintf('current transform:\n     metric = %1.3f\n     rotation = [%1.2f, %1.2f, %1.2f]\n     translation = [%1.2f, %1.2f, %1.2f]\n\n',...
-                f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6));
+            fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...
+                f,tform(1),tform(2),tform(3),(180*tform(4)/pi),(180*tform(5)/pi),(180*tform(6)/pi));
 
             sfigure(h);
         end

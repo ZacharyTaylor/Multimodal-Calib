@@ -2,7 +2,7 @@
 #include <vector_types.h>
 //#include "CI.h"
 
-__global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t numPoints){
+__global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
@@ -13,12 +13,18 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 	loc.x = floor(locs[i]+0.5f);
 	loc.y = floor(locs[i + numPoints]+0.5f);
 
-	bool inside =
-		((0 <= loc.x) && (loc.x < width) &&
-		(0 <= loc.y) && (loc.y < height));
+	for(int dx = (-((int)dilate)+1); dx < ((int)dilate); dx++){
+		for(int dy = (-((int)dilate)+1); dy < ((int)dilate); dy++){
+			bool inside =
+				((0 <= (loc.x + dx)) && ((loc.x + dx) < width) &&
+				(0 <= (loc.y + dy)) && ((loc.y + dy) < height));
 
-	if (inside){
-		out[loc.x + width*loc.y] = vals[i];
+			if (inside){
+				for(size_t j = 0; j < depth; j++){
+					out[(loc.x + dx) + width*(loc.y + dy) + j*width*height] = vals[i + j*numPoints];
+				}
+			}
+		}
 	}
 }
 

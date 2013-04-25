@@ -36,6 +36,34 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	return miOut;
 }
 
+__global__ void red0(float *g_idata, float *g_odata, unsigned int n)
+{
+	extern __shared__ float sdata[];
+
+    // load shared mem
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+
+    sdata[tid] = (i < n) ? g_idata[i] : 0;
+
+    __syncthreads();
+
+    // do reduction in shared mem
+    for (unsigned int s=1; s < blockDim.x; s *= 2)
+    {
+        // modulo arithmetic is slow!
+        if ((tid % (2*s)) == 0)
+        {
+            sdata[tid] += sdata[tid + s];
+        }
+
+        __syncthreads();
+    }
+
+    // write result for this block to global mem
+    if (tid == 0) g_odata[blockIdx.x] = g_idata[0];//sdata[0];
+}
+
 float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	
 	//move scans to gpu if required
@@ -72,46 +100,24 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	float* magOut;
 	CudaSafeCall(cudaMalloc(&phaseOut, sizeof(float)*numElements));
 	CudaSafeCall(cudaMalloc(&magOut, sizeof(float)*numElements));
-    GOMKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+    
+	GOMKernel<<<gridSize(numElements), BLOCK_SIZE>>>
 		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, phaseOut, magOut);
 	CudaCheckError();
 
 	//perform reduction
-
-	int numThreads = 256;
-	int numBlocks = 64;
+	int numThreads = 512;
+	int numBlocks = ceil(((float)numElements)/((float)numThreads));
 	
-	float* reduceOut;
-	CudaSafeCall(cudaMalloc((void **) &reduceOut, numBlocks*sizeof(float)));
-	
-	reduce<float>(numElements, numThreads, numBlocks, 6, phaseOut, reduceOut);
-	float phaseRes;
-	CudaSafeCall(cudaMemcpy(&phaseRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));
-
-	reduce<float>(numElements, numThreads, numBlocks, 6, magOut, reduceOut);
-	float magRes;
-	CudaSafeCall(cudaMemcpy(&magRes,reduceOut,sizeof(float),cudaMemcpyDeviceToHost));
-	
-	/*float* reduceOut;
-	float phaseRes = 0;
-	float magRes = 0;
-	reduceOut = new float[numElements];
-
-	CudaSafeCall(cudaMemcpy(reduceOut,phaseOut,numElements*sizeof(float),cudaMemcpyDeviceToHost));
-	for(size_t i = 0; i < numElements; i++){
-		phaseRes += reduceOut[i];
-	}
-
-	CudaSafeCall(cudaMemcpy(reduceOut,magOut,numElements*sizeof(float),cudaMemcpyDeviceToHost));
-	for(size_t i = 0; i < numElements; i++){
-		magRes += reduceOut[i];
-	}*/
-
-	delete reduceOut;
+	float phaseRes = reduceEasy(phaseOut, numElements);
 	CudaSafeCall(cudaFree(phaseOut));
+	
+	float magRes = reduceEasy(magOut, numElements);
 	CudaSafeCall(cudaFree(magOut));
-
-	return (phaseRes / magRes);
+	
+	float out = (phaseRes / magRes);
+	
+	return out;
 }
 
 float LIV::EvalMetric(SparseScan* A, SparseScan* B){

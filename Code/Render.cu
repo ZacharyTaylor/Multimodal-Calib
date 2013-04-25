@@ -7,7 +7,7 @@ Render::~Render(void){
 	delete[] out_;
 }
 
-void Render::GetImage(PointsList* points, PointsList* loc, size_t numPoints, size_t width, size_t height, size_t depth){
+void Render::GetImage(PointsList* points, PointsList* loc, size_t numPoints, size_t width, size_t height, size_t depth, size_t dilate){
 	float* d_out;
 
 	CudaSafeCall(cudaMalloc(&d_out, sizeof(float)*width*height*depth));
@@ -19,16 +19,15 @@ void Render::GetImage(PointsList* points, PointsList* loc, size_t numPoints, siz
 	}
 	out_ = new float[width*height*depth];
 
-	for(size_t i = 0; i < depth; i++){
-		generateOutputKernel<<<gridSize(numPoints) ,BLOCK_SIZE>>>(
-			((float*)loc->GetGpuPointer()),
-			((float*)points->GetGpuPointer()), 
-			d_out, 
-			width, 
-			height, 
-			numPoints);
-		CudaCheckError();
-	}
+	generateOutputKernel<<<gridSize(numPoints) ,BLOCK_SIZE>>>(
+		((float*)loc->GetGpuPointer()),
+		((float*)points->GetGpuPointer()), 
+		d_out, 
+		width, 
+		height,
+		depth,
+		numPoints, dilate);
+	CudaCheckError();
 
 	CudaSafeCall(cudaMemcpy(out_, d_out, sizeof(float)*width*height*depth, cudaMemcpyDeviceToHost));
 	CudaSafeCall(cudaFree(d_out));
