@@ -43,30 +43,30 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             sfigure(FIG.fig);
 
             b = uint8(255*OutputImage(width, height,pairs(i,2)-1));
-            %se = strel('ball',5,5);
-            %b = imdilate(b,se);
+            se = strel('ball',5,5);
+            b = imdilate(b,se);
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
             comb(:,:,2) = b;
 
-            %subplot(3,5,i); imshow(b);
-            %subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
-            %subplot(3,5,10+i); imshow(comb);
+            subplot(3,5,i); imshow(b);
+            subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
+            subplot(3,5,10+i); imshow(comb);
             
-            subplot(1,3,1); imshow(b);
-            subplot(1,3,2); imshow(base{pairs(i,1)}.v);
-            subplot(1,3,3); imshow(comb);
+%             subplot(1,3,1); imshow(b);
+%             subplot(1,3,2); imshow(base{pairs(i,1)}.v);
+%             subplot(1,3,3); imshow(comb);
 
             drawnow
             fprintf('current transform:\n     metric = %1.3f\n     rotation = [%1.2f, %1.2f, %1.2f]\n     translation = [%1.2f, %1.2f, %1.2f]\n\n',...
-                f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6));
+                (-f/i),tform(1),tform(2),tform(3),tform(4),tform(5),tform(6));
 
             sfigure(h);
         end
-        
-        %change so cost function range is 0-1
-        f = f / size(pairs,1);
-        f = -f;
     end
+    
+    %change so cost function range is 0-1
+    f = f / size(pairs,1);
+    f = -f;
 end

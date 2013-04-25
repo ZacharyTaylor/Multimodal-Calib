@@ -16,7 +16,7 @@
 #ifndef _REDUCE_KERNEL_H_
 #define _REDUCE_KERNEL_H_
 
-#include <stdio.h>
+#include "reduction.h"
 
 extern "C"
 bool isPow2(unsigned int x)
@@ -507,6 +507,146 @@ reduce6(T *g_idata, T *g_odata, unsigned int n)
 extern "C"
 bool isPow2(unsigned int x);
 
+unsigned int nextPow2(unsigned int x)
+{
+    --x;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    return ++x;
+}
+
+#ifndef MIN
+#define MIN(x,y) ((x < y) ? x : y)
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// Compute the number of threads and blocks to use for the given reduction kernel
+// For the kernels >= 3, we set threads / block to the minimum of maxThreads and
+// n/2. For kernels < 3, we set to the minimum of maxThreads and n.  For kernel
+// 6, we observe the maximum specified number of blocks, because each thread in
+// that kernel can process a variable number of elements.
+////////////////////////////////////////////////////////////////////////////////
+void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads)
+{
+
+    //get device capability, to avoid block/grid size excceed the upbound
+    cudaDeviceProp prop;
+    int device;
+    CudaSafeCall(cudaGetDevice(&device));
+    CudaSafeCall(cudaGetDeviceProperties(&prop, device));
+
+    if (whichKernel < 3)
+    {
+        threads = (n < maxThreads) ? nextPow2(n) : maxThreads;
+        blocks = (n + threads - 1) / threads;
+    }
+    else
+    {
+        threads = (n < maxThreads*2) ? nextPow2((n + 1)/ 2) : maxThreads;
+        blocks = (n + (threads * 2 - 1)) / (threads * 2);
+    }
+
+    if (threads*blocks > prop.maxGridSize[0] * prop.maxThreadsPerBlock)
+    {
+        printf("n is too large, please choose a smaller number!\n");
+    }
+
+    if (blocks > prop.maxGridSize[0])
+    {
+        printf("Grid size <%d> excceeds the device capability <%d>, set block size as %d (original %d)\n",
+               blocks, prop.maxGridSize[0], threads*2, threads);
+
+        blocks /= 2;
+        threads *= 2;
+    }
+
+    if (whichKernel == 6)
+    {
+        blocks = MIN(maxBlocks, blocks);
+    }
+}
+
+// All the reduction steps in one for a float
+float reduceEasy(float* d_idata, int size){
+	
+	int maxThreads = 256;  // number of threads per block
+    int whichKernel = 6;
+    int maxBlocks = 64;
+    int cpuFinalThreshold = 1;
+
+	int numBlocks = 0;
+    int numThreads = 0;
+
+    getNumBlocksAndThreads(whichKernel, size, maxBlocks, maxThreads, numBlocks, numThreads);
+
+	// allocate mem for the result on host side
+    float *h_odata = (float *)malloc(numBlocks*sizeof(float));
+
+    // allocate device memory and data
+    float *d_odata = NULL;
+    CudaSafeCall(cudaMalloc((void **) &d_odata, numBlocks*sizeof(float)));
+
+	CudaSafeCall(cudaMemcpy(d_odata, d_idata, numBlocks*sizeof(float), cudaMemcpyDeviceToDevice));
+
+	float out = 0;
+    bool needReadBack = true;
+
+	// execute the kernel
+    reduce<float>(size, numThreads, numBlocks, whichKernel, d_idata, d_odata);
+
+    // check if kernel execution generated an error
+    CudaCheckError();
+
+    // sum partial block sums on GPU
+    int s=numBlocks;
+    int kernel = whichKernel;
+
+    while (s > cpuFinalThreshold)
+    {
+        int threads = 0, blocks = 0;
+        getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
+
+        reduce<float>(s, threads, blocks, kernel, d_odata, d_odata);
+
+        if (kernel < 3)
+        {
+            s = (s + threads - 1) / threads;
+        }
+        else
+        {
+            s = (s + (threads*2-1)) / (threads*2);
+        }
+    }
+
+    if (s > 1)
+    {
+        // copy result from device to host
+        CudaSafeCall(cudaMemcpy(h_odata, d_odata, s * sizeof(float), cudaMemcpyDeviceToHost));
+
+        for (int i=0; i < s; i++)
+        {
+            out += h_odata[i];
+        }
+
+        needReadBack = false;
+    }
+
+    cudaDeviceSynchronize();
+
+    if (needReadBack)
+    {
+        // copy final sum from device to host
+        CudaSafeCall(cudaMemcpy(&out, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
+    }
+
+	free(h_odata);
+	CudaSafeCall(cudaFree(d_odata));
+
+	return out;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper function for kernel launch

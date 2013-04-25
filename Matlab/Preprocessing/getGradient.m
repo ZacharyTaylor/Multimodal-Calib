@@ -11,21 +11,21 @@ idx = knnsearch(kdTree,kdTree.X,'k',9);
 %remove self
 idx = idx(:,2:end);
 
-dVals = repmat(vals,1,9);
+dVals = repmat(vals,1,8);
 dVals(:) = dVals(:) - vals(idx(:));
 
 xLocs = kdTree.X(:,1);
-dxLocs = repmat(xLocs,1,9);
+dxLocs = repmat(xLocs,1,8);
 dxLocs(:) = dxLocs(:) - xLocs(idx(:));
 
 yLocs = kdTree.X(:,2);
-dyLocs = repmat(yLocs,1,9);
+dyLocs = repmat(yLocs,1,8);
 dyLocs(:) = dyLocs(:) - yLocs(idx(:));
 
-dxLocs = sum(dxLocs.*dVals,2) /9;
-dyLocs = sum(dyLocs.*dVals,2) /9;
+dxLocs = sum(dxLocs.*dVals,2) /8;
+dyLocs = sum(dyLocs.*dVals,2) /8;
 
-dVals = sum(abs(dVals),2) /9;
+dVals = sum(abs(dVals),2) /8;
 
 mag = dVals;
 %get angle from 0 to 90 degrees
