@@ -13,13 +13,23 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         cam = mod(i-1,5);
         cam = ['cam' int2str(cam)];
         
+        %baseTform
+        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
+        tformMatB(4,4) = 1;
+        tformMatB(1,4) = tform(1);
+        tformMatB(2,4) = tform(2);
+        tformMatB(3,4) = tform(3);
+        
         %get transformation matrix
-        tformLady = tform + ladybugParam.(cam).offset;
+        tformLady = ladybugParam.(cam).offset;
         tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
         tformMat(4,4) = 1;
         tformMat(1,4) = tformLady(1);
         tformMat(2,4) = tformLady(2);
         tformMat(3,4) = tformLady(3);
+        
+        tformMat = tformMat*tformMatB;
+        
         SetTformMatrix(tformMat);
         
         %setup camera
@@ -38,12 +48,13 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
 
         %display current estimate
         if(FIG.countMax < FIG.count)
-            FIG.count = 0;
+            %FIG.count = 0;
             h = gcf;
-            sfigure(FIG.fig);
-
+            %sfigure(FIG.fig);
+            figure;
+            
             b = OutputImage(width, height,pairs(i,2)-1,5);
-            b = b(:,:,2)/90;
+            %b = b(:,:,2)/90;
             b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);          
 

@@ -5,7 +5,7 @@ function [] = CheckLoaded()
 if(~libisloaded('LibCal'))
     TRACE_INFO('Loading multimodal calibration library');
     
-    [notFound, warnings] = loadlibrary('../Code/Multimodal-Calib/x64/Fast/Multimodal-Calib.dll','../Code/MatlabCalls.h','alias','LibCal');
+    [notFound, warnings] = loadlibrary('../Code/Multimodal-Calib/x64/fast/Multimodal-Calib.dll','../Code/MatlabCalls.h','alias','LibCal');
 end
 
 end

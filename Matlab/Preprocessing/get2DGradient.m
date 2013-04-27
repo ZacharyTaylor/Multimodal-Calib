@@ -13,7 +13,7 @@ tformMat(3,4) = tform(3);
 vals = in(:,4:size(in,2));
 
 in = in(:,1:4);
-in(:,4) = 0;
+in(:,4) = 1;
 
 in = in*tformMat;
 
