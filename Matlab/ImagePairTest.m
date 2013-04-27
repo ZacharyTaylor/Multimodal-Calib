@@ -21,7 +21,7 @@ FIG.countMax = 0;
 tform = [0 0 0 1 1 0 0];
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %% setup Metric
 if(strcmp(metric,'MI'))

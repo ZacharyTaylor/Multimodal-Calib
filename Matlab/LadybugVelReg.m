@@ -39,10 +39,10 @@ tform = ladybugParam.offset;
 %base path
 path = 'E:\Work and Uni\Data\Almond\';
 %range of images to use
-imRange = 50:10:200;
+imRange = 50:10:150;
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %number of times to run optimization
 numTrials = 1;
@@ -80,6 +80,7 @@ for i = 1:numMove
     move{i}(:,4) = 1-histeq(move{i}(:,4));
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
+    fprintf('loaded moving scan %i\n',i);
 end
 
 base = cell(numBase,1);
@@ -98,6 +99,7 @@ for i = 1:numBase
             
     b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
+    fprintf('loaded base image %i\n',i);
 end
 
 %% get image alignment
