@@ -26,7 +26,9 @@ function f=alignImages(base, move, pairs, tform)
         Transform(pairs(i,1)-1);
         InterpolateBaseValues(pairs(i,2)-1);
 
+        tic
         temp = EvalMetric(pairs(i,1)-1);
+        toc
         if(isnan(temp))
             a = 1;
         end

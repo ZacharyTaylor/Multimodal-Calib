@@ -1,7 +1,7 @@
 %% Setup
 loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
-clc;
+%clc;
 
 global DEBUG_TRACE
 DEBUG_TRACE = 3;
@@ -21,7 +21,7 @@ FIG.countMax = 0;
 tform = [0 0 0 1 1 0 0];
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %% setup Metric
 if(strcmp(metric,'MI'))
@@ -33,12 +33,12 @@ else
 end
 
 %% get Data
-move = getImagesC(1);
+%move = getImagesC(1);
 m = filterImage(move{1}, metric);
 LoadMoveImage(0,m);
 
 
-base = getImagesC(1);
+%base = getImagesC(1);
 b = filterImage(base{1}, metric);   
 LoadBaseImage(0,b);
 
@@ -49,7 +49,6 @@ b = filterImage(base{1}, metric);
 %% get image alignment
 LoadMoveImage(0,m);
 LoadBaseImage(0,b);
-
 alignImages(base, move, [1,1], tform);
 
 %% cleanup

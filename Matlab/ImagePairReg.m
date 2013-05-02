@@ -44,7 +44,7 @@ sigma = 0;
 numTrials = 1;
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %% setup transform and images
 SetupAffineTform();

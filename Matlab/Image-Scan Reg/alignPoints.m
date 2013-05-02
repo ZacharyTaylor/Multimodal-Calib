@@ -34,8 +34,9 @@ function f=alignPoints(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = OutputImage(width, height,pairs(i,2)-1,3);
-            b = b(:,:,2)/90;
+            b = OutputImage(width, height,pairs(i,2)-1,2);
+            b = b(:,:,1);
+            %b = b(:,:,2)/180;
             b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);
 

@@ -38,10 +38,10 @@ tform = ladybugParam.offset;
 %base path
 path = 'C:\Data\Almond\';
 %range of images to use
-imRange = 27;
+imRange = 36;
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %number of times to run optimization
 numTrials = 1;
