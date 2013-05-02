@@ -1,4 +1,5 @@
 #include "Metric.h"
+#include "mi.h"
 #include "Reduce\reduction.h"
 
 extern "C" float cudaMIa(float* src1, float* src2, int length, int xbins, int ybins, struct cudaHistOptions* p_options, int device, int incZeros);
@@ -30,38 +31,12 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 		numElements = A->getPoints()->GetNumEntries();
 	}
 
-	struct cudaHistOptions *p_opt = 0;
-	float miOut = cudaMIa((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, MI_BINS, MI_BINS, p_opt, 1, true);
+	//float miOut = 0;
+	float miOut = miRun((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), MI_BINS, numElements);
+	//struct cudaHistOptions *p_opt = 0;
+	//float miOut = cudaMIa((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, MI_BINS, MI_BINS, p_opt, 1, true);
 
 	return miOut;
-}
-
-__global__ void red0(float *g_idata, float *g_odata, unsigned int n)
-{
-	extern __shared__ float sdata[];
-
-    // load shared mem
-    unsigned int tid = threadIdx.x;
-    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
-    sdata[tid] = (i < n) ? g_idata[i] : 0;
-
-    __syncthreads();
-
-    // do reduction in shared mem
-    for (unsigned int s=1; s < blockDim.x; s *= 2)
-    {
-        // modulo arithmetic is slow!
-        if ((tid % (2*s)) == 0)
-        {
-            sdata[tid] += sdata[tid + s];
-        }
-
-        __syncthreads();
-    }
-
-    // write result for this block to global mem
-    if (tid == 0) g_odata[blockIdx.x] = g_idata[0];//sdata[0];
 }
 
 float GOM::EvalMetric(SparseScan* A, SparseScan* B){

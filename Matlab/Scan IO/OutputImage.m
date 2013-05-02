@@ -14,7 +14,7 @@ if((moveNum ~= round(moveNum)) || (moveNum < 0))
     TRACE_ERROR('moveNum must be a positive integer, returning');
     return;
 end
-if((dilate ~= round(dilate)) || (dilate <= 0))
+if((dilate ~= round(dilate)) || (dilate < 0))
     TRACE_ERROR('dilate must be a positive integer, returning');
     return;
 end

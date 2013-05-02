@@ -580,6 +580,18 @@ float reduceEasy(float* d_idata, int size){
 	int numBlocks = 0;
     int numThreads = 0;
 
+	//if really small just perform on host
+	/*if(size < 256){
+		float *h_odata = (float *)malloc(size*sizeof(float));
+		CudaSafeCall(cudaMemcpy(h_odata, d_idata, size*sizeof(float), cudaMemcpyDeviceToHost));
+
+		float out = 0;
+		for(size_t i = 0; i < size; i++){
+			out += h_odata[i];
+		}
+		return out;
+	}*/
+
     getNumBlocksAndThreads(whichKernel, size, maxBlocks, maxThreads, numBlocks, numThreads);
 
 	// allocate mem for the result on host side

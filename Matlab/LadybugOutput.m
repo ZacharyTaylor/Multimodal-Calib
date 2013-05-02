@@ -18,12 +18,10 @@ tform = ladybugParam.offset;
 %base path
 path = 'C:\Almond\';
 %range of images to use
-%imRange = 500;
-imRange = 500:1500;
+imRange = 2;
 
 %if saving
 save = true;
-
 
 %save path
 savePath = 'C:\Almond\Out\';
@@ -94,7 +92,7 @@ for j = 1:(size(pairs,1))
         InterpolateBaseValues(0);
         
         %output for debugging
-        %b = OutputImage(1232, 1616,0,5);
+        %b = OutputImage(1232, 1616,0,2);
         %figure,imshow(b);
         
         %get colour image

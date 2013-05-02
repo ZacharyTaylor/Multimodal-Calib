@@ -53,7 +53,6 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             sfigure(FIG.fig);
             
             b = OutputImage(width, height,pairs(i,2)-1,2);
-            b = b(:,:,1);
             b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);          
 

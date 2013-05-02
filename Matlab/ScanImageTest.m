@@ -26,7 +26,7 @@ FIG.countMax = 0;
 
 %tform (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -100 0 180];
+tform = [0 0 0 -90 0 67.5];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -43,7 +43,7 @@ metric = 'GOM';
 panoramic = 1;
 
 %camera parameters (focal length, fX, fY)
-camera = [1000 500 500];
+camera = [766 1864/2 320/2];
 
 
 %% setup transforms and images
@@ -55,9 +55,6 @@ SetupCameraTform();
 
 Initilize(numMove,numBase);
 
-param.lower = initalGuess - range;
-param.upper = initalGuess + range;
-
 %% setup Metric
 if(strcmp(metric,'MI'))
     SetupMIMetric();
@@ -68,18 +65,19 @@ else
 end
 
 %% get Data
-%move = getPointClouds(numMove);
+move = getPointClouds(numMove);
 
 for i = 1:numMove
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
-%base = getImagesC(numBase);
+base = getImagesC(numBase, true);
 
 for i = 1:numBase
     b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
+    %base{i}.v = uint8(255*(b(:,:,2)/180));
 end
 
 %% get image alignment
