@@ -33,8 +33,8 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         SetTformMatrix(tformMat);
         
         %setup camera
-        focal = ladybugParam.(cam).focal;
-        centre = ladybugParam.(cam).centre;
+        focal = ladybugParam.(cam).focal/4;
+        centre = ladybugParam.(cam).centre/4;
         cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
         SetCameraMatrix(cameraMat);
         
@@ -48,15 +48,14 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
 
         %display current estimate
         if(FIG.countMax < FIG.count)
-            %FIG.count = 0;
+            FIG.count = 0;
             h = gcf;
-            %sfigure(FIG.fig);
-            figure;
+            sfigure(FIG.fig);
             
-            b = OutputImage(width, height,pairs(i,2)-1,5);
-            b = (b(:,:,2)+180)/(360);
+            b = OutputImage(width, height,pairs(i,2)-1,2);
             b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);          
+
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;

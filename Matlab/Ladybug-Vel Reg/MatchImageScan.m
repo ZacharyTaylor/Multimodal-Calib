@@ -44,14 +44,13 @@ function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange, rep )
     fileIndex = find(~[files.isdir]);
    
     fileName = cell(length(fileIndex),1);
+    out = cell(length(fileIndex),3);
     for i = 1:length(fileIndex)
         fileName{i} = files(fileIndex(i)).name;
+        out(i,:) = textscan(char(fileName{i}), 'Scan %d Time %f_%f.csv');
     end
-    fileNameScan = char(fileName);
-    fileNameScan(fileNameScan == '-') = '.';
-    out = textscan(fileNameScan', 'Scan %d Time %f_%f.csv');
-    timeMin = out{2};
-    timeMax = out{3};
+    timeMin = cell2mat(out(:,2));
+    timeMax = cell2mat(out(:,3));
            
     %for images in imRange
     j = 1;

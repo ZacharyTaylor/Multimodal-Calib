@@ -1,6 +1,7 @@
 %% Setup
 loadPaths;
-set(0,'DefaultFigureWindowStyle','docked');
+set(0,'DefaultFigureWindowStyle','normal');
+clc;
 
 global DEBUG_TRACE
 DEBUG_TRACE = 2;
@@ -31,9 +32,10 @@ FIG.countMax = 0;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Data\Almond\';
+path = 'E:\Work and Uni\Data\Almond\';
 %range of images to use
-imRange = 36;
+imRange = 200;
+
 
 %metric to use
 metric = 'GOM';
@@ -42,7 +44,7 @@ metric = 'GOM';
 SetupCamera(0);
 SetupCameraTform();
 
-[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, true );
+[basePaths, movePaths, pairs] = MatchImageScan( path, imRange );
 
 numBase = max(pairs(:,1));
 numMove = max(pairs(:,2));
@@ -62,11 +64,13 @@ end
 move = cell(numMove,1);
 for i = 1:numMove
     move{i} = dlmread(movePaths{i},',');
+
     %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
     %move{i} = getNorms(move{i},8);
     %move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
     %move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
     %move{i}(:,4) = 1-histeq(move{i}(:,4));
+
     m = filterScan(move{i}, metric);
     LoadMoveScan(i-1,m,3);
 end

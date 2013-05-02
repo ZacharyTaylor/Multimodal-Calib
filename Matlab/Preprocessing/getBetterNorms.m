@@ -36,7 +36,7 @@ sphere(:,6) = interp2(qx,qy,Nz,sphere(:,1),sphere(:,2));
 
 %get gradient and magnitude
 phase = atan2d(sphere(:,5),sphere(:,4));
-mag = ones(size(sphere(:,6)),1);%-sphere(:,6);
+mag = ones(size(sphere(:,6),1),1);%-sphere(:,6);
 
 end
 

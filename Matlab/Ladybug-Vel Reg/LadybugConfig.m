@@ -3,7 +3,6 @@ function [ Ladybug ] = LadybugConfig()
 
 %Ladybug.offset = [0.0064,0,-1.2508,3.14159,0,0];
 Ladybug.offset = [0,0,-0.35,180,0,183];
-%Ladybug.offset = [0.07,-0.1,-0.64,177.12,-1.16,184.12];
 Ladybug.offset(4:6) = pi*Ladybug.offset(4:6)/180;
 
 Ladybug.cam0.offset = [0.042,-0.002,0.0,-1.575,-0.004,-1.573];
