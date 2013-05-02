@@ -1,8 +1,9 @@
-function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange )
+function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange, rep )
 %MATCHIMAGESCAN Matches images to nearest scan
 %   input 
 %   imRange- range of images to get matches for
 %   path- base path to begin looking in
+%   rep- repeat for each of the cameras
 %   
 %   output
 %   basePaths - paths to base images
@@ -78,8 +79,10 @@ function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange )
     basePaths = basePaths(pairs(:,1),:);
     pairs(:,1) = 1:length(pairs(:,1));
     
-    %account for the 5 images per scan
-    pairs = kron(pairs, ones(5,1));
-    pairs(:,1) = 1:size(pairs,1);
+    if(rep)
+        %account for the 5 images per scan
+        pairs = kron(pairs, ones(5,1));
+        pairs(:,1) = 1:size(pairs,1);
+    end
 end
 
