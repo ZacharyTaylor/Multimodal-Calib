@@ -6,10 +6,16 @@ if(strcmp(metric,'MI'))
 elseif(strcmp(metric,'GOM'))   
     out = single(scan);
     [mag,phase] = get2DGradient( out, tform );
+    mag = mag - min(mag(:));
+    mag = mag / max(mag(:));
+    mag = histeq(mag);
     out = [out(:,1:3),mag,phase];
 else
     error('Invalid metric type');
 end
+
+out(:,4) = out(:,4) - min(out(:,4));
+out(:,4) = out(:,4) / max(out(:,4));
     
 end
 
