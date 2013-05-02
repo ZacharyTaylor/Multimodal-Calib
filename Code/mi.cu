@@ -33,8 +33,8 @@ __global__ void HistKernel(float* a, float* b, unsigned int* histABI, size_t bin
 	for(size_t j = i; j < numElements; j += blockDim.x*gridDim.x){
 
 		//get bin to put point in
-		size_t locA = ((float)(bins-1))*a[i];
-		size_t locB = ((float)(bins-1))*b[i];
+		size_t locA = ((float)(bins-1))*a[j];
+		size_t locB = ((float)(bins-1))*b[j];
 
 		//atomicMax(&blockMem[(j%(bins*bins))],locB);
 		atomicAdd(&blockMem[locA + bins*locB], 1);
@@ -155,7 +155,7 @@ float miRun(float* A, float* B, size_t bins, size_t numElements){
 	CudaSafeCall(cudaMalloc((void**)&histABF, sizeof(float)*bins*bins));
 
 	//fill main histogram
-	HistKernel<<<gridSize(numElements), BLOCK_SIZE, bins*bins>>>
+	HistKernel<<<gridSize(1024), BLOCK_SIZE, bins*bins*sizeof(unsigned int)>>>
 		(A, B, histABI, bins, numElements);
 	CudaCheckError();
 
@@ -179,9 +179,6 @@ float miRun(float* A, float* B, size_t bins, size_t numElements){
 	float eAB = reduceEasy(histABF, bins*bins);
 	float eA = reduceEasy(histAF, bins);
 	float eB = reduceEasy(histBF, bins);
-	
-
-	printf("%f		%f		%f\n",eA,eB,eAB);
 
 	//finally get mi
 	float mi = (eA + eB) / eAB;

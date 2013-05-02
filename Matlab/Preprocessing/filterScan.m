@@ -3,7 +3,7 @@ function [ out ] = filterScan( scan, metric, tform)
 
 if(strcmp(metric,'MI'))
     out = single(scan);
-    [ out(:,4) ] = getBetterNorms(out, 8, 100000);
+    [ ~,out(:,4) ] = getBetterNorms(out, 8, 100000);
     out(isnan(out)) = 0;
 elseif(strcmp(metric,'GOM'))   
     out = single(scan);
