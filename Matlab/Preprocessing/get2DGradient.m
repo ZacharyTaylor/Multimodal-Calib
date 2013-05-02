@@ -15,7 +15,7 @@ vals = in(:,4:size(in,2));
 in = in(:,1:4);
 in(:,4) = 1;
 
-in = in*tformMat;
+in = (tformMat*(in'))';
 
 %project points onto sphere
 sphere = zeros(size(in,1),2);
@@ -49,7 +49,6 @@ dVals = sum(abs(dVals)./sum(sqrt(dxLocs.^2+dyLocs.^2)),2) /8;
 mag = dVals;
 %get angle from 0 to 90 degrees
 phase = abs(atan2d(dxLocs,dyLocs));
-phase = abs(phase-90);
 
 end
 

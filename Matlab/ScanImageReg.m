@@ -22,14 +22,15 @@ param.options = psooptimset('PopulationSize', 200,...
     'SocialAttraction',1.25);
 
 %how often to display an output frame
-FIG.countMax = 0;
+FIG.countMax = 100;
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [0.1 0.1 0.01 30 30 30];
+range = [0.1 0.1 0.01 10 10 10];
+range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 180];
+tform = [0 0 0 -90 0 67.5];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -46,10 +47,10 @@ metric = 'GOM';
 panoramic = 1;
 
 %camera parameters (focal length, fX, fY)
-camera = [1000 500 500];
+camera = [766 1864/2 320/2];
 
 %number of times to run optimization
-numTrials = 2;
+numTrials = 1;
 
 
 %% setup transforms and images
@@ -81,11 +82,12 @@ for i = 1:numMove
     LoadMoveScan(i-1,m,3);
 end
 
-base = getImagesC(numBase);
+base = getImagesC(numBase, true);
 
 for i = 1:numBase
     b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
+    %base{i}.v = uint8(255*b(:,:,2)/90);
 end
 
 

@@ -33,10 +33,10 @@ tform = ladybugParam.offset;
 %base path
 path = 'C:\Data\Almond\';
 %range of images to use
-imRange = 2;
+imRange = 36;
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %% setup transforms and images
 SetupCamera(0);
@@ -62,10 +62,11 @@ end
 move = cell(numMove,1);
 for i = 1:numMove
     move{i} = dlmread(movePaths{i},',');
-    move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
-    move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
-    move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
-    move{i}(:,4) = 1-histeq(move{i}(:,4));
+    %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
+    %move{i} = getNorms(move{i},8);
+    %move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
+    %move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+    %move{i}(:,4) = 1-histeq(move{i}(:,4));
     m = filterScan(move{i}, metric);
     LoadMoveScan(i-1,m,3);
 end
@@ -76,6 +77,12 @@ for i = 1:numBase
     idx1 = (i - idx2)/5 + 1;
     baseIn = imread(basePaths{idx1,idx2});
 
+    for q = 1:size(baseIn,3)
+        temp = baseIn(:,:,q);
+        temp(temp ~= 0) = histeq(temp(temp ~= 0));
+        baseIn(:,:,q) = temp;
+    end
+    
     if(size(baseIn,3)==3)
         base{i}.c = baseIn;
         base{i}.v = rgb2gray(baseIn);

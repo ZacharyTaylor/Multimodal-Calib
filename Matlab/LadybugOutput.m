@@ -18,11 +18,10 @@ tform = ladybugParam.offset;
 %base path
 path = 'C:\Data\Almond\';
 %range of images to use
-imRange = 1:678;
+imRange = 2;
 
 %if saving
 save = true;
-
 
 %save path
 savePath = 'C:\Data\Almond\Out\';
@@ -50,6 +49,11 @@ for j = 1:(size(pairs,1))
     for k = 1:5
 
         b = imread(basePaths{pairs(j,1),k});
+        for q = 1:size(b,3)
+            temp = b(:,:,q);
+            temp(temp ~= 0) = histeq(temp(temp~=0));
+            b(:,:,q) = temp;
+        end
         b = double(b)/255;
         LoadBaseImage(0,b);
 
@@ -57,15 +61,25 @@ for j = 1:(size(pairs,1))
 
         %get camera name
         cam = k;
-        cam = ['cam' int2str(cam)];
+        cam = ['cam' int2str(cam-1)];
 
+        %baseTform
+        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
+        tformMatB(4,4) = 1;
+        tformMatB(1,4) = tform(1);
+        tformMatB(2,4) = tform(2);
+        tformMatB(3,4) = tform(3);
+        
         %get transformation matrix
-        tformLady = tform + ladybugParam.(cam).offset;
+        tformLady = ladybugParam.(cam).offset;
         tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
         tformMat(4,4) = 1;
         tformMat(1,4) = tformLady(1);
         tformMat(2,4) = tformLady(2);
         tformMat(3,4) = tformLady(3);
+        
+        tformMat = tformMat*tformMatB;
+        
         SetTformMatrix(tformMat);
 
         %setup camera
@@ -78,7 +92,7 @@ for j = 1:(size(pairs,1))
         InterpolateBaseValues(0);
         
         %output for debugging
-        %b = OutputImage(1232, 1616,0,5);
+        %b = OutputImage(1232, 1616,0,2);
         %figure,imshow(b);
         
         %get colour image

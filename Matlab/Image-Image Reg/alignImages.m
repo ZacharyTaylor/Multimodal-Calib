@@ -40,13 +40,13 @@ function f=alignImages(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            m = uint8(255*OutputImage(width, height,pairs(i,1)-1));
+            m = uint8(255*OutputImage(width, height,pairs(i,1)-1,0));
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
-            comb(:,:,2) = m;
+            comb(:,:,2) = m(:,:,1);
 
-            subplot(3,1,1); imshow(m);
+            subplot(3,1,1); imshow(m(:,:,1));
             subplot(3,1,2); imshow(base{pairs(i,2)}.v);
             subplot(3,1,3); imshow(comb);
 

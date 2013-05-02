@@ -3,14 +3,12 @@ function [ out ] = filterImage( image, metric )
 
 if(strcmp(metric,'MI'))
     out = single(image.v)/255;
-    out = histeq(out);
 elseif(strcmp(metric,'GOM'))
     out = single(image.v)/255;
-    out = histeq(out);
     [mag,phase] = imgradient(out);
     
-    phase = abs(phase);
-    phase = abs(phase-90);
+    phase = mod((phase + 360),360)-180;
+    mag = histeq(mag);
 
     out = zeros([size(mag) 2]);
     out(:,:,1) = mag;
