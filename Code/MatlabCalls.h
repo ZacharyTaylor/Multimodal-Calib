@@ -61,6 +61,7 @@ DllExport void setupLivMetric(void);
 DllExport float getMetricVal(unsigned int moveNum);
 
 DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate);
+DllExport float* outputImageGen(unsigned int width, unsigned int height, unsigned int dilate);
 
 DllExport void checkCudaErrors(void);
 

@@ -550,3 +550,12 @@ DllExport float* outputImage(unsigned int width, unsigned int height, unsigned i
 	return render.out_;
 }
 
+DllExport float* outputImageGen(unsigned int width, unsigned int height, unsigned int dilate){
+	if(gen == NULL){
+		TRACE_ERROR("A generated image is required");
+		return 0;
+	}
+
+	render.GetImage(gen->getPoints(), gen->GetLocation(), gen->getNumPoints(), width, height, gen->getNumCh(), dilate);
+	return render.out_;
+}
