@@ -476,7 +476,7 @@ DllExport void setupMIMetric(void){
 		metric = NULL;
 	}
 
-	metric = new MI();
+	//metric = new MI();
 }
 DllExport void setupGOMMetric(void){
 	if(metric != NULL){
@@ -495,7 +495,7 @@ DllExport void setupLivMetric(void){
 		metric = NULL;
 	}
 
-	metric = new LIV();
+	//metric = new LIV();
 }
 
 DllExport float getMetricVal(unsigned int moveNum){

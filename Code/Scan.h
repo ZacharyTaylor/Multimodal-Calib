@@ -5,18 +5,29 @@
 #include "common.h"
 #include "trace.h"
 
+//! Number of dimensions a photo has
 #define IMAGE_DIM 2
 
+//! Holds the sensors scans and unifies the method for accessing them
 class Scan {
 protected:
+	//! Number of dimensions scan has
 	size_t numDim_;
+	//! Number of channels of information assosiated with each point in scan
 	size_t numCh_;
 
+	//! Array of length numDim_ specifiying the scans size in each dimension
 	size_t* dimSize_;
+	//! Holds the points of the scan
 	PointsList* points_;
 
 public:
-
+	//! Constructor creates an empty scan
+	/*!
+		\param numDim Number of dimensions scan has
+		\param numCh Number of channels of information assosiated with each point in scan
+		\param dimSize Array of length numDim_ specifiying the scans size in each dimension
+	*/
 	Scan(size_t numDim, size_t numCh,  size_t* dimSize);
 	Scan(size_t numDim, size_t numCh,  size_t* dimSize, PointsList* points);
 	~Scan(void);

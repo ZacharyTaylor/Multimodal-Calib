@@ -7,7 +7,7 @@
 #include "Kernel.h"
 
 #define GOM_DEPTH 2 
-#define MI_BINS 50
+#define MI_BINS 30
 
 class Metric {
 public:
@@ -17,20 +17,25 @@ public:
 
 class MI: public Metric {
 public:
-
+	MI(size_t numBins);
 	float EvalMetric(SparseScan* A, SparseScan* B);
+private:
+	const size_t bins_;
 };
 
 class GOM: public Metric {
 public:
-
+	GOM(void);
 	float EvalMetric(SparseScan* A, SparseScan* B);
 };
 
 class LIV: public Metric {
 public:
-
+	LIV(float* avImg, size_t width, size_t height);
+	~LIV();
 	float EvalMetric(SparseScan* A, SparseScan* B);
+private:
+	PointsList* avImg_;
 };
 
 /**
