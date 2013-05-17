@@ -186,7 +186,7 @@ public:
 
 private:
 
-	/! Sets up the number and size of the dimensions and channels of the scan
+	//! Sets up the number and size of the dimensions and channels of the scan
 	static size_t* setDimSize(const size_t width, const size_t height, const size_t numCh);
 };
 
