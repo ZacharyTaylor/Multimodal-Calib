@@ -14,7 +14,7 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         cam = ['cam' int2str(cam)];
         
         %baseTform
-        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
+        tformMatB = angle2dcm(tform(6), tform(5), tform(4),'ZYX');
         tformMatB(4,4) = 1;
         tformMatB(1,4) = tform(1);
         tformMatB(2,4) = tform(2);
@@ -22,7 +22,7 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         
         %get transformation matrix
         tformLady = ladybugParam.(cam).offset;
-        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
+        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4),'ZYX');
         tformMat(4,4) = 1;
         tformMat(1,4) = tformLady(1);
         tformMat(2,4) = tformLady(2);
@@ -33,8 +33,8 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         SetTformMatrix(tformMat);
         
         %setup camera
-        focal = ladybugParam.(cam).focal/4;
-        centre = ladybugParam.(cam).centre/4;
+        focal = ladybugParam.(cam).focal/2;
+        centre = ladybugParam.(cam).centre/2;
         cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
         SetCameraMatrix(cameraMat);
         
@@ -59,15 +59,15 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
-            comb(:,:,2) = b;
+            comb(:,:,2) = b(:,:,1);
 
 %             subplot(3,5,i); imshow(b);
 %             subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
 %             subplot(3,5,10+i); imshow(comb);
             
-            subplot(1,3,1); imshow(b);
-            subplot(1,3,2); imshow(base{pairs(i,1)}.v);
-            subplot(1,3,3); imshow(comb);
+            subplot(3,1,1); imshow(b(:,:,1));
+            subplot(3,1,2); imshow(base{pairs(i,1)}.v);
+            subplot(3,1,3); imshow(comb);
 
             drawnow
             fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...

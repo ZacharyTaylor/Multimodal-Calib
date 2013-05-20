@@ -2,8 +2,10 @@ function [ Ladybug ] = LadybugConfig()
 %LADYBUGCONFIG Config information for ladybug camera mounted to shrimp
 
 %Ladybug.offset = [0.0064,0,-1.2508,3.14159,0,0];
-Ladybug.offset = [0,0,-0.35,180,0,183];
+Ladybug.offset = [0,0,-0.35,180,90,0];
+%Ladybug.offset = [-0.29 -0.19 0.09 181.1 -0.59 186.77];
 Ladybug.offset(4:6) = pi*Ladybug.offset(4:6)/180;
+%Ladybug.offset = [-0.15096 0.2154 0.10516 3.1588 0.0077873 3.1207];
 
 Ladybug.cam0.offset = [0.042,-0.002,0.0,-1.575,-0.004,-1.573];
 Ladybug.cam0.focal = 403.431;

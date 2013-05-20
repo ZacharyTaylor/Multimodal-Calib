@@ -5,14 +5,19 @@ if(strcmp(metric,'MI'))
     out = single(image.v)/255;
 elseif(strcmp(metric,'GOM'))
     out = single(image.v)/255;
-    [mag,phase] = imgradient(out);
+    [mag,phase] = imgrad(out);
+    mag = mag - min(mag(:));
+    mag = mag / max(mag(:));
     
-    phase = mod((phase + 360),360)-180;
-    mag = histeq(mag);
+    %mag(mag ~= 0) = histeq(mag(mag ~= 0));
 
     out = zeros([size(mag) 2]);
     out(:,:,1) = mag;
     out(:,:,2) = phase;
+elseif(strcmp(metric,'LIV'))
+    out = single(image.v)/255;
+    out = livImage(out);
+    
 else
     error('Invalid metric type');
 end

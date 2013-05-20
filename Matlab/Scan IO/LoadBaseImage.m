@@ -15,7 +15,7 @@ end
 %ensures the library is loaded
 CheckLoaded();
 
-%setting move image (dim 2 before 1 because (y,x,z) is way too confusing
+%setting base image (dim 2 before 1 because (y,x,z) is way too confusing
 imgT = zeros([size(img,2),size(img,1),size(img,3)]);
 for i = 1:size(img,3)
     imgT(:,:,i) = img(:,:,i)';

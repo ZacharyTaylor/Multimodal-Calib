@@ -16,15 +16,15 @@ ladybugParam = LadybugConfig;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Almond\';
+path = 'C:\Data\Almond\';
 %range of images to use
-imRange = 2;
+imRange = [2, 100, 200, 300, 400 500];
 
 %if saving
 save = true;
 
 %save path
-savePath = 'C:\Almond\Out\';
+savePath = 'C:\Data\Almond\Out\';
 
 %% setup transforms and images
 SetupCamera(0);
@@ -140,7 +140,7 @@ for j = 1:(size(pairs,1))
     tformMat(3,4) = pos(j,3);
     temp = ones(size(out{j},1),4);
     temp(:,1:3) = out{j}(:,1:3);
-    temp = (tformMat*temp')';
+    temp = (tformMat*tformMatB*temp')';
     out{j}(:,1:3) = temp(:,1:3);
     
     fprintf('Processing Image %i\n',j);
