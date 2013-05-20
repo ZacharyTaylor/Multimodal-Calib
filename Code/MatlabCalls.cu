@@ -469,14 +469,14 @@ DllExport void genBaseValues(unsigned int baseNum){
 	base->d_interpolate(gen);
 }
 
-DllExport void setupMIMetric(void){
+DllExport void setupMIMetric(unsigned int numBins){
 	if(metric != NULL){
 		TRACE_INFO("A metric already exists, overwriting it");
 		delete metric;
 		metric = NULL;
 	}
 
-	//metric = new MI();
+	metric = new MI(numBins);
 }
 DllExport void setupGOMMetric(void){
 	if(metric != NULL){
@@ -488,14 +488,14 @@ DllExport void setupGOMMetric(void){
 	metric = new GOM();
 }
 
-DllExport void setupLivMetric(void){
+DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int height){
 	if(metric != NULL){
 		TRACE_INFO("A metric already exists, overwriting it");
 		delete metric;
 		metric = NULL;
 	}
 
-	//metric = new LIV();
+	metric = new LIV(avImg, width, height);
 }
 
 DllExport float getMetricVal(unsigned int moveNum){

@@ -110,6 +110,26 @@ LIV::~LIV(){
 }
 
 float LIV::EvalMetric(SparseScan* A, SparseScan* B){
-	TRACE_ERROR("Not yet implemented");
-	return 0;
+	size_t numElements;
+	//check scans of same size
+	if(A->getNumPoints() != B->getNumPoints()){
+		numElements = (A->getNumPoints() > B->getNumPoints()) ? B->getNumPoints() : A->getNumPoints();
+		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getNumPoints(),B->getNumPoints(),numElements);
+	}
+	else{
+		numElements = A->getNumPoints();
+	}
+
+	float* out;
+	CudaSafeCall(cudaMalloc(&out, sizeof(float)*numElements));
+	
+	livValKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), (float*)avImg_->GetGpuPointer(), numElements, out);
+	CudaCheckError();
+
+	//perform reduction
+	float outVal = reduceEasy(out, numElements);
+	CudaSafeCall(cudaFree(out));
+	
+	return outVal;
 }

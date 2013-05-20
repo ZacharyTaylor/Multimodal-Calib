@@ -5,6 +5,7 @@
 #include "trace.h"
 #include "Scan.h"
 
+//! Will someday offer an opengl viewer of points as they are transformed but right now just a really ugly dump gpu memory to an image function.
 class Render{
 public:
 	float* out_;

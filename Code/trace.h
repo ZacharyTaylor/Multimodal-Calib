@@ -1,4 +1,18 @@
-// TRACE macro for win32
+/*! Trace is used for outputing information, errors and warnings to matlab from within C++ code. 
+Identical behaviour is also implemented in .m files for use with matlab and .cu for use with CUDA. 
+
+The trace can be set to 4 different levels
+0 - no debug info
+1 - errors only
+2 - errors and warnings
+3 - errors, warnings and information
+
+The output of the trace states the file and line of the code that was triggered as well as the
+laungage it is in and the type of error. For example
+TRACE_ERROR("testing"); // would output the following
+C++ Error at trace.h(13): testing
+*/
+
 #ifndef TRACE_H
 #define TRACE_H
 
@@ -9,7 +23,7 @@
 #include <string.h>
 
 
-//trace 0 = off, 1 = errors, 2 = warnings, 3 = info
+//! trace 0 = off, 1 = errors, 2 = warnings, 3 = info
 #define DEBUG_TRACE 1
 
 #define BUFF_SIZE 4096

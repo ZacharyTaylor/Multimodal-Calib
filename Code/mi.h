@@ -5,15 +5,12 @@
 #include "trace.h"
 #include "Reduce\reduction.h"
 
-/**
-*	miRun-
-*	runs the mutual information calculation
-*
-*	Inputs-
-*	miData - struct which contains all histograms and other information needed in the calculation
-*	imData - struct containing all the information on the images that mi will be performed on
-*	imNum - which image in imData will have the mi calculated
-*	Output - the normalized mutual information
+//! Runs the mutal information calculation
+/*!
+	\param A the first signal, range 0 to 1
+	\param B the second signal to be compared, range 0 to 1
+	\param bins number of bins to use, due to issue with gpu shared memory must be less then 64
+	\param numElements number of points in signal 1 and 2 (signals must be same size)
 */
 float miRun(float* A, float* B, size_t bins, size_t numElements);
 

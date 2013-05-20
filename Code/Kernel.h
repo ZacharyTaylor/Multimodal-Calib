@@ -17,6 +17,8 @@ __global__ void CameraTransformKernel(const float* tform, const float* cam, cons
 
 __global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut);
 
+__global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out);
+
 void RunBSplineKernel(float* volume, size_t width, size_t height);
 
 #endif //KERNEL_H

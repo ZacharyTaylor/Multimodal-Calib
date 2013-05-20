@@ -153,11 +153,11 @@ DllExport int getGenNumPoints(void);
 DllExport void genBaseValues(unsigned int baseNum);
 
 //! Sets up the MI metric for use with scans
-DllExport void setupMIMetric(void);
+DllExport void setupMIMetric(unsigned int numBins);
 //! Sets up the GOM metric for use with scans
 DllExport void setupGOMMetric(void);
 //! Sets up the Levinson method's metric for use with scans
-DllExport void setupLivMetric(void);
+DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int height);
 
 //! Gets the value of the metric when evaluated between the generated scan Gen and the specified moving scan.
 DllExport float getMetricVal(unsigned int moveNum);
