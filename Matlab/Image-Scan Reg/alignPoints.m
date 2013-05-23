@@ -2,6 +2,9 @@ function f=alignPoints(base, move, pairs, tform)
 
     global FIG;
     
+    cameraMat = cam2Pro(tform(7),tform(7),size(base{1}.v,2)/2,size(base{1}.v,1)/2);
+    SetCameraMatrix(cameraMat);
+
     %get transformation matirx    
     tform = double(tform);   
     tformMat = angle2dcm(tform(6), tform(5), tform(4));

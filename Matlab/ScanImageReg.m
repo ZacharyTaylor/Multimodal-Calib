@@ -14,23 +14,22 @@ FIG.count = 0;
 param = struct;
 
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 200,...
+param.options = psooptimset('PopulationSize', 300,...
     'TolCon', 1e-1,...
     'StallGenLimit', 30,...
     'Generations', 200,...
-    'PlotFcns',{@psoplotbestf,@psoplotswarmsurf},...
-    'SocialAttraction',1.25);
+    'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
-FIG.countMax = 100;
+FIG.countMax = 50;
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [0.1 0.1 0.01 10 10 10];
+range = [1 1 1 10 10 10 50];
 range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 67.5];
+tform = [0 0 0 -90 0 68 800];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -41,13 +40,10 @@ numBase = 1;
 pairs = [1 1];
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %if camera panoramic
 panoramic = 1;
-
-%camera parameters (focal length, fX, fY)
-camera = [766 1864/2 320/2];
 
 %number of times to run optimization
 numTrials = 1;
@@ -56,8 +52,6 @@ numTrials = 1;
 %% setup transforms and images
 SetupCamera(panoramic);
 
-cameraMat = cam2Pro(camera(1),camera(1),camera(2),camera(3));
-SetCameraMatrix(cameraMat);
 SetupCameraTform();
 
 Initilize(numMove,numBase);
@@ -97,7 +91,7 @@ tformTotal = zeros(numTrials,size(tform,2));
 fTotal = zeros(numTrials,1);
 
 for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignPoints(base, move, pairs, tform), 6,[],[],[],[],param.lower,param.upper,[],param.options);
+    [tformOut, fOut]=pso(@(tform) alignPoints(base, move, pairs, tform), 7,[],[],[],[],param.lower,param.upper,[],param.options);
 
     tformTotal(i,:) = tformOut;
     fTotal(i) = fOut;

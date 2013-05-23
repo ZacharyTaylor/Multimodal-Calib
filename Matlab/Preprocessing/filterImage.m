@@ -3,6 +3,7 @@ function [ out ] = filterImage( image, metric )
 
 if(strcmp(metric,'MI'))
     out = single(image.v)/255;
+    out = histeq(out);
 elseif(strcmp(metric,'GOM'))
     out = single(image.v)/255;
     [mag,phase] = imgrad(out);
