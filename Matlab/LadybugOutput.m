@@ -18,29 +18,54 @@ tform = ladybugParam.offset;
 %base path
 path = 'C:\Almond\';
 %range of images to use
-imRange = 2;
+imRange = [1];
+
+offset = [0.0215,0.0026,-0.8822,-0.0014,0.0087,3.1143];
 
 %if saving
-save = true;
+saveAll = true;
+save = false;
 
 %save path
-savePath = 'C:\Almond\Out\';
+savePath = 'C:\Almond\Out 2\';
 
 %% setup transforms and images
 SetupCamera(0);
 SetupCameraTform();
 
-[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, false );
-[ pos  ] = GetNavVals( path, basePaths );
+[basePaths, movePaths, pairs] = MatchImageScanNav( path, imRange, false );
+%read in nav data
+[ navPos, navSpeed, navTime ] = ReadNavData( [path 'NovatelNav/NavData.bin'] );
 
 Initilize(1, 1);
 
 out = cell(size(pairs,1),1);
 
+for i = 1:5
+    temp = imread([path 'Ladybug\masks\cam' int2str(i-1) '.png']);
+    mask(:,:,i) = temp(:,:,1);
+end
+
+folder = [path 'Ladybug/cam0/'];
+files = dir(folder);
+fileIndex = find(~[files.isdir]);
+
+time = uint64(zeros(length(fileIndex),1));
+
+%get image times
+for i = 1:length(fileIndex)
+    %get name
+    fileName = files(fileIndex(i)).name;
+
+    %get time from name
+    temp = textscan(fileName,'%u64');
+    time(i) = temp{1};
+end
+    
 %% get Data
 for j = 1:(size(pairs,1))
     
-    m = dlmread(movePaths{pairs(j,2)},',');
+    m = ReadVelData(movePaths{pairs(j,2)});
     LoadMoveScan(0,m,3);
     
     out{j} = zeros(size(m,1),6);
@@ -49,12 +74,17 @@ for j = 1:(size(pairs,1))
     for k = [1,3,4,5,2]
 
         b = imread(basePaths{pairs(j,1),k});
-        for q = 1:size(b,3)
-            temp = b(:,:,q);
-            temp(temp ~= 0) = histeq(temp(temp~=0));
-            b(:,:,q) = temp;
-        end
+        b(repmat(mask(:,:,k) == 0,[1,1,3])) = 0;
+        b(b ~=0) = imadjust(b(b ~= 0),stretchlim(b(b~= 0)),[]);
         b = double(b)/255;
+        
+%         for q = 1:size(b,3)
+%             temp = b(:,:,q);
+%             temp(temp ~= 0) = histeq(temp(temp ~= 0));
+%             b(:,:,q) = temp;
+%         end
+        
+        
         LoadBaseImage(0,b);
 
         %% colour image
@@ -105,9 +135,14 @@ for j = 1:(size(pairs,1))
             %remove black points
             outLoc = outLoc(any(outLoc(:,4:6),2),:);
             
+            %remove very bright ponints
+            outLoc = outLoc(~any((outLoc(:,4:6) > 150),2),:);
+            
+            outLoc(4:6) = outLoc(4:6)*255/150;
+            
             if(save)
                 %save image
-                strPly = int2str(j);
+                strPly = int2str(imRange(j));
                 strPly = [savePath, strPly, '.ply'];
 
                 if (size(outLoc,1) > 1000)
@@ -131,17 +166,29 @@ for j = 1:(size(pairs,1))
     %remove black points
     out{j} = out{j}(any(out{j}(:,4:6),2),:);
     
+    %remove very bright ponints
+    out{j} = out{j}(~any((out{j}(:,4:6) > 150/255),2),:);
+    out{j}(4:6) = out{j}(4:6)*255/150;
+    
     %add absolute position
-    %get transformation matrix
-    tformMat = angle2dcm(pos(j,4), pos(j,5), pos(j,6),'XYZ');
-    tformMat(4,4) = 1;
-    tformMat(1,4) = pos(j,1);
-    tformMat(2,4) = pos(j,2);
-    tformMat(3,4) = pos(j,3);
-    temp = ones(size(out{j},1),4);
-    temp(:,1:3) = out{j}(:,1:3);
-    temp = (tformMat*temp')';
-    out{j}(:,1:3) = temp(:,1:3);
+    
+    
+    %get time difference of image from nav
+    timeDif = time(imRange(j)) - navTime;
+    [~, idx] = min(abs(timeDif));
+    timeDif = timeDif(idx);
+
+    %get position image was taken at
+    tformNav = navPos(idx,:);
+    tformNav = tformNav + (double(repmat(timeDif(:),1,6))/1000000) .* navSpeed(idx,:);
+
+    %add offset
+    out{j} = transformPoints( offset, out{j}, true);
+
+    %add position
+    out{j} = transformPoints( tformNav, out{j}, false);
+        
+        
     
     fprintf('Processing Image %i\n',j);
 end
@@ -154,10 +201,9 @@ out(:,1) = out(:,1) - mean(out(:,1));
 out(:,2) = out(:,2) - mean(out(:,2));
 out(:,3) = out(:,3) - mean(out(:,3));
 
-if(save)
+if(saveAll)
     %save image
-    strPly = int2str(j);
-    strPly = [savePath, 'all', '.ply'];
+    strPly = [savePath, 'Scans ' int2str(imRange(1)) ' to ' int2str(imRange(end)), '.ply'];
 
     if (size(out,1) > 1000)
         clear output;

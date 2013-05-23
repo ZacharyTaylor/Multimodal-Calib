@@ -33,8 +33,8 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         SetTformMatrix(tformMat);
         
         %setup camera
-        focal = ladybugParam.(cam).focal/4;
-        centre = ladybugParam.(cam).centre/4;
+        focal = ladybugParam.(cam).focal*0.5;
+        centre = ladybugParam.(cam).centre*0.5;
         cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
         SetCameraMatrix(cameraMat);
         
@@ -53,20 +53,22 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             sfigure(FIG.fig);
             
             b = OutputImage(width, height,pairs(i,2)-1,2);
-            b(b ~=0) = histeq(b(b~=0));
+            b = b(:,:,1);
+            %b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);          
 
 
-            comb = uint8(zeros([height width 3]));
-            comb(:,:,1) = base{pairs(i,1)}.v;
-            comb(:,:,2) = b;
+            comb = uint8(zeros([width height 3]));
+            %comb = uint8(zeros([height width 3]));
+            comb(:,:,1) = base{pairs(i,1)}.v';
+            comb(:,:,2) = b';
 
 %             subplot(3,5,i); imshow(b);
 %             subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
 %             subplot(3,5,10+i); imshow(comb);
             
-            subplot(1,3,1); imshow(b);
-            subplot(1,3,2); imshow(base{pairs(i,1)}.v);
+            subplot(1,3,1); imshow(b');
+            subplot(1,3,2); imshow(base{pairs(i,1)}.v');
             subplot(1,3,3); imshow(comb);
 
             drawnow

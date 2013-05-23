@@ -12,7 +12,7 @@ set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
 FIG.count = 0;
 
 %get ladybug parameters
-ladybugParam = LadybugConfig;
+ladybugParam = FordConfig;
 
 %% input values
 param = struct;
@@ -37,9 +37,9 @@ range(4:6) = pi*range(4:6)/180;
 tform = ladybugParam.offset;
 
 %base path
-path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
+path = 'E:\DataSets\Mobile Sensor Plaforms\Ford\mi-extrinsic-calib-data\';
 %range of images to use
-imRange = sort(1+ round(250*rand(5,1)))'
+imRange = 1:20;%sort(1+ round(19*rand(5,1)))'
 %metric to use
 metric = 'GOM';
 
@@ -50,7 +50,7 @@ numTrials = 1;
 SetupCamera(0);
 SetupCameraTform();
 
-[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, true);
+[basePaths, movePaths, pairs] = MatchFord( path, imRange, true);
 
 numBase = max(pairs(:,1));
 numMove = max(pairs(:,2));
@@ -72,21 +72,36 @@ end
 %% get move{i}
 move = cell(numMove,1);
 for i = 1:numMove
-    %move{i} = dlmread(movePaths{i},' ');
-    move{i} = ReadVelData(movePaths{i});
+    move{i} = dlmread(movePaths{i},' ');
+    %move{i} = ReadVelData(movePaths{i});
 
 %     
 % 
- %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
-    %move{i} = getNorms(move{i},tform, 1000000);
+%move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
+%     move{i} = getNorms(move{i},tform, 1000000);
 % %     
-  % kdTree = KDTreeSearcher(move{i}(:,1:3),'distance','euclidean');
-  %     [ move{i}(:,4) ] = SparseGauss( kdTree, move{i}(:,4), 0.1);
+%  kdTree = KDTreeSearcher(move{i}(:,1:3),'distance','euclidean');
+%      [ move{i}(:,4) ] = SparseGauss( kdTree, move{i}(:,4), 0.05);
      move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
      move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
     
 	 move{i}(:,4) = histeq(move{i}(:,4));
     
+%     filtSize = 25;
+%     
+%     ent = entropyfilt(move{i}(:,4),ones(filtSize,1));
+%     ent = ent - min(ent);
+%     ent = ent / max(ent);
+%     ent = histeq(ent);
+% 
+%     move{i} = move{i}(ent < 0.2,:); 
+%     
+%     ssd = conv(move{i}(:,4), ones(filtSize,1)/filtSize, 'same');
+%     ssd = abs(move{i}(:,4) - ssd);
+%     ssd = conv(ssd, ones(filtSize,1)/filtSize, 'same');
+%     ssd = histeq(ssd);
+% 
+%     move{i} = move{i}(ssd > 0.8,:); 
     
     m = filterScan(move{i}, metric, tform);
     
@@ -106,7 +121,7 @@ for i = 1:numBase
     idx1 = (i - idx2)/5 + 1;
     baseIn = imread(basePaths{idx1,idx2});
     baseIn = imresize(baseIn,0.5);
-    mask = imread([path 'LadybugColourVideo\masks\cam' int2str(idx2-1) '.png']);
+    mask = imread([path 'Ladybug\masks\cam' int2str(idx2-1) '.png']);
     mask = imresize(mask,0.5);
     mask = mask(:,:,1);
 

@@ -1,7 +1,8 @@
 %% Setup
 loadPaths;
-set(0,'DefaultFigureWindowStyle','normal');
+set(0,'DefaultFigureWindowStyle','docked');
 clc;
+close all;
 
 global DEBUG_TRACE
 DEBUG_TRACE = 2;
@@ -32,19 +33,19 @@ FIG.countMax = 0;
 tform = ladybugParam.offset;
 
 %base path
-path = 'E:\Work and Uni\Data\Almond\';
+path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
 %range of images to use
-imRange = 200;
+imRange = 180;
 
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %% setup transforms and images
 SetupCamera(0);
 SetupCameraTform();
 
-[basePaths, movePaths, pairs] = MatchImageScan( path, imRange );
+[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, true );
 
 numBase = max(pairs(:,1));
 numMove = max(pairs(:,2));
@@ -63,15 +64,17 @@ end
 %% get Data
 move = cell(numMove,1);
 for i = 1:numMove
-    move{i} = dlmread(movePaths{i},',');
+    %move{i} = dlmread(movePaths{i},',');
 
+    move{i} = ReadVelData(movePaths{i});
+    
     %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
     %move{i} = getNorms(move{i},8);
-    %move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
-    %move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
-    %move{i}(:,4) = 1-histeq(move{i}(:,4));
+    move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
+    move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+    move{i}(:,4) = histeq(move{i}(:,4));
 
-    m = filterScan(move{i}, metric);
+    m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 

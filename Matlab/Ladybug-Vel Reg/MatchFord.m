@@ -1,4 +1,4 @@
-function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange, rep )
+function [ basePaths, movePaths, pairs  ] = MatchFord( path, imRange, rep )
 %MATCHIMAGESCAN Matches images to nearest scan
 %   input 
 %   imRange- range of images to get matches for
@@ -14,11 +14,10 @@ function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange, rep )
     movePaths = cell(length(imRange),1);
     pairs = zeros(length(imRange),2);
     
-    folder = [path 'LadybugColourVideo/cam0/'];
+    folder = [path 'Ladybug/cam0/'];
     files = dir(folder);
     fileIndex = find(~[files.isdir]);
 
-    time = zeros(length(imRange),1);
     j = 1;
     
     %for images in imRange
@@ -28,41 +27,31 @@ function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange, rep )
         fileName = char(fileName);
         
         %create base paths
-        basePaths{j,1} = [path 'LadybugColourVideo/cam0/' fileName(1:16) '.cam0.png'];
-        basePaths{j,2} = [path 'LadybugColourVideo/cam1/' fileName(1:16) '.cam1.png'];
-        basePaths{j,3} = [path 'LadybugColourVideo/cam2/' fileName(1:16) '.cam2.png'];
-        basePaths{j,4} = [path 'LadybugColourVideo/cam3/' fileName(1:16) '.cam3.png'];
-        basePaths{j,5} = [path 'LadybugColourVideo/cam4/' fileName(1:16) '.cam4.png'];
+        basePaths{j,1} = [path 'Ladybug/cam0/' fileName];
+        basePaths{j,2} = [path 'Ladybug/cam1/' fileName];
+        basePaths{j,3} = [path 'Ladybug/cam2/' fileName];
+        basePaths{j,4} = [path 'Ladybug/cam3/' fileName];
+        basePaths{j,5} = [path 'Ladybug/cam4/' fileName];
 
-        %get time from name
-        time(j) = str2double(fileName(1:16));
         j = j+1;
     end
-
-    folder = [path 'VelodyneLaser/Scans/'];
+    
+    folder = [path 'Velodyne/Scans/'];
     files = dir(folder);
     fileIndex = find(~[files.isdir]);
-   
-    fileName = cell(length(fileIndex),1);
-    out = cell(length(fileIndex),3);
-    for i = 1:length(fileIndex)
-        fileName{i} = files(fileIndex(i)).name;
-        out(i,:) = textscan(char(fileName{i}), 'Scan %d Time %f_%f.csv');
-    end
-    timeMin = cell2mat(out(:,2));
-    timeMax = cell2mat(out(:,3));
-           
-    %for images in imRange
+    
     j = 1;
+    
+    %for images in imRange
     for i = imRange
+        %get name
+        fileName = files(fileIndex(i)).name;
+        fileName = char(fileName);
+        
+        %create base paths
+        movePaths{j,1} = [path 'Velodyne\Scans\' fileName];
+        pairs(j,:) = [j, j];
 
-        %find the matching image
-        match = (timeMin < time(j)) & (timeMax > time(j));
-        [V, idx] = max(match);
-        if(V ~= 0)
-            pairs(j,:) = [j, j];
-            movePaths{j,1} = [folder fileName{idx(1)}];
-        end
         j = j+1;
     end
 

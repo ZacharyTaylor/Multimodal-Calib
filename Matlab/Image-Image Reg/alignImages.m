@@ -40,7 +40,7 @@ function f=alignImages(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            m = uint8(255*OutputImage(width, height,pairs(i,1)-1,0));
+            m = uint8(255*OutputImage(width, height,pairs(i,1)-1,1));
 
             comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
