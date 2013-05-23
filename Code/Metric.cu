@@ -8,6 +8,10 @@ float Metric::EvalMetric(SparseScan* A, SparseScan* B){
 	return 0;
 }
 
+MI::MI(size_t bins):
+	bins_(bins){
+}
+
 float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	
 	//move scans to gpu if required
@@ -32,12 +36,14 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	}
 
 	//float miOut = 0;
-	float miOut = miRun((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), MI_BINS, numElements);
+	float miOut = miRun((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), bins_, numElements);
 	//struct cudaHistOptions *p_opt = 0;
 	//float miOut = cudaMIa((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, MI_BINS, MI_BINS, p_opt, 1, true);
 
 	return miOut;
 }
+
+GOM::GOM(){};
 
 float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	
@@ -95,7 +101,35 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	return out;
 }
 
+LIV::LIV(float* avImg, size_t width, size_t height){
+	avImg_ = new PointsList(avImg, (width*height), true);
+}
+
+LIV::~LIV(){
+	delete avImg_;
+}
+
 float LIV::EvalMetric(SparseScan* A, SparseScan* B){
-	TRACE_ERROR("Not yet implemented");
-	return 0;
+	size_t numElements;
+	//check scans of same size
+	if(A->getNumPoints() != B->getNumPoints()){
+		numElements = (A->getNumPoints() > B->getNumPoints()) ? B->getNumPoints() : A->getNumPoints();
+		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getNumPoints(),B->getNumPoints(),numElements);
+	}
+	else{
+		numElements = A->getNumPoints();
+	}
+
+	float* out;
+	CudaSafeCall(cudaMalloc(&out, sizeof(float)*numElements));
+	
+	livValKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), (float*)avImg_->GetGpuPointer(), numElements, out);
+	CudaCheckError();
+
+	//perform reduction
+	float outVal = reduceEasy(out, numElements);
+	CudaSafeCall(cudaFree(out));
+	
+	return outVal;
 }

@@ -4,6 +4,6 @@ function [] = SetupMIMetric()
 %ensures the library is loaded
 CheckLoaded();
 
-calllib('LibCal','setupMIMetric');
+calllib('LibCal','setupMIMetric',50);
 
 end

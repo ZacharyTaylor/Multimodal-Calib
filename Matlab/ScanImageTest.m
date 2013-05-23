@@ -26,7 +26,7 @@ FIG.countMax = 0;
 
 %tform (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 67.5];
+tform = [0 0 0 -90 0 67 800];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -37,20 +37,14 @@ numBase = 1;
 pairs = [1 1];
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %if camera panoramic
 panoramic = 1;
 
-%camera parameters (focal length, fX, fY)
-camera = [766 1864/2 320/2];
-
-
 %% setup transforms and images
 SetupCamera(panoramic);
 
-cameraMat = cam2Pro(camera(1),camera(1),camera(2),camera(3));
-SetCameraMatrix(cameraMat);
 SetupCameraTform();
 
 Initilize(numMove,numBase);
@@ -65,6 +59,7 @@ else
 end
 
 %% get Data
+
 move = getPointClouds(numMove);
 
 for i = 1:numMove

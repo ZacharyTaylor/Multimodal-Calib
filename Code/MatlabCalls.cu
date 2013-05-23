@@ -469,14 +469,14 @@ DllExport void genBaseValues(unsigned int baseNum){
 	base->d_interpolate(gen);
 }
 
-DllExport void setupMIMetric(void){
+DllExport void setupMIMetric(unsigned int numBins){
 	if(metric != NULL){
 		TRACE_INFO("A metric already exists, overwriting it");
 		delete metric;
 		metric = NULL;
 	}
 
-	metric = new MI();
+	metric = new MI(numBins);
 }
 DllExport void setupGOMMetric(void){
 	if(metric != NULL){
@@ -488,14 +488,14 @@ DllExport void setupGOMMetric(void){
 	metric = new GOM();
 }
 
-DllExport void setupLivMetric(void){
+DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int height){
 	if(metric != NULL){
 		TRACE_INFO("A metric already exists, overwriting it");
 		delete metric;
 		metric = NULL;
 	}
 
-	metric = new LIV();
+	metric = new LIV(avImg, width, height);
 }
 
 DllExport float getMetricVal(unsigned int moveNum){
@@ -550,3 +550,12 @@ DllExport float* outputImage(unsigned int width, unsigned int height, unsigned i
 	return render.out_;
 }
 
+DllExport float* outputImageGen(unsigned int width, unsigned int height, unsigned int dilate){
+	if(gen == NULL){
+		TRACE_ERROR("A generated image is required");
+		return 0;
+	}
+
+	render.GetImage(gen->getPoints(), gen->GetLocation(), gen->getNumPoints(), width, height, gen->getNumCh(), dilate);
+	return render.out_;
+}

@@ -23,6 +23,8 @@ __global__ void HistKernel(float* a, float* b, unsigned int* histABI, size_t bin
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 	extern __shared__ unsigned int blockMem[];
 
+
+
 	//zero out shared mem
 	for (size_t j = threadIdx.x; j < bins*bins; j += blockDim.x){ 
 		blockMem[j] = 0;
@@ -128,9 +130,6 @@ float miRun(float* A, float* B, size_t bins, size_t numElements){
 	if(bins > 60){
 		TRACE_WARNING("%i bins will probably not fit in shared memory, expect errors",bins);
 	}
-
-	unsigned int test[2500];
-	float test2[2500];
 
 	//create histograms
 	unsigned int* histAI;

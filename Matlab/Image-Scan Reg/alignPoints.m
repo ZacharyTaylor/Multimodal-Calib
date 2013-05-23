@@ -2,6 +2,9 @@ function f=alignPoints(base, move, pairs, tform)
 
     global FIG;
     
+    cameraMat = cam2Pro(tform(7),tform(7),size(base{1}.v,2)/2,size(base{1}.v,1)/2);
+    SetCameraMatrix(cameraMat);
+
     %get transformation matirx    
     tform = double(tform);   
     tformMat = angle2dcm(tform(6), tform(5), tform(4));
@@ -34,8 +37,9 @@ function f=alignPoints(base, move, pairs, tform)
             h = gcf;
             sfigure(FIG.fig);
 
-            b = OutputImage(width, height,pairs(i,2)-1,3);
-            b = b(:,:,2)/90;
+            b = OutputImage(width, height,pairs(i,2)-1,2);
+            b = b(:,:,1);
+            %b = b(:,:,2)/180;
             b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);
 

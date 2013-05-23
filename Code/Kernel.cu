@@ -129,6 +129,17 @@ __global__ void GOMKernel(const float* A, const float* B, const size_t length, f
 	magOut[i] = mag;
 }
 
+__global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= length){
+		return;
+	}
+
+	out[i] = A[i] * fabs(B[i] - Bavg[i]);
+}
+
 void RunBSplineKernel(float* volume, size_t width, size_t height){
 	//CubicBSplinePrefilter2D(volume, sizeof(float), width,height);
 }

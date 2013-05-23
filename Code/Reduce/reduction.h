@@ -14,8 +14,15 @@
 
 #include "../common.h"
 
+//! Performs reduction on an array stored on the gpu
+/*! Uses a highly optimized method to reduce an array stored on the gpu
+	\param d_idata input data array stored in device memory
+	\param size of the input array
+	\return the sum reduced array
+*/
 float reduceEasy(float* d_idata, int size);
 
+//! Copy pasted this straight out of the examples that come with the cuda toolkit
 template <class T>
 void reduce(int size, int threads, int blocks,
             int whichKernel, T *d_idata, T *d_odata);
