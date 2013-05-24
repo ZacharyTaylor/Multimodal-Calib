@@ -1,0 +1,83 @@
+function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
+
+    global FIG;
+    f = 0;
+    
+    for i = 1:size(pairs,1)
+        FIG.count = FIG.count + 1;
+
+        width = size(base{pairs(i,1)}.v,2);
+        height = size(base{pairs(i,1)}.v,1);
+        
+        %get camera name
+        cam = mod(i-1,5);
+        cam = ['cam' int2str(cam)];
+        
+        %baseTform
+        tformMatB = angle2dcm(tform(6), tform(5), tform(4),'ZYX');
+        tformMatB(4,4) = 1;
+        tformMatB(1,4) = tform(1);
+        tformMatB(2,4) = tform(2);
+        tformMatB(3,4) = tform(3);
+        
+        %get transformation matrix
+        tformLady = ladybugParam.(cam).offset;
+        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4),'ZYX');
+        tformMat(4,4) = 1;
+        tformMat(1,4) = tformLady(1);
+        tformMat(2,4) = tformLady(2);
+        tformMat(3,4) = tformLady(3);
+        
+        tformMat = tformMat*tformMatB;
+        
+        SetTformMatrix(tformMat);
+        
+        %setup camera
+        focal = ladybugParam.(cam).focal/2;
+        centre = ladybugParam.(cam).centre/2;
+        cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
+        SetCameraMatrix(cameraMat);
+        
+        Transform(pairs(i,2)-1);
+        InterpolateBaseValues(pairs(i,2)-1);
+
+        temp = EvalMetric(pairs(i,2)-1);
+        if(~(isnan(temp) || isinf(temp)))
+            f = f + temp;
+        end
+
+        %display current estimate
+        if(FIG.countMax < FIG.count)
+            FIG.count = 0;
+            h = gcf;
+            sfigure(FIG.fig);
+            
+            b = OutputImage(width, height,pairs(i,2)-1,2);
+            b(b ~=0) = histeq(b(b~=0));
+            b = uint8(255*b);          
+
+
+            comb = uint8(zeros([height width 3]));
+            comb(:,:,1) = base{pairs(i,1)}.v;
+            comb(:,:,2) = b(:,:,1);
+
+%             subplot(3,5,i); imshow(b);
+%             subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
+%             subplot(3,5,10+i); imshow(comb);
+            
+            subplot(3,1,1); imshow(b(:,:,1));
+            subplot(3,1,2); imshow(base{pairs(i,1)}.v);
+            subplot(3,1,3); imshow(comb);
+
+            drawnow
+            fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...
+                (-f/i),tform(1),tform(2),tform(3),(180*tform(4)/pi),(180*tform(5)/pi),(180*tform(6)/pi));
+
+            sfigure(h);
+        end
+    end
+    
+    %change so cost function range is 0-1
+    f = f / size(pairs,1);
+    f = -f;
+end
