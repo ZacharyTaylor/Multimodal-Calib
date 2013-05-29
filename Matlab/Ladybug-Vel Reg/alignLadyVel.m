@@ -1,9 +1,9 @@
-function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
+function f=alignLadyVel(base, move, pairs, tform, ladybugParam, num)
 
     global FIG;
     f = 0;
     
-    for i = 1:size(pairs,1)
+    for i = num:5:size(pairs,1)
         FIG.count = FIG.count + 1;
 
         width = size(base{pairs(i,1)}.v,2);
@@ -39,7 +39,7 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         SetCameraMatrix(cameraMat);
         
         Transform(pairs(i,2)-1);
-        InterpolateBaseValues(pairs(i,2)-1);
+        InterpolateBaseValues(pairs(i,1)-1);
 
         temp = EvalMetric(pairs(i,2)-1);
         if(~(isnan(temp) || isinf(temp)))
@@ -52,9 +52,9 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             h = gcf;
             sfigure(FIG.fig);
             
-            b = OutputImage(width, height,pairs(i,2)-1,2);
+            b = OutputImage(width, height,pairs(i,2)-1,1);
             b = b(:,:,1);
-            %b(b ~=0) = histeq(b(b~=0));
+            b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);          
 
 
@@ -72,8 +72,8 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             subplot(1,3,3); imshow(comb);
 
             drawnow
-            fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...
-                (-f/i),tform(1),tform(2),tform(3),(180*tform(4)/pi),(180*tform(5)/pi),(180*tform(6)/pi));
+            %fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...
+            %    (-f/i),tform(1),tform(2),tform(3),(180*tform(4)/pi),(180*tform(5)/pi),(180*tform(6)/pi));
 
             sfigure(h);
         end
