@@ -22,10 +22,10 @@ param.options = psooptimset('PopulationSize', 200,...
     'SocialAttraction',1.25);
 
 %how often to display an output frame
-FIG.countMax = 50;
+FIG.countMax = 1000;
 
 %range to search over (x, y, r, sx, sy, kx, ky)
-range = [30 30 10 0.1 0.1 0.01 0.01];
+range = [30 30 10 0.2 0.2 0.05 0.05];
 
 %inital guess of parameters (x, y, r, sx, sy, kx, ky)
 tform = [0 0 0 1 1 0 0];
@@ -41,10 +41,10 @@ pairs = [1 1];
 sigma = 0;
 
 %number of times to run
-numTrials = 1;
+numTrials = 10;
 
 %metric to use
-metric = 'GOM';
+metric = 'MI';
 
 %% setup transform and images
 SetupAffineTform();
@@ -85,10 +85,15 @@ end
 %% get image alignment
 
 tformTotal = zeros(numTrials,size(tform,2));
+tformIn = zeros(numTrials,size(tform,2));
 fTotal = zeros(numTrials,1);
 
 for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignImages(base, move, pairs, tform), 7,[],[],[],[],param.lower,param.upper,[],param.options);
+    
+    tformIn(i,:) = tform + (2*rand(size(tform,1), size(tform,2)) - 1).*range;
+    tformRun = tformIn(i,:);
+    
+    [tformOut, fOut]=pso(@(tformRun) alignImages(base, move, pairs, tformRun), 7,[],[],[],[],param.lower,param.upper,[],param.options);
 
     tformTotal(i,:) = tformOut;
     fTotal(i) = fOut;

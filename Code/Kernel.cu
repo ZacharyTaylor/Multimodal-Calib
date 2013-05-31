@@ -114,10 +114,11 @@ __global__ void GOMKernel(const float* A, const float* B, const size_t length, f
 	const float* phaseA = &A[length];
 	const float* phaseB = &B[length];
 	
+	//float phase = abs(magA[i]-magB[i]);
 	float phase = PI*abs(phaseA[i] - phaseB[i])/180;
 
     phase = (cos(2*phase)+1)/2;
-    float mag = magA[i]*magB[i];
+	float mag = magA[i]*magB[i];
 
 	//ignore zeros
 	if((phaseA[i] == 0) || (phaseB[i] == 0)){
@@ -125,7 +126,7 @@ __global__ void GOMKernel(const float* A, const float* B, const size_t length, f
 	}
 
     phaseOut[i] =  mag*phase;
-	magOut[i] =  mag;
+	magOut[i] = mag;
 }
 
 __global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out){

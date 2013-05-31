@@ -2,16 +2,17 @@
 loadPaths;
 set(0,'DefaultFigureWindowStyle','docked');
 clc;
+close all;
 
 global DEBUG_TRACE
 DEBUG_TRACE = 2;
 
 global FIG
-%FIG.fig = figure;
+FIG.fig = figure;
 FIG.count = 0;
 
 %get ladybug parameters
-ladybugParam = FordConfig;
+ladybugParam = LadybugConfig;
 
 %% input values
 param = struct;
@@ -32,9 +33,9 @@ FIG.countMax = 0;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Data\Ford\mi-extrinsic-calib-data\';
+path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
 %range of images to use
-imRange = [13];
+imRange = 180;
 
 
 %metric to use
@@ -44,8 +45,7 @@ metric = 'MI';
 SetupCamera(0);
 SetupCameraTform();
 
-%[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, true );
-[basePaths, movePaths, pairs] = MatchFord( path, imRange, true );
+[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, true );
 
 numBase = max(pairs(:,1));
 numMove = max(pairs(:,2));
@@ -64,17 +64,17 @@ end
 %% get Data
 move = cell(numMove,1);
 for i = 1:numMove
-    move{i} = dlmread(movePaths{i},' ',1,0);
+    %move{i} = dlmread(movePaths{i},',');
 
+    move{i} = ReadVelData(movePaths{i});
+    
     %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
     %move{i} = getNorms(move{i},8);
-    %move{i}(:,4) = 1-histeq(move{i}(:,4));
+    move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
+    move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+    move{i}(:,4) = histeq(move{i}(:,4));
 
-    m = filterScan(move{i}, metric);
-    
-    m(:,4) = m(:,4) - min(m(:,4));
-    m(:,4) = m(:,4) / max(m(:,4));
-    
+    m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
