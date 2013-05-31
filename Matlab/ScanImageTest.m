@@ -14,20 +14,23 @@ FIG.count = 0;
 param = struct;
 
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 200,...
+param.options = psooptimset('PopulationSize', 300,...
     'TolCon', 1e-1,...
     'StallGenLimit', 30,...
     'Generations', 200,...
-    'PlotFcns',{@psoplotbestf,@psoplotswarmsurf},...
-    'SocialAttraction',1.25);
+    'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
 FIG.countMax = 0;
 
-%tform (x, y ,z, rX, rY, rZ) (rotate then translate,
+%range to search over (x, y ,z, rX, rY, rZ)
+range = [1 1 1 10 10 10 50];
+range(4:6) = pi.*range(4:6)./180;
+
+%inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 67 800];
-tform(4:6) = pi.*tform(4:6)./180;
+tform = [-0.770138249061249	0.0364310927852737	-0.188291175799174	-1.53917596801202	0.00152698908180869	1.18101996049232	765.073217868235];
+%tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
 numMove = 1;

@@ -1,8 +1,8 @@
 function [ Ladybug ] = FordConfig()
 %LADYBUGCONFIG Config information for ladybug camera mounted to shrimp
 
-Ladybug.offset = [0.40 -0.11 -0.45 2.64 1.56 89.52];
-%Ladybug.offset = [0.3, 0, -0.4, 0, 0, 90];
+%Ladybug.offset = [0, 0, 0, 0, 0, -90];
+Ladybug.offset = [0.3, 0, -0.4, 0, 0, -90];
 Ladybug.offset(4:6) = pi*Ladybug.offset(4:6)/180;
 
 Ladybug.cam0.offset = [0.042152, -0.001818, -0.000285, 172.292248, 89.796352, 172.153363];
