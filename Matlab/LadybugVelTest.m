@@ -33,9 +33,9 @@ FIG.countMax = 0;
 tform = ladybugParam.offset;
 
 %base path
-path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
+path = 'base path goes here';
 %range of images to use
-imRange = 180;
+imRange = 1:10;
 
 
 %metric to use
@@ -64,16 +64,7 @@ end
 %% get Data
 move = cell(numMove,1);
 for i = 1:numMove
-    %move{i} = dlmread(movePaths{i},',');
-
     move{i} = ReadVelData(movePaths{i});
-    
-    %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
-    %move{i} = getNorms(move{i},8);
-    move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
-    move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
-    move{i}(:,4) = histeq(move{i}(:,4));
-
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
@@ -104,8 +95,6 @@ end
 
 %% get image alignment
 alignLadyVel(base, move, pairs, tform, ladybugParam);
-
-
         
 %% cleanup
 ClearLibrary;

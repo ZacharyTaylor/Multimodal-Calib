@@ -16,7 +16,7 @@ ladybugParam = LadybugConfig;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Almond\';
+path = 'base path goes here';
 %range of images to use
 imRange = [1];
 
@@ -27,7 +27,7 @@ saveAll = true;
 save = false;
 
 %save path
-savePath = 'C:\Almond\Out 2\';
+savePath = 'save path goes here';
 
 %% setup transforms and images
 SetupCamera(0);
@@ -35,18 +35,18 @@ SetupCameraTform();
 
 [basePaths, movePaths, pairs] = MatchImageScanNav( path, imRange, false );
 %read in nav data
-[ navPos, navSpeed, navTime ] = ReadNavData( [path 'NovatelNav/NavData.bin'] );
+[ navPos, navSpeed, navTime ] = ReadNavData( [path 'nav location goes here'] );
 
 Initilize(1, 1);
 
 out = cell(size(pairs,1),1);
 
 for i = 1:5
-    temp = imread([path 'Ladybug\masks\cam' int2str(i-1) '.png']);
+    temp = imread([path 'mask location goes here' int2str(i-1) '.png']);
     mask(:,:,i) = temp(:,:,1);
 end
 
-folder = [path 'Ladybug/cam0/'];
+folder = [path 'cam location goes here'];
 files = dir(folder);
 fileIndex = find(~[files.isdir]);
 
@@ -77,14 +77,7 @@ for j = 1:(size(pairs,1))
         b(repmat(mask(:,:,k) == 0,[1,1,3])) = 0;
         b(b ~=0) = imadjust(b(b ~= 0),stretchlim(b(b~= 0)),[]);
         b = double(b)/255;
-        
-%         for q = 1:size(b,3)
-%             temp = b(:,:,q);
-%             temp(temp ~= 0) = histeq(temp(temp ~= 0));
-%             b(:,:,q) = temp;
-%         end
-        
-        
+               
         LoadBaseImage(0,b);
 
         %% colour image
@@ -94,22 +87,12 @@ for j = 1:(size(pairs,1))
         cam = ['cam' int2str(cam)];
 
         %baseTform
-        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
-        tformMatB(4,4) = 1;
-        tformMatB(1,4) = tform(1);
-        tformMatB(2,4) = tform(2);
-        tformMatB(3,4) = tform(3);
+        tformMatB = CreateTformMat(tform);
         
         %get transformation matrix
         tformLady = ladybugParam.(cam).offset;
-        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
-        tformMat(4,4) = 1;
-        tformMat(1,4) = tformLady(1);
-        tformMat(2,4) = tformLady(2);
-        tformMat(3,4) = tformLady(3);
-        
-        tformMat = tformMat*tformMatB;
-        
+        tformMat = CreateTformMat(tformLady);
+        tformMat = tformMat/tformMatB;
         SetTformMatrix(tformMat);
 
         %setup camera
@@ -120,10 +103,6 @@ for j = 1:(size(pairs,1))
 
         Transform(0);
         InterpolateBaseValues(0);
-        
-        %output for debugging
-        %b = OutputImage(1232, 1616,0,2);
-        %figure,imshow(b);
         
         %get colour image
         gen = GetGen();
@@ -171,7 +150,6 @@ for j = 1:(size(pairs,1))
     out{j}(4:6) = out{j}(4:6)*255/150;
     
     %add absolute position
-    
     
     %get time difference of image from nav
     timeDif = time(imRange(j)) - navTime;

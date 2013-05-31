@@ -1,16 +1,11 @@
-function [ data ] = getNorms(data, tform, numInterpolate)
+function [ data ] = getNorms(data, tform)
 %remove non distance related points
 cloud = data(:,1:3);
 
 cloud(:,4) = 0;
 
 %transform points
-tform = double(tform);   
-tformMat = angle2dcm(tform(6), tform(5), tform(4));
-tformMat(4,4) = 1;
-tformMat(1,4) = tform(1);
-tformMat(2,4) = tform(2);
-tformMat(3,4) = tform(3);
+tformMat = CreateTformMat(tform);
 
 cloud = cloud(:,1:4);
 cloud(:,4) = 1;
@@ -61,37 +56,6 @@ for i = 1:size(sphere,1)
     %store normal values
     data(i,4) = abs(norm(1)+norm(2));%abs(atan2(norm(1),norm(2)));
 end
-
-% %get interpolation points
-% xRange = (max(sphere(:,1)) - min(sphere(:,1)));
-% yRange = (max(sphere(:,2)) - min(sphere(:,2)));
-% 
-% xSteps = sqrt(numInterpolate * xRange / yRange);
-% ySteps = numInterpolate / xSteps;
-% xRange = xRange / xSteps;
-% yRange = yRange / ySteps;
-% 
-% xRange = min(sphere(:,1)):xRange:max(sphere(:,1));
-% 
-% yRange = min(sphere(:,2)):yRange:max(sphere(:,2));
-% [qx,qy] = meshgrid(xRange, yRange);
-% 
-% F = TriScatteredInterp(sphere(:,1),sphere(:,2),sphere(:,3));
-% %qz = griddata(sphere(:,1),sphere(:,2),sphere(:,3),qx,qy);
-% qz = F(qx,qy);
-% 
-% qz(isnan(qz)) = 0;
-% 
-% [Nx,Ny,Nz] = surfnorm(qx,qy,qz); 
-% 
-% img = abs(atan2d(Ny,Nx));
-% img(isnan(img)) = 0;
-% 
-% img = img-min(img(:));
-% img = img/max(img(:));
-% 
-% %interpolate back to original points
-% data(:,4) = interp2(qx,qy,img,sphere(:,1),sphere(:,2));
 
 end
 

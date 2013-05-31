@@ -37,9 +37,9 @@ range(4:6) = pi*range(4:6)/180;
 tform = ladybugParam.offset;
 
 %base path
-path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
+path = 'base path goes here';
 %range of images to use
-imRange = sort(1+ round(250*rand(5,1)))'
+imRange = sort(1+ round(250*rand(5,1)))';
 %metric to use
 metric = 'GOM';
 
@@ -72,30 +72,9 @@ end
 %% get move{i}
 move = cell(numMove,1);
 for i = 1:numMove
-    %move{i} = dlmread(movePaths{i},' ');
     move{i} = ReadVelData(movePaths{i});
-
-%     
-% 
- %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
-    %move{i} = getNorms(move{i},tform, 1000000);
-% %     
-  % kdTree = KDTreeSearcher(move{i}(:,1:3),'distance','euclidean');
-  %     [ move{i}(:,4) ] = SparseGauss( kdTree, move{i}(:,4), 0.1);
-     move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
-     move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
-    
-	 move{i}(:,4) = histeq(move{i}(:,4));
-    
-    
     m = filterScan(move{i}, metric, tform);
-    
-    %m = thinVel(m);
-    
-    %thin points
-    %m(:,4) = histeq(m(:,4));
-    %m = m(m(:,4) > 0.9, :);
-    
+
     LoadMoveScan(i-1,m,3);
     fprintf('loaded moving scan %i\n',i);
 end
@@ -113,10 +92,7 @@ for i = 1:numBase
     for q = 1:size(baseIn,3)
         temp = baseIn(:,:,q);
         temp(temp ~= 0) = histeq(temp(temp ~= 0));
-        
-        %G = fspecial('gaussian',[50 50],2);
-        %temp = imfilter(temp,G,'same');
-        
+               
         baseIn(:,:,q) = temp;
     end
     
@@ -135,7 +111,7 @@ for i = 1:numBase
         temp(mask == 0) = 0;
         b(:,:,q) = temp;
     end
-    %base{i}.v = uint8(255*b(:,:,1));
+
     LoadBaseImage(i-1,b);
     fprintf('loaded base image %i\n',i);
 end

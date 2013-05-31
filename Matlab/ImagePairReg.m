@@ -37,9 +37,6 @@ numBase = 1;
 %pairing [base image, move image]
 pairs = [1 1];
 
-%blurring factor (currently not implemented)
-sigma = 0;
-
 %number of times to run
 numTrials = 10;
 
@@ -62,8 +59,6 @@ elseif(strcmp(metric,'GOM'))
 else
     error('Invalid metric type');
 end
-
-%G = fspecial('gaussian',[50 50],sigma);
 
 %% get Data
 move = getImagesC(numMove);

@@ -81,10 +81,7 @@ base = getImagesC(numBase, true);
 for i = 1:numBase
     b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
-    %base{i}.v = uint8(255*b(:,:,2)/90);
 end
-
-
 
 %% get image alignment
 tformTotal = zeros(numTrials,size(tform,2));

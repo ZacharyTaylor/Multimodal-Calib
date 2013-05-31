@@ -8,11 +8,7 @@ cloud(:,4) = 1;
 
 %transform points
 tform = double(tform);   
-tformMat = angle2dcm(tform(6), tform(5), tform(4));
-tformMat(4,4) = 1;
-tformMat(1,4) = tform(1);
-tformMat(2,4) = tform(2);
-tformMat(3,4) = tform(3);
+tformMat = CreateTformMat(tform);
 
 vals = in(:,4);
 cloud = (tformMat*(cloud'))';
@@ -48,6 +44,8 @@ dVals = sum(abs(dVals),2) /8;
 
 mag = dVals;
 phase = atan2d(dxLocs,dyLocs);
+
+end
 
 end
 

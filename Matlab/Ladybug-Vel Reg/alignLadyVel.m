@@ -12,29 +12,19 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         %get camera name
         cam = mod(i-1,5);
         cam = ['cam' int2str(cam)];
-        
+                
         %baseTform
-        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
-        tformMatB(4,4) = 1;
-        tformMatB(1,4) = tform(1);
-        tformMatB(2,4) = tform(2);
-        tformMatB(3,4) = tform(3);
+        tformMatB = CreateTformMat(tform);
         
         %get transformation matrix
         tformLady = ladybugParam.(cam).offset;
-        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
-        tformMat(4,4) = 1;
-        tformMat(1,4) = tformLady(1);
-        tformMat(2,4) = tformLady(2);
-        tformMat(3,4) = tformLady(3);
-        
-        tformMat = tformMat*tformMatB;
-        
+        tformMat = CreateTformMat(tformLady);
+        tformMat = tformMat/tformMatB;
         SetTformMatrix(tformMat);
         
         %setup camera
-        focal = ladybugParam.(cam).focal*0.5;
-        centre = ladybugParam.(cam).centre*0.5;
+        focal = ladybugParam.(cam).focal;
+        centre = ladybugParam.(cam).centre;
         cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
         SetCameraMatrix(cameraMat);
         
@@ -59,16 +49,11 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
 
 
             comb = uint8(zeros([width height 3]));
-            %comb = uint8(zeros([height width 3]));
-            comb(:,:,1) = base{pairs(i,1)}.v';
-            comb(:,:,2) = b';
-
-%             subplot(3,5,i); imshow(b);
-%             subplot(3,5,5+i); imshow(base{pairs(i,1)}.v);
-%             subplot(3,5,10+i); imshow(comb);
+            comb(:,:,1) = base{pairs(i,1)}.v;
+            comb(:,:,2) = b;
             
-            subplot(1,3,1); imshow(b');
-            subplot(1,3,2); imshow(base{pairs(i,1)}.v');
+            subplot(1,3,1); imshow(b);
+            subplot(1,3,2); imshow(base{pairs(i,1)}.v);
             subplot(1,3,3); imshow(comb);
 
             drawnow

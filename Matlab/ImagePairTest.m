@@ -33,12 +33,12 @@ else
 end
 
 %% get Data
-%move = getImagesC(1);
+move = getImagesC(1);
 m = filterImage(move{1}, metric);
 LoadMoveImage(0,m);
 
 
-%base = getImagesC(1);
+base = getImagesC(1);
 b = filterImage(base{1}, metric);   
 LoadBaseImage(0,b);
 

@@ -29,8 +29,7 @@ range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [-0.770138249061249	0.0364310927852737	-0.188291175799174	-1.53917596801202	0.00152698908180869	1.18101996049232	765.073217868235];
-%tform(4:6) = pi.*tform(4:6)./180;
+tform = [0 0 0 0 0 0 1000];
 
 %number of images
 numMove = 1;
@@ -75,7 +74,6 @@ base = getImagesC(numBase, true);
 for i = 1:numBase
     b = filterImage(base{i}, metric);
     LoadBaseImage(i-1,b);
-    %base{i}.v = uint8(255*(b(:,:,2)/180));
 end
 
 %% get image alignment
