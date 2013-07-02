@@ -7,7 +7,6 @@
  *  bins    number of bins to use (Note must be greater then the largest 
  *          value in A and B, there is no error checking)
  */ 
-
 #include "mi.h"
 
 /**
@@ -30,7 +29,7 @@ __global__ void HistKernel(float* a, float* b, unsigned int* histABI, size_t bin
 		blockMem[j] = 0;
 	}
 	__syncthreads();
-
+	
 	//for all elements
 	for(size_t j = i; j < numElements; j += blockDim.x*gridDim.x){
 
@@ -43,7 +42,7 @@ __global__ void HistKernel(float* a, float* b, unsigned int* histABI, size_t bin
 	}
 	
 	__syncthreads();
-
+	
 	//write back to global memory
 	for (size_t j = threadIdx.x; j < bins*bins; j += blockDim.x){ 
 
@@ -182,6 +181,7 @@ float miRun(float* A, float* B, size_t bins, size_t numElements){
 	//finally get mi
 	float mi = (eA + eB) / eAB;
 
+	CudaSafeCall(cudaFree(histSize));
 	CudaSafeCall(cudaFree(histAI));
 	CudaSafeCall(cudaFree(histBI));
 	CudaSafeCall(cudaFree(histABI));

@@ -5,6 +5,7 @@
 #include "Scan.h"
 #include "trace.h"
 #include "Kernel.h"
+#include <curand.h>
 
 //! Depth of GOM images as need both phase and magnitude
 #define GOM_DEPTH 2 
@@ -40,15 +41,19 @@ public:
 //! Evaluates two scans using the Levinson method
 class LIV: public Metric {
 public:
-	//! Setup takes an image that is the average of all base images used
-	LIV(float* avImg, size_t width, size_t height);
-	//! Destructor clears avImg_
-	~LIV();
+	//! Setup assumes image averaging done on matlab side
+	LIV();
 	//! Evaluates Levinson method for two scans and gives result
 	float EvalMetric(SparseScan* A, SparseScan* B);
-private:
-	//! Average of all base images
-	PointsList* avImg_;
+};
+
+//! Evaluates scans using a new experimental metric
+class TEST: public Metric {
+public:
+	//! Sets up metric
+	TEST(void);
+	//! Evaluates test metric for two scans and gives result
+	float EvalMetric(SparseScan* A, SparseScan* B);
 };
 
 #endif //METRIC_H

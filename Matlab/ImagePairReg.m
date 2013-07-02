@@ -41,10 +41,10 @@ pairs = [1 1];
 sigma = 0;
 
 %number of times to run
-numTrials = 10;
+numTrials = 1;
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %% setup transform and images
 SetupAffineTform();
@@ -90,7 +90,7 @@ fTotal = zeros(numTrials,1);
 
 for i = 1:numTrials
     
-    tformIn(i,:) = tform + (2*rand(size(tform,1), size(tform,2)) - 1).*range;
+    tformIn(i,:) = tform;% + (2*rand(size(tform,1), size(tform,2)) - 1).*range;
     tformRun = tformIn(i,:);
     
     [tformOut, fOut]=pso(@(tformRun) alignImages(base, move, pairs, tformRun), 7,[],[],[],[],param.lower,param.upper,[],param.options);

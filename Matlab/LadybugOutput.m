@@ -16,11 +16,11 @@ ladybugParam = LadybugConfig;
 tform = ladybugParam.offset;
 
 %base path
-path = 'C:\Almond\';
+path = 'G:\DataSets\Mobile Sensor Plaforms\Shrimp\Almond\';
 %range of images to use
-imRange = [1];
+imRange = [700:750];
 
-offset = [0.0215,0.0026,-0.8822,-0.0014,0.0087,3.1143];
+offset = [0.019984 0.12054 -0.07377 3.1544 0.015152 3.1729];
 
 %if saving
 saveAll = true;
@@ -33,7 +33,7 @@ savePath = 'C:\Almond\Out 2\';
 SetupCamera(0);
 SetupCameraTform();
 
-[basePaths, movePaths, pairs] = MatchImageScanNav( path, imRange, false );
+[basePaths, movePaths, pairs] = MatchImageScan( path, imRange, false );
 %read in nav data
 [ navPos, navSpeed, navTime ] = ReadNavData( [path 'NovatelNav/NavData.bin'] );
 
@@ -42,11 +42,11 @@ Initilize(1, 1);
 out = cell(size(pairs,1),1);
 
 for i = 1:5
-    temp = imread([path 'Ladybug\masks\cam' int2str(i-1) '.png']);
+    temp = imread([path 'LadybugColourVideo\masks\cam' int2str(i-1) '.png']);
     mask(:,:,i) = temp(:,:,1);
 end
 
-folder = [path 'Ladybug/cam0/'];
+folder = [path 'LadybugColourVideo/cam0/'];
 files = dir(folder);
 fileIndex = find(~[files.isdir]);
 
@@ -94,28 +94,20 @@ for j = 1:(size(pairs,1))
         cam = ['cam' int2str(cam)];
 
         %baseTform
-        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
-        tformMatB(4,4) = 1;
-        tformMatB(1,4) = tform(1);
-        tformMatB(2,4) = tform(2);
-        tformMatB(3,4) = tform(3);
+        tformMatB = createTformMat(tform);
         
         %get transformation matrix
         tformLady = ladybugParam.(cam).offset;
-        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
-        tformMat(4,4) = 1;
-        tformMat(1,4) = tformLady(1);
-        tformMat(2,4) = tformLady(2);
-        tformMat(3,4) = tformLady(3);
+        tformMat = createTformMat(tformLady);
         
-        tformMat = tformMat*tformMatB;
+        tformMat = tformMat/tformMatB;
         
         SetTformMatrix(tformMat);
 
         %setup camera
         focal = ladybugParam.(cam).focal;
         centre = ladybugParam.(cam).centre;
-        cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
+        cameraMat = cam2Pro2(focal,focal,centre(1),centre(2));
         SetCameraMatrix(cameraMat);
 
         Transform(0);
@@ -186,7 +178,7 @@ for j = 1:(size(pairs,1))
     out{j} = transformPoints( offset, out{j}, true);
 
     %add position
-    out{j} = transformPoints( tformNav, out{j}, false);
+    out{j} = transformPoints( tformNav, out{j}, true);
         
         
     

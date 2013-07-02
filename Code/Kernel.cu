@@ -129,7 +129,7 @@ __global__ void GOMKernel(const float* A, const float* B, const size_t length, f
 	magOut[i] = mag;
 }
 
-__global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out){
+__global__ void livValKernel(const float* A, const float* B, const size_t length, float* out){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -137,10 +137,66 @@ __global__ void livValKernel(const float* A, const float* B, const float* Bavg, 
 		return;
 	}
 
-	out[i] = A[i] * fabs(B[i] - Bavg[i]);
+	out[i] = A[i] * B[i];
+}
+
+__global__ void TestKernel(const float* locs, const float* A, const float* B, const size_t length, float* randNums, float* phaseOut, float* magOut){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= TEST_LOCS){
+		return;
+	}
+	
+	//get points
+	size_t idx[TEST_POINTS];
+	for(size_t j = 0; j < TEST_POINTS; j++){
+		idx[j] = (size_t)(length*randNums[TEST_LOCS*j + i]);
+	}
+
+	float cx = 0; float dxA = 0; float dxB = 0;
+	float cy = 0; float dyA = 0; float dyB = 0;
+	float cA = 0; float dA = 0;
+	float cB = 0; float dB = 0;
+	
+	//get centre point
+	for(size_t j = 0; j < TEST_POINTS; j++){
+		cx += locs[idx[j]];
+		cy += locs[idx[j] + length];
+		cA += A[idx[j]];
+		cB += B[idx[j]];
+	}
+	cx /= TEST_POINTS;
+	cy /= TEST_POINTS;
+	cA /= TEST_POINTS;
+	cB /= TEST_POINTS;
+
+	//get differences
+	for(size_t j = 0; j < TEST_POINTS; j++){
+		float tx = cx - locs[idx[j]];
+		float ty = cy - locs[idx[j] + length];
+		float tA = cA - A[idx[j]];
+		float tB = cB - B[idx[j]];
+
+		dxA += tx*tA; dyA += ty*tA;
+		dxB += tx*tB; dyB += ty*tB;
+
+		dA += fabs(tA);
+		dB += fabs(tB);
+	}
+
+	//float phase = abs(magA[i]-magB[i]);
+	float phase = fabs(atan2(dyA,dxA) - atan2(dyB,dxB));
+
+    phase = (cos(2*phase)+1)/2;
+	float mag = dA*dB;
+
+    phaseOut[i] =  mag*phase;
+	magOut[i] = mag;
 }
 
 void RunBSplineKernel(float* volume, size_t width, size_t height){
 	//CubicBSplinePrefilter2D(volume, sizeof(float), width,height);
 }
+
 

@@ -25,11 +25,11 @@ param.options = psooptimset('PopulationSize', 200,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
-FIG.countMax = 2000;
+FIG.countMax = 5000;
 
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [0.2 0.2 0.2 3 3 3];
+range = [0.5 0.5 0.5 2 2 2];
 range(4:6) = pi*range(4:6)/180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
@@ -37,11 +37,13 @@ range(4:6) = pi*range(4:6)/180;
 tform = ladybugParam.offset;
 
 %base path
-path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
+path = 'G:\DataSets\Mobile Sensor Plaforms\Shrimp\Almond\';
 %range of images to use
-imRange = sort(1+ round(250*rand(5,1)))'
+imRange = sort(1+ round(253*rand(20,1)))'
 %metric to use
 metric = 'GOM';
+
+scale = 0.5;
 
 %number of times to run optimization
 numTrials = 1;
@@ -65,6 +67,8 @@ if(strcmp(metric,'MI'))
     SetupMIMetric();
 elseif(strcmp(metric,'GOM'))   
     SetupGOMMetric();
+elseif(strcmp(metric,'LIV'))
+    SetupLIVMetric();
 else
     error('Invalid metric type');
 end
@@ -78,36 +82,39 @@ for i = 1:numMove
 %     
 % 
  %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
-    %move{i} = getNorms(move{i},tform, 1000000);
+ move{i} = getNorms(move{i},tform);
 % %     
-  % kdTree = KDTreeSearcher(move{i}(:,1:3),'distance','euclidean');
-  %     [ move{i}(:,4) ] = SparseGauss( kdTree, move{i}(:,4), 0.1);
-     move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
-     move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+   
+% sphere = zeros(size(move{i},1),2);
+% sphere(:,1) = atan2(move{i}(:,1), move{i}(:,2));
+% sphere(:,2) = atan(move{i}(:,3)./ sqrt(move{i}(:,1).^2 + move{i}(:,2).^2));
+%kdTree = KDTreeSearcher(sphere(:,1:2),'distance','euclidean');
+%[ move{i}(:,4) ] = SparseGauss( kdTree, move{i}(:,4), 0.02);
+  
+     %move{i} = getNorms(move{i}, tform, 10000000);  
     
-	 move{i}(:,4) = histeq(move{i}(:,4));
-    
-    
-    m = filterScan(move{i}, metric, tform);
-    
-    %m = thinVel(m);
-    
-    %thin points
-    %m(:,4) = histeq(m(:,4));
-    %m = m(m(:,4) > 0.9, :);
-    
+    tformMatB = createTformMat(tform);
+
+    %get transformation matrix
+    tformLady = ladybugParam.cam0.offset;
+    tformMat = createTformMat(tformLady);
+    tformMat = tformMat/tformMatB;
+     
+    m = filterScan(move{i}, metric, tformMat);
+
     LoadMoveScan(i-1,m,3);
     fprintf('loaded moving scan %i\n',i);
 end
 
 base = cell(numBase,1);
+bStore = cell(numBase,1);
 for i = 1:numBase
     idx2 = mod(i-1,5)+1;
     idx1 = (i - idx2)/5 + 1;
     baseIn = imread(basePaths{idx1,idx2});
-    baseIn = imresize(baseIn,0.5);
+    baseIn = imresize(baseIn,scale);
     mask = imread([path 'LadybugColourVideo\masks\cam' int2str(idx2-1) '.png']);
-    mask = imresize(mask,0.5);
+    mask = imresize(mask,scale);
     mask = mask(:,:,1);
 
     for q = 1:size(baseIn,3)
@@ -135,9 +142,23 @@ for i = 1:numBase
         temp(mask == 0) = 0;
         b(:,:,q) = temp;
     end
+    
+    if(strcmp(metric,'LIV'))
+        if(i == 1)
+            bAvg = b/numBase;
+        else
+            bAvg = bAvg + b/numBase;
+        end
+    end
+    
     %base{i}.v = uint8(255*b(:,:,1));
-    LoadBaseImage(i-1,b);
+    %LoadBaseImage(i-1,b);
+    bStore{i} = b;
     fprintf('loaded base image %i\n',i);
+end
+
+for i = 1:size(bStore,1)
+    LoadBaseImage(i-1,(bStore{i}));
 end
 
 %% get image alignment
@@ -145,7 +166,7 @@ tformTotal = zeros(numTrials,size(tform,2));
 fTotal = zeros(numTrials,1);
 
 for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignLadyVel(base, move, pairs, tform, ladybugParam), 6,[],[],[],[],param.lower,param.upper,[],param.options);
+    [tformOut, fOut]=pso(@(tform) alignLadyVel2(base, move, pairs, tform, ladybugParam,scale), 6,[],[],[],[],param.lower,param.upper,[],param.options);
 
     tformTotal(i,:) = tformOut;
     fTotal(i) = fOut;

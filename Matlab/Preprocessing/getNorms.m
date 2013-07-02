@@ -1,4 +1,4 @@
-function [ data ] = getNorms(data, tform, numInterpolate)
+function [ data ] = getNorms(data, tform)
 %remove non distance related points
 cloud = data(:,1:3);
 
@@ -6,11 +6,7 @@ cloud(:,4) = 0;
 
 %transform points
 tform = double(tform);   
-tformMat = angle2dcm(tform(6), tform(5), tform(4));
-tformMat(4,4) = 1;
-tformMat(1,4) = tform(1);
-tformMat(2,4) = tform(2);
-tformMat(3,4) = tform(3);
+tformMat = createTformMat(tform);
 
 cloud = cloud(:,1:4);
 cloud(:,4) = 1;
@@ -35,14 +31,11 @@ n = knnsearch(kdtreeobj,sphere(:,1:2),'k',(numNeighbours+1));
 n = n(:,2:end);
 
 for i = 1:size(sphere,1)
-    C = zeros(3,3);
     
-    for j = 1:numNeighbours
-        %get difference
-        p = sphere(i,1:3) - sphere(n(i,j),1:3);  
-        C = C + (p')*(p);
-    end
-    
+    %get difference
+    p = repmat(sphere(i,1:3),numNeighbours,1) - sphere(n(i,:),1:3);  
+    C = (p')*(p);
+        
     C = C / numNeighbours;
     
     %get eigen values and vectors
@@ -52,15 +45,18 @@ for i = 1:size(sphere,1)
     [~,k] = min(d);
     
     %ensure all points have same direction
-    if(v(k,:)*sphere(i,1:3)' < 0)
+    %if(v(k,:)*sphere(i,1:3)' < 0)
         norm = v(k,:);
-    else
-        norm = -v(k,:);
-    end
+%     else
+%         norm = -v(k,:);
+%     end
     
     %store normal values
-    data(i,4) = abs(norm(1)+norm(2));%abs(atan2(norm(1),norm(2)));
+    data(i,4) = atan2(abs(norm(1)),abs(norm(2)));
 end
+
+data(:,4) = data(:,4)-min(data(:,4));
+data(:,4) = data(:,4)/max(data(:,4));
 
 % %get interpolation points
 % xRange = (max(sphere(:,1)) - min(sphere(:,1)));
@@ -92,6 +88,6 @@ end
 % 
 % %interpolate back to original points
 % data(:,4) = interp2(qx,qy,img,sphere(:,1),sphere(:,2));
-
-end
+% 
+% end
 

@@ -1,4 +1,4 @@
-function f=alignLadyVel(base, move, pairs, tform, ladybugParam, num)
+function f=alignLadyVel(base, move, pairs, tform, ladybugParam,num, scale)
 
     global FIG;
     f = 0;
@@ -14,27 +14,20 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam, num)
         cam = ['cam' int2str(cam)];
         
         %baseTform
-        tformMatB = angle2dcm(tform(6), tform(5), tform(4));
-        tformMatB(4,4) = 1;
-        tformMatB(1,4) = tform(1);
-        tformMatB(2,4) = tform(2);
-        tformMatB(3,4) = tform(3);
+        tformMatB = createTformMat(tform);
         
         %get transformation matrix
         tformLady = ladybugParam.(cam).offset;
-        tformMat = angle2dcm(tformLady(6), tformLady(5), tformLady(4));
-        tformMat(4,4) = 1;
-        tformMat(1,4) = tformLady(1);
-        tformMat(2,4) = tformLady(2);
-        tformMat(3,4) = tformLady(3);
-        
+        tformLady(6) = tformLady(6) + pi;
+        tformMat = createTformMat(tformLady);
+
         tformMat = tformMat*tformMatB;
         
         SetTformMatrix(tformMat);
         
         %setup camera
-        focal = ladybugParam.(cam).focal*0.5;
-        centre = ladybugParam.(cam).centre*0.5;
+        focal = ladybugParam.(cam).focal*scale;
+        centre = ladybugParam.(cam).centre*scale;
         cameraMat = cam2Pro(focal,focal,centre(1),centre(2));
         SetCameraMatrix(cameraMat);
         

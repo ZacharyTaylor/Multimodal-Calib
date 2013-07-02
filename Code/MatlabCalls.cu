@@ -357,7 +357,7 @@ DllExport void transform(unsigned int imgNum){
 	//setup generated image
 	gen = new SparseScan(move->getNumDim(), 0, move->getNumPoints());
 	gen->GetLocation()->AllocateGpu();
-
+	
 	//ensure move is setup
 	if(!move->GetLocation()->IsOnGpu()){
 		move->GetLocation()->AllocateGpu();
@@ -488,17 +488,28 @@ DllExport void setupGOMMetric(void){
 	metric = new GOM();
 }
 
-DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int height){
+DllExport void setupLIVMetric(void){
 	if(metric != NULL){
 		TRACE_INFO("A metric already exists, overwriting it");
 		delete metric;
 		metric = NULL;
 	}
 
-	metric = new LIV(avImg, width, height);
+	metric = new LIV();
+}
+
+DllExport void setupTESTMetric(void){
+	if(metric != NULL){
+		TRACE_INFO("A metric already exists, overwriting it");
+		delete metric;
+		metric = NULL;
+	}
+
+	metric = new TEST();
 }
 
 DllExport float getMetricVal(unsigned int moveNum){
+
 	if(metric == NULL){
 		TRACE_ERROR("No metric setup, returning");
 		return 0;
@@ -526,7 +537,7 @@ DllExport float getMetricVal(unsigned int moveNum){
 		move->getPoints()->CpuToGpu();
 	}
 
-	return metric->EvalMetric(move, gen);
+	return  metric->EvalMetric(move, gen);
 }
 
 DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){

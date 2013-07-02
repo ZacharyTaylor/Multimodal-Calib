@@ -33,7 +33,7 @@ FIG.countMax = 0;
 tform = ladybugParam.offset;
 
 %base path
-path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\clear_sline_sMdS_02\';
+path = 'E:\DataSets\Mobile Sensor Plaforms\Shrimp\Almond\';
 %range of images to use
 imRange = 180;
 
@@ -64,11 +64,11 @@ end
 %% get Data
 move = cell(numMove,1);
 for i = 1:numMove
-    %move{i} = dlmread(movePaths{i},',');
+    move{i} = dlmread(movePaths{i},' ',1,0);
 
-    move{i} = ReadVelData(movePaths{i});
+    %move{i} = ReadVelData(movePaths{i});
     
-    %move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
+    move{i}(:,4) = sqrt(move{i}(:,1).^2 + move{i}(:,2).^2 + move{i}(:,3).^2);
     %move{i} = getNorms(move{i},8);
     move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
     move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
@@ -103,7 +103,7 @@ for i = 1:numBase
 end
 
 %% get image alignment
-alignLadyVel(base, move, pairs, tform, ladybugParam);
+alignLadyVel(base, move, pairs, tform, ladybugParam,1,1);
 
 
         

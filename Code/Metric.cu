@@ -101,13 +101,8 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	return out;
 }
 
-LIV::LIV(float* avImg, size_t width, size_t height){
-	avImg_ = new PointsList(avImg, (width*height), true);
-}
+LIV::LIV(){}
 
-LIV::~LIV(){
-	delete avImg_;
-}
 
 float LIV::EvalMetric(SparseScan* A, SparseScan* B){
 	size_t numElements;
@@ -122,9 +117,9 @@ float LIV::EvalMetric(SparseScan* A, SparseScan* B){
 
 	float* out;
 	CudaSafeCall(cudaMalloc(&out, sizeof(float)*numElements));
-	
+
 	livValKernel<<<gridSize(numElements), BLOCK_SIZE>>>
-		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), (float*)avImg_->GetGpuPointer(), numElements, out);
+		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, out);
 	CudaCheckError();
 
 	//perform reduction
@@ -132,4 +127,55 @@ float LIV::EvalMetric(SparseScan* A, SparseScan* B){
 	CudaSafeCall(cudaFree(out));
 	
 	return outVal;
+}
+
+TEST::TEST(){};
+
+float TEST::EvalMetric(SparseScan* A, SparseScan* B){
+
+	size_t numElements;
+	//check scans of same size
+	if(A->getNumPoints() != B->getNumPoints()){
+		numElements = (A->getNumPoints() > B->getNumPoints()) ? B->getNumPoints() : A->getNumPoints();
+		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getNumPoints(),B->getNumPoints(),numElements);
+	}
+	else{
+		numElements = A->getNumPoints();
+	}
+
+	float* phaseOut;
+	float* magOut;
+	CudaSafeCall(cudaMalloc(&phaseOut, sizeof(float)*TEST_LOCS));
+	CudaSafeCall(cudaMalloc(&magOut, sizeof(float)*TEST_LOCS));
+
+	//generate random numbers
+	curandGenerator_t gen;
+	float* randNums;
+	CudaSafeCall(cudaMalloc(&randNums, sizeof(float)*TEST_LOCS*TEST_POINTS));
+
+	//Create pseudo-random number generator
+    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    
+    // Set seed 
+    curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
+
+    // Generate n floats on device
+    curandGenerateUniform(gen, randNums, TEST_LOCS*TEST_POINTS);
+	
+	TestKernel<<<gridSize(TEST_LOCS), BLOCK_SIZE>>>
+		((float*)A->GetLocation()->GetGpuPointer(),(float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, randNums, phaseOut, magOut);
+	CudaCheckError();
+
+	float phaseRes = reduceEasy(phaseOut, TEST_LOCS);
+	CudaSafeCall(cudaFree(phaseOut));
+	
+	float magRes = reduceEasy(magOut, TEST_LOCS);
+	CudaSafeCall(cudaFree(magOut));
+
+	CudaSafeCall(cudaFree(randNums));
+	curandDestroyGenerator(gen);
+	
+	float out = (phaseRes / magRes);
+	
+	return out;
 }

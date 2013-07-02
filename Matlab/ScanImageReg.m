@@ -14,22 +14,25 @@ FIG.count = 0;
 param = struct;
 
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 300,...
-    'TolCon', 1e-1,...
-    'StallGenLimit', 30,...
+param.options = psooptimset('PopulationSize', 500,...
+    'TolCon', 1e-10,...
+    'StallGenLimit', 100,...
     'Generations', 200,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
-FIG.countMax = 50;
+FIG.countMax = 5000000000;
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [1 1 1 10 10 10 50];
+range = [1 1 1 5 5 5 40];
 range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 68 800];
+%tform = [0 0 0 -90 0 68 780];
+%tform = [0 0 0 -90 -2 177 780];
+%tform = [0 0 0 -91 1 295 780];
+tform = [0 0 0 -90 1 317 780];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -46,7 +49,7 @@ metric = 'MI';
 panoramic = 1;
 
 %number of times to run optimization
-numTrials = 1;
+numTrials = 10;
 
 
 %% setup transforms and images
@@ -55,9 +58,6 @@ SetupCamera(panoramic);
 SetupCameraTform();
 
 Initilize(numMove,numBase);
-
-param.lower = tform - range;
-param.upper = tform + range;
 
 %% setup Metric
 if(strcmp(metric,'MI'))
@@ -87,17 +87,23 @@ end
 
 
 %% get image alignment
-tformTotal = zeros(numTrials,size(tform,2));
+tformTotal = zeros(numTrials,2*size(tform,2));
 fTotal = zeros(numTrials,1);
 
 for i = 1:numTrials
-    [tformOut, fOut]=pso(@(tform) alignPoints(base, move, pairs, tform), 7,[],[],[],[],param.lower,param.upper,[],param.options);
+    tformIn = tform + (rand(1,7)-0.5).*range;
+    
+    param.lower = tformIn - range;
+    param.upper = tformIn + range;
 
-    tformTotal(i,:) = tformOut;
+    [tformOut, fOut]=pso(@(tformIn) alignPoints(base, move, pairs, tformIn), 7,[],[],[],[],param.lower,param.upper,[],param.options);
+
+    tformTotal(i,1:7) = tformIn;
+    tformTotal(i,8:14) = tformOut;
     fTotal(i) = fOut;
 end
 
-tform = sum(tformTotal,1) / numTrials;
+tform = sum(tformTotal(:,8:14),1) / numTrials;
 f = sum(fTotal) / numTrials;
 
 
