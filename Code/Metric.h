@@ -28,6 +28,15 @@ private:
 	const size_t bins_;
 };
 
+//! Evaluates scans using the SSD metric
+class SSD: public Metric {
+public:
+	//! Sets up metric
+	SSD(void);
+	//! Evaluates SSD for two scans and gives result
+	float EvalMetric(SparseScan* A, SparseScan* B);
+};
+
 //! Evaluate scans using the GOM metric
 class GOM: public Metric {
 public:

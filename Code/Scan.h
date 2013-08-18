@@ -49,7 +49,7 @@ public:
 	size_t getNumCh(void);
 	
 	//! Gets the size of the ith dimension
-	/*
+	/*!
 		\param i the dimension you want the size of
 	*/
 	size_t getDimSize(size_t i);
@@ -59,6 +59,12 @@ public:
 	
 	//! Gets the pointer to the PointsList containing all the points
 	PointsList* getPoints(void);
+
+	//! Swaps the points of the scan with another scan of the same size
+	/*!
+		\param toSwap the Scan you will be swaping the points with
+	*/
+	void swapPoints(Scan* toSwap);
 
 	//! Binds a new points list to the scan
 	void setPoints(PointsList* points);

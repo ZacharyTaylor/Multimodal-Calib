@@ -15,6 +15,8 @@ __global__ void AffineTransformKernel(const float* tform, const float* pointsIn,
 
 __global__ void CameraTransformKernel(const float* tform, const float* cam, const float* pointsIn, float* pointsOut, const size_t numPoints, const bool panoramic);
 
+__global__ void SSDKernel(const float* A, const float* B, const size_t length, float* out, float* zeroEl);
+
 __global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut);
 
 __global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out);

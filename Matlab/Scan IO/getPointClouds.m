@@ -20,7 +20,7 @@ function [out] = getPointClouds(varargin)
     i = 1;
     while(i <= size(out,1))
         [fileName, pathName] = uigetfile(...
-            {'*.csv;*.txt;*.mat','Point Cloud Files';...
+            {'*.csv;*.txt;*.mat;*.bin','Point Cloud Files';...
             '*.*', 'All Files (*.*)'},...
             'Get Point Clouds',...
             pathName,...
@@ -43,15 +43,7 @@ function [out] = getPointClouds(varargin)
     %get files
     for i = 1:size(out,1)
 
-        if(isequal(strfind(fileList{i}, '.mat'),[]))
-            if(nargin == 2)
-                dlim = varargin{2};
-            else
-                dlim = ' ';
-            end
-            
-            cloud = dlmread([pathList{i}, fileList{i}],dlim,0,0);
-        else
+        if(~isequal(strfind(fileList{i}, '.mat'),[]))
             matIn = load([pathList{i}, fileList{i}]);
             names = fieldnames(matIn);
             
@@ -60,7 +52,18 @@ function [out] = getPointClouds(varargin)
             else
                 cloud = matIn.(names{1});
             end
-        
+        elseif(~isequal(strfind(fileList{i}, '.bin'),[]))
+            
+            cloud = ReadVelData([pathList{i}, fileList{i}]);
+            
+        else
+            if(nargin == 2)
+                dlim = varargin{2};
+            else
+                dlim = ' ';
+            end
+            
+            cloud = dlmread([pathList{i}, fileList{i}],dlim,0,0);
         end
     
         %center cloud

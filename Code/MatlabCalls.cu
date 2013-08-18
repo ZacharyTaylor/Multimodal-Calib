@@ -469,6 +469,32 @@ DllExport void genBaseValues(unsigned int baseNum){
 	base->d_interpolate(gen);
 }
 
+DllExport void replaceMovePoints(unsigned int scanNum){
+	if(scanNum >= numMove){
+		TRACE_ERROR("Cannot get move image %i as only %i images exist",scanNum,numMove);
+		return;
+	}
+
+	SparseScan* move = moveStore[scanNum];
+
+	//ensure move is setup
+	if(!move->getPoints()->IsOnGpu()){
+		move->getPoints()->AllocateGpu();
+		move->getPoints()->CpuToGpu();
+	}
+	
+	move->swapPoints(gen);
+}
+
+DllExport void setupSSDMetric(void){
+	if(metric != NULL){
+		TRACE_INFO("A metric already exists, overwriting it");
+		delete metric;
+		metric = NULL;
+	}
+
+	metric = new SSD();
+}
 DllExport void setupMIMetric(unsigned int numBins){
 	if(metric != NULL){
 		TRACE_INFO("A metric already exists, overwriting it");

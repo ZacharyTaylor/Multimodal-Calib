@@ -43,6 +43,43 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	return miOut;
 }
 
+SSD::SSD(){};
+
+float SSD::EvalMetric(SparseScan* A, SparseScan* B){
+	
+	size_t numElements;
+	//check scans of same size
+	if(A->getPoints()->GetNumEntries() != B->getPoints()->GetNumEntries()){
+		numElements = (A->getPoints()->GetNumEntries() > B->getPoints()->GetNumEntries()) ? B->getPoints()->GetNumEntries() : A->getPoints()->GetNumEntries();
+		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getPoints()->GetNumEntries(),B->getPoints()->GetNumEntries(),numElements);
+	}
+	else{
+		numElements = A->getPoints()->GetNumEntries();
+	}
+
+	float* out;
+	CudaSafeCall(cudaMalloc(&out, sizeof(float)*numElements));
+	float* zeroEl;
+	CudaSafeCall(cudaMalloc(&zeroEl, sizeof(float)*numElements));
+
+	SSDKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, out, zeroEl);
+	CudaCheckError();
+
+	//perform reduction
+	int numThreads = 512;
+	int numBlocks = ceil(((float)numElements)/((float)numThreads));
+	
+	float z = reduceEasy(zeroEl, numElements);
+	CudaSafeCall(cudaFree(zeroEl));
+	float res = reduceEasy(out, numElements);
+	CudaSafeCall(cudaFree(out));
+
+	res = res/(numElements-z);
+
+	return res;
+}
+
 GOM::GOM(){};
 
 float GOM::EvalMetric(SparseScan* A, SparseScan* B){

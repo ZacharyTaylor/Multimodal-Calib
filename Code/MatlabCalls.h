@@ -139,6 +139,13 @@ DllExport float* getGenLocs(void);
 */
 DllExport float* getGenPoints(void);
 
+//! Replaces the points in the specified moving scan with the current generated one
+/*!
+	NOTE this only replaces the points intensity, not their location
+	Also note to operate efficiently this function SWAPS THE POINTERS OF MOVE AND GEN so cannot be called multiple times unless gen is regenerated first
+*/
+DllExport void replaceMovePoints(unsigned int scanNum);
+
 //! Gets the number of channels the generated scan has
 DllExport int getGenNumCh(void);
 //! Gets the number of dimensions the generated scan has
@@ -152,6 +159,8 @@ DllExport int getGenNumPoints(void);
 */
 DllExport void genBaseValues(unsigned int baseNum);
 
+//! Sets up the SSD metric for use with scans
+DllExport void setupSSDMetric(void);
 //! Sets up the MI metric for use with scans
 DllExport void setupMIMetric(unsigned int numBins);
 //! Sets up the GOM metric for use with scans

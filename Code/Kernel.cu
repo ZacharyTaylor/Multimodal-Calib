@@ -101,6 +101,29 @@ __global__ void CameraTransformKernel(const float* tform, const float* cam, cons
 	pointsOut[i + 1*numPoints] = y;
 }
 
+__global__ void SSDKernel(const float* A, const float* B, const size_t length, float* out, float* zeroEl){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= length){
+		return;
+	}
+
+	float temp;
+
+	//ignore zeros
+	if((A[i] == 0) || (B[i] == 0)){
+		temp = 0;
+		zeroEl[i] = 1;
+	}
+	else{
+		temp = fabs(A[i] - B[i]);
+		zeroEl[i] = 0;
+	}
+
+	out[i] = temp;
+}
+
 __global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;

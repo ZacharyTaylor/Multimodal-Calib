@@ -60,6 +60,14 @@ void Scan::setPoints(PointsList* points){
 	points_ = points;
 }
 
+void Scan::swapPoints(Scan* toSwap){
+	PointsList* in = toSwap->getPoints();
+	PointsList* out = this->getPoints();
+
+	toSwap->setPoints(out);
+	this->setPoints(in);
+}
+
 DenseImage::DenseImage(const size_t height, const size_t width, const size_t numCh, TextureList* points): 
 	Scan(IMAGE_DIM ,numCh,setDimSize(width, height, numCh),points)
 {
