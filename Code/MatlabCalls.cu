@@ -7,6 +7,7 @@
 #include "Tform.h"
 #include "Metric.h"
 #include "Render.h"
+#include "Setup.h"
 
 
 //global so that matlab never has to see them
@@ -584,4 +585,8 @@ DllExport float* outputImageGen(unsigned int width, unsigned int height, unsigne
 
 	render.GetImage(gen->getPoints(), gen->GetLocation(), gen->getNumPoints(), width, height, gen->getNumCh(), dilate);
 	return render.out_;
+}
+
+DllExport void setupCUDADevices(void){
+	checkForCUDA();
 }

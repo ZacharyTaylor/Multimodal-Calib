@@ -6,7 +6,7 @@ function [out] = getImagesC(varargin)
 % can be used to get any number of images at once
 % can select multiple images an once
 
-    pathName = 'E:\DataSets\High Res Lidar-Photo pairs\Rose\cropped scans';
+    pathName = pwd;
     if(nargin < 1)
         out{1} = [];
     else

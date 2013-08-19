@@ -47,5 +47,3 @@ phase = atan2d(dxLocs,dyLocs);
 
 end
 
-end
-

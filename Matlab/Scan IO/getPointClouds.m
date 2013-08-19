@@ -6,7 +6,7 @@ function [out] = getPointClouds(varargin)
 % can be used to get any number of clouds at once
 % can select multiple clouds an once
 
-    pathName = 'E:\DataSets\High Res Lidar-Photo pairs\Rose';
+    pathName = pwd;
     if(nargin < 1)
         out{1} = [];
     else
