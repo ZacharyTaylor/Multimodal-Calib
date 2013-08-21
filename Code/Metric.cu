@@ -1,6 +1,6 @@
 #include "Metric.h"
 #include "mi.h"
-#include "Reduce\reduction.h"
+#include "reduction.h"
 
 extern "C" float cudaMIa(float* src1, float* src2, int length, int xbins, int ybins, struct cudaHistOptions* p_options, int device, int incZeros);
 

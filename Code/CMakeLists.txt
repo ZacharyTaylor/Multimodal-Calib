@@ -1,4 +1,6 @@
 include_directories ("${PROJECT_SOURCE_DIR}/Code/CI")
+include_directories ("${PROJECT_SOURCE_DIR}/Code/CI/code")
+include_directories ("${PROJECT_SOURCE_DIR}/Code/CI/code/internal")
 include_directories ("${PROJECT_SOURCE_DIR}/Code/Reduce")
 
 FILE(GLOB HEADERS *.h)

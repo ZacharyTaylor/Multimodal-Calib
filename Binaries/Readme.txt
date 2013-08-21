@@ -6,7 +6,7 @@ options are
           W = debug, outputs errors and warnings to matlab
           I = debug, outputs errors, warnings and info on what its doing 
               to matlab (very verbose)
- <os>: dll = windows, so = linux
+ <os>: dll = windows, a = linux
  
  To compile the 32 bit versions requires a 32 bit install of matlab, currently 
  I only have a 64 bit version thus they are not provided

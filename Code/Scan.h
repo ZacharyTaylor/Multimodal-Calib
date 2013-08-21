@@ -95,7 +95,7 @@ public:
 		\param numDim number of dimensions
 		\param dimSize array of size numDim, containg the size of each dimension
 	*/
-	static float* SparseScan::GenLocation(size_t numDim, size_t* dimSize);
+	static float* GenLocation(size_t numDim, size_t* dimSize);
 
 	//! Constructor, creates a SparseScan with no points
 	/*!

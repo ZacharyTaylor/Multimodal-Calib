@@ -131,9 +131,6 @@ void TextureList::CpuToGpu(void){
 	}
 	TRACE_INFO("%i points to be copied from host to device", numEntries_);
 
-	cudaMemcpy3DParms copyParams = {0};
-	copyParams.kind = cudaMemcpyHostToDevice;
-
 	if(texInMem_){
 		for(size_t i = 0; i < depth_; i++){
 			CudaSafeCall(cudaMemcpyToArray(((cudaArray**)d_points_)[i], 0, 0, &(((float*)points_)[width_*height_*i]), width_*height_*sizeof(float), cudaMemcpyHostToDevice));

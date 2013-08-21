@@ -17,54 +17,91 @@ C++ Error at trace.h(13): testing
 #define TRACE_H
 
 #include "common.h"
-#include <crtdbg.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-
+#if(_WIN32)
+	#include <crtdbg.h>
+#endif
 
 //! trace 0 = off, 1 = errors, 2 = warnings, 3 = info
-#define DEBUG_TRACE 1
+#define DEBUG_TRACE 3
 
 #define BUFF_SIZE 4096
 
 #ifdef DEBUG_TRACE 
+
 	#if(DEBUG_TRACE > 0)
 
-		inline void TRACE_IN(const char* format, ...)
-		{
-			va_list argptr;
-			va_start(argptr, format);
-			
-			char buff[BUFF_SIZE];
-			vsnprintf(buff,BUFF_SIZE, format, argptr);
-			va_end(argptr);
+		#if(_WIN32)
+			inline void TRACE_IN(const char* format, ...)
+			{
+				va_list argptr;
+				va_start(argptr, format);
+	
+				char buff[BUFF_SIZE];
+				vsnprintf(buff,BUFF_SIZE, format, argptr);
+				va_end(argptr);
 
-			printf("%s",buff);
-			printf("\n");
-		}
+				printf("%s",buff);
+				printf("\n");
+			}
+		#else
+			inline void TRACE_IN(const char* format, ...)
+			{
+				printf("%s",format);
+				printf("\n");
+			}
+
+			inline void DO_NOTHING(const char* format, ...)
+			{
+				return;
+			}
+		#endif
+
 
 		#define TRACE_ERROR printf("C++ Error at %s(%d): ", FILE, __LINE__); TRACE_IN
-	
+
 		#if (DEBUG_TRACE > 1)
 			#define TRACE_WARNING printf("C++ Warning at %s(%d): ", FILE, __LINE__); TRACE_IN
 
-		
+	
 			#if (DEBUG_TRACE > 2)
 				#define TRACE_INFO printf("C++ Info at %s(%d): ", FILE, __LINE__); TRACE_IN
 			#else
-				#define TRACE_INFO ((void)0)
+				#if(_WIN32)
+					#define TRACE_INFO ((void)0)
+				#else
+					#define TRACE_INFO DO_NOTHING
+				#endif
+					
 			#endif
 		#else
-			#define TRACE_INFO ((void)0)
-			#define TRACE_WARNING ((void)0)
+			#if(_WIN32)
+					#define TRACE_INFO ((void)0)
+					#define TRACE_WARNING ((void)0)
+			#else
+					#define TRACE_INFO DO_NOTHING
+					#define TRACE_WARNING DO_NOTHING
+			#endif
 		#endif
 	#else
-		// Remove for release mode
-		#define TRACE_IN  ((void)0)
-		#define TRACE_ERROR ((void)0)
-		#define TRACE_INFO ((void)0)
-		#define TRACE_WARNING ((void)0)
+		#if(_WIN32)
+			// Remove for release mode
+			#define TRACE_IN  ((void)0)
+			#define TRACE_ERROR ((void)0)
+			#define TRACE_INFO ((void)0)
+			#define TRACE_WARNING ((void)0)
+		#else
+			inline void DO_NOTHING(const char* format, ...)
+			{
+				return;
+			}
+			#define TRACE_ERROR DO_NOTHING
+			#define TRACE_INFO DO_NOTHING
+			#define TRACE_WARNING DO_NOTHING
+		#endif
+			
 	#endif
 #endif
 

@@ -1,6 +1,6 @@
 #include "Scan.h"
 #include "Kernel.h"
-#include "CI\code\memcpy.cu"
+#include "memcpy.cu"
 
 Scan::Scan(size_t numDim, size_t numCh,  size_t* dimSize) : 
 	numDim_(numDim),
@@ -157,7 +157,6 @@ void DenseImage::d_interpolate(SparseScan* scan){
 
 	size_t width = this->getPoints()->GetWidth();
 	size_t height = this->getPoints()->GetHeight();
-	size_t size = width*height*sizeof(float);
 	size_t numPoints = scan->getNumPoints();
    
 	// Allocate array and copy image data

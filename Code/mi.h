@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "trace.h"
-#include "Reduce\reduction.h"
+#include "reduction.h"
 
 //! Runs the mutal information calculation
 /*!
