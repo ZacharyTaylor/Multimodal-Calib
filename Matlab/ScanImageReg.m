@@ -14,7 +14,7 @@ FIG.count = 0;
 param = struct;
 
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 300,...
+param.options = psooptimset('PopulationSize', 200,...
     'TolCon', 1e-1,...
     'StallGenLimit', 30,...
     'Generations', 200,...
@@ -24,12 +24,12 @@ param.options = psooptimset('PopulationSize', 300,...
 FIG.countMax = 50;
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [1 1 1 10 10 10 50];
+range = [0.3 0.3 0.3 3 3 3 10];
 range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 68 800];
+tform = [1.1 0 0.2 -85 1.5 95 770];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -40,7 +40,7 @@ numBase = 1;
 pairs = [1 1];
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %if camera panoramic
 panoramic = 1;
@@ -72,11 +72,15 @@ end
 move = getPointClouds(numMove);
 
 for i = 1:numMove
+    move{i} = [move{i}(:,1:3),move{i}(:,7)];
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
-base = getImagesC(numBase, true);
+base{1}.v = double(I(:,:,50));%getImagesC(numBase, true);
+base{1}.v = base{1}.v / max(base{1}.v(:));
+base{1}.v = uint8(base{1}.v*255);
+base{1}.v(:,1600:end) = 0;
 
 for i = 1:numBase
     b = filterImage(base{i}, metric);

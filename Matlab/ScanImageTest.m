@@ -6,9 +6,9 @@ clc;
 global DEBUG_TRACE
 DEBUG_TRACE = 2;
 
-global FIG
-FIG.fig = figure;
-FIG.count = 0;
+% global FIG
+% FIG.fig = figure;
+% FIG.count = 0;
 
 %% input values
 param = struct;
@@ -23,13 +23,9 @@ param.options = psooptimset('PopulationSize', 300,...
 %how often to display an output frame
 FIG.countMax = 0;
 
-%range to search over (x, y ,z, rX, rY, rZ)
-range = [1 1 1 10 10 10 50];
-range(4:6) = pi.*range(4:6)./180;
-
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 0 0 0 1000];
+tform = [0 0 0 -1.5 0.05 1.8 810];
 
 %number of images
 numMove = 1;
@@ -39,7 +35,7 @@ numBase = 1;
 pairs = [1 1];
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %if camera panoramic
 panoramic = 1;
@@ -62,14 +58,14 @@ end
 
 %% get Data
 
-move = getPointClouds(numMove);
+%move = getPointClouds(numMove);
 
 for i = 1:numMove
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
-base = getImagesC(numBase, true);
+%base = getImagesC(numBase, true);
 
 for i = 1:numBase
     b = filterImage(base{i}, metric);

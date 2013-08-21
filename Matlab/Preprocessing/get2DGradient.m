@@ -43,7 +43,7 @@ dyLocs = sum(dyLocs.*dVals,2) /8;
 dVals = sum(abs(dVals),2) /8;
 
 mag = dVals;
-phase = atan2d(dxLocs,dyLocs);
+phase = atan2d(-dxLocs,-dyLocs);
 
 end
 
