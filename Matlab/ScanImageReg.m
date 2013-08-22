@@ -101,9 +101,10 @@ end
 tform = sum(tformTotal,1) / numTrials;
 f = sum(fTotal) / numTrials;
 
+tform(4:6) = pi.*tform(4:6)./180;
 
 fprintf('Final transform:\n     metric = %1.3f\n     translation = [%2.2f, %2.2f, %2.2f]\n     rotation = [%2.2f, %2.2f, %2.2f]\n\n',...
-            f,tform(4),tform(5),tform(6),tform(1),tform(2),tform(3));
+            f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6));
  
 %% cleanup
 ClearLibrary;

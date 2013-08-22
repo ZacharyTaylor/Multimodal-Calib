@@ -11,7 +11,13 @@
 		#define DllExport
 	#endif
 #else
-	#define DllExport
+	#ifdef __cplusplus
+		#define DllExport  extern "C" 
+	#endif
+
+	#ifndef __cplusplus
+		#define DllExport
+	#endif
 #endif
 
 //! Gets the number of moving scans

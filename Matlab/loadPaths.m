@@ -6,6 +6,7 @@ addpath('Image-Image Reg');
 addpath('Image-Scan Reg');
 addpath('Ladybug-Vel Reg');
 addpath('Metric');
+addpath('Optimization');
 addpath('Preprocessing');
 addpath('Scan IO');
 addpath('Setup');

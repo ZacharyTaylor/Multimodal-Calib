@@ -1,4 +1,5 @@
 #include "Tform.h"
+#include "Kernel.h"
 
 Camera::Camera(bool panoramic):
 	panoramic_(panoramic){

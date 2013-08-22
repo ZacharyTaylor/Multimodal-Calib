@@ -4,7 +4,7 @@
 #include "common.h"
 #include "Scan.h"
 #include "trace.h"
-#include "Kernel.h"
+//#include "Kernel.h"
 
 //! Depth of GOM images as need both phase and magnitude
 #define GOM_DEPTH 2 

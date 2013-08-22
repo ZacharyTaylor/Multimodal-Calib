@@ -1,5 +1,6 @@
 #include "Render.h"
 #include "Metric.h"
+#include "Kernel.h"
 
 Render::Render(void):out_(NULL){};
 

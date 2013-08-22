@@ -6,7 +6,9 @@ if(strcmp(metric,'MI'))
     out = single(image.v)/255;
 elseif(strcmp(metric,'GOM'))
     out = single(image.v)/255;
-    [mag,phase] = imgradient(out);
+    [x,y] = gradient(out);
+    mag = sqrt(x.^2 + y.^2);
+    phase = 180*atan2(x,y)/pi;
     
     mag = mag - min(mag(:));
     mag = mag / max(mag(:));

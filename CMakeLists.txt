@@ -25,9 +25,10 @@ else (${CUDA_FOUND})
 endif (${CUDA_FOUND})
 
 include_directories (${MATLAB_INCLUDE_DIR})
+include_directories ("${CUDA_TOOLKIT_ROOT_DIR}\\include")
 
 
 #nvcc flags
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_12,code=sm_12)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -arch=compute_12 )
 
 add_subdirectory(Code)

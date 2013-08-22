@@ -40,7 +40,7 @@ if(~libisloaded('LibCal'))
     
     TRACE_INFO('Loading multimodal calibration library');
     
-    [notFound, warnings] = loadlibrary(['..\Binaries\' Version],'..\Code\MatlabCalls.h','alias','LibCal');
+    [notFound, warnings] = loadlibrary([pwd '/../Binaries/' Version],[pwd '/../Code/MatlabCalls.h'],'alias','LibCal');
     
     if(size(notFound,1) ~= 0)
         fprintf(notFound);

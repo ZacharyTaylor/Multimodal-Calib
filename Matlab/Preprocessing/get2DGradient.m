@@ -15,8 +15,8 @@ cloud = (tformMat*(cloud'))';
 
 %project points onto sphere
 sphere = zeros(size(cloud,1),2);
-sphere(:,1) = atan2(cloud(:,1), cloud(:,2));
-sphere(:,2) = atan(cloud(:,3)./ sqrt(cloud(:,1).^2 + cloud(:,2).^2));
+sphere(:,1) = atan2(cloud(:,1), cloud(:,3));
+sphere(:,2) = atan(cloud(:,2)./ sqrt(cloud(:,1).^2 + cloud(:,3).^2));
 
 kdTree = KDTreeSearcher(sphere(:,1:2),'distance','euclidean');
 
@@ -43,7 +43,7 @@ dyLocs = sum(dyLocs.*dVals,2) /8;
 dVals = sum(abs(dVals),2) /8;
 
 mag = dVals;
-phase = atan2d(-dxLocs,-dyLocs);
+phase = 180*atan2(-dxLocs,-dyLocs)/pi;
 
 end
 
