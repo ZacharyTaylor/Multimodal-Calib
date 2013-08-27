@@ -1,7 +1,6 @@
 function [ data ] = getNorms(data, tform)
 %remove non distance related points
 cloud = data(:,1:3);
-
 cloud(:,4) = 0;
 
 %transform points
@@ -13,12 +12,12 @@ cloud(:,4) = 1;
 cloud = (tformMat*(cloud'))';
 
 %project points onto sphere
-sphere = cloud; zeros(size(cloud,1),6);
-%sphere(:,1) = atan2(cloud(:,1), cloud(:,2));
-%sphere(:,2) = atan(cloud(:,3)./ sqrt(cloud(:,1).^2 + cloud(:,2).^2));
-%sphere(:,3) = sqrt(cloud(:,1).^2 + cloud(:,2).^2 + cloud(:,3).^2);
+sphere = cloud; zeros(size(cloud,1),3);
+sphere(:,1) = atan2(cloud(:,1), cloud(:,3));
+sphere(:,2) = atan(cloud(:,2)./ sqrt(cloud(:,1).^2 + cloud(:,3).^2));
+sphere(:,3) = sqrt(cloud(:,1).^2 + cloud(:,2).^2 + cloud(:,3).^2);
 
-numNeighbours = 19;
+numNeighbours = 9;
 
 %create kdtree
 kdtreeobj = KDTreeSearcher(sphere(:,1:3),'distance','euclidean');
@@ -47,11 +46,11 @@ for i = 1:size(sphere,1)
     [~,k] = min(d);
     
     %ensure all points have same direction
-%     if(v(k,:)*sphere(i,1:3)' < 0)
+     if(v(k,:)*sphere(i,1:3)' < 0)
          norm = v(k,:);
-%     else
-%         norm = -v(k,:);
-%     end
+     else
+         norm = -v(k,:);
+     end
     
     %store normal values
     data(i,4) = abs(atan2(abs(norm(1)),sqrt(norm(2)^2 + norm(3)^2)));

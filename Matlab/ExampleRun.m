@@ -40,8 +40,11 @@ numBase = 1;
 %pairing [base image, move scan]
 pairs = [1 1];
 
-%metric to use
+%metric to use (MI, GOM)
 metric = 'GOM';
+
+%feature to use (return, distance, normals)
+feature = 'normals';
 
 %if camera panoramic
 panoramic = 1;
@@ -73,6 +76,25 @@ end
 move = getPointClouds(numMove);
 base = getImagesC(numBase, false);
 
+%% setup feature
+if(strcmp(feature,'return'))
+    %already setup
+elseif(strcmp(feature,'distance'))   
+    for i = 1:numMove
+        move{i}(:,4) = sqrt(sum(move{i}(:,1:3).^2,2));
+        move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
+        move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+        move{i}(:,4) = 1-histeq(move{i}(:,4));
+    end
+elseif(strcmp(feature,'normals'))
+    for i = 1:numMove
+        move{i} = getNorms(move{i}, tform);
+    end
+else
+    error('Invalid feature type');
+end
+
+%% filter scans
 for i = 1:numMove
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
