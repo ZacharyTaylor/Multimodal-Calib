@@ -45,5 +45,8 @@ dVals = sum(abs(dVals),2) /8;
 mag = dVals;
 phase = 180*atan2(-dxLocs,-dyLocs)/pi;
 
+phase(isnan(phase)) = 0;
+mag(isnan(mag)) = 0;
+
 end
 

@@ -549,10 +549,11 @@ void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThread
         blocks = (n + (threads * 2 - 1)) / (threads * 2);
     }
 
-    if (threads*blocks > prop.maxGridSize[0] * prop.maxThreadsPerBlock)
-    {
-        printf("n is too large, please choose a smaller number!\n");
-    }
+    //if (threads*blocks > prop.maxGridSize[0] * prop.maxThreadsPerBlock)
+    //{
+	//	printf("%i threads, %i blocks, %i maxGrid, %i maxThreads, %i n\n",threads,blocks,prop.maxGridSize[0],prop.maxThreadsPerBlock, n);
+	//	printf("n is too large, please choose a smaller number!\n");
+    //}
 
     if (blocks > prop.maxGridSize[0])
     {
@@ -572,9 +573,9 @@ void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThread
 // All the reduction steps in one for a float
 float reduceEasy(float* d_idata, int size){
 	
-	int maxThreads = 256;  // number of threads per block
+	int maxThreads = 512;  // number of threads per block
     int whichKernel = 6;
-    int maxBlocks = 64;
+    int maxBlocks = 65535;
     int cpuFinalThreshold = 1;
 
 	int numBlocks = 0;

@@ -12,7 +12,7 @@
 #ifndef __REDUCTION_H__
 #define __REDUCTION_H__
 
-#include "../common.h"
+#include "common.h"
 
 //! Performs reduction on an array stored on the gpu
 /*! Uses a highly optimized method to reduce an array stored on the gpu

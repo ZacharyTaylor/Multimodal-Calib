@@ -12,6 +12,8 @@ elseif(strcmp(metric,'GOM'))
     
     mag = mag - min(mag(:));
     mag = mag / max(mag(:));
+    
+    mag = histeq(mag);
 
     out = zeros([size(mag) 2]);
     out(:,:,1) = mag;

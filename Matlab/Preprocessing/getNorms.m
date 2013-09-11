@@ -28,7 +28,7 @@ n = knnsearch(kdtreeobj,sphere(:,1:3),'k',(numNeighbours+1));
 %remove self
 n = n(:,2:end);
 
-for i = 1:size(sphere,1)
+for i = 1:(size(sphere,1)-1)
     C = zeros(3,3);
     
     for j = 1:numNeighbours
@@ -47,18 +47,19 @@ for i = 1:size(sphere,1)
     
     %ensure all points have same direction
      if(v(k,:)*sphere(i,1:3)' < 0)
-         norm = v(k,:);
+         norm = v(:,k);
      else
-         norm = -v(k,:);
+         norm = -v(:,k);
      end
     
     %store normal values
     data(i,4) = abs(atan2(abs(norm(1)),sqrt(norm(2)^2 + norm(3)^2)));
 end
 
+data(isnan(data(:,4)),4) = 0;
+
 data(:,4) = data(:,4) - min(data(:,4));
 data(:,4) = data(:,4) / max(data(:,4));
-data(:,4) = histeq(data(:,4));
 
 end
 
