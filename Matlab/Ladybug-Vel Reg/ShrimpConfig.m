@@ -2,7 +2,8 @@ function [ Shrimp ] = ShrimpConfig()
 %SHRIMPCONFIG Config information for shrimp
 
 %% ladybug
-Shrimp.Ladybug.offset = [0.0064,0,-1.2508,3.14159,0,0];
+%Shrimp.Ladybug.offset = [0.0064,0,-1.2508,3.14159,0,0];
+Shrimp.Ladybug.offset = [0,0,0.3,pi,0,pi];
 
 Shrimp.Ladybug.cam0.offset = [0.042,-0.002,0.0,-1.575,-0.004,-1.573];
 Shrimp.Ladybug.cam0.focal = 403.431;

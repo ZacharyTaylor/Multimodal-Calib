@@ -12,7 +12,8 @@ set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
 FIG.count = 0;
 
 %get ladybug parameters
-ladybugParam = LadybugConfig;
+ladybugParam = ShrimpConfig;
+ladybugParam = ladybugParam.Ladybug;
 
 %% input values
 param = struct;
@@ -37,11 +38,13 @@ range(4:6) = pi*range(4:6)/180;
 tform = ladybugParam.offset;
 
 %base path
-path = 'base path goes here';
+path = 'C:\DataSets\Mobile Sensor Plaforms\Shrimp\Apples\';
 %range of images to use
-imRange = sort(1+ round(250*rand(5,1)))';
+imRange = sort(1+ round(2000*rand(20,1)))';
 %metric to use
 metric = 'GOM';
+%feature to use (return, distance, normals)
+feature = 'normals';
 
 %number of times to run optimization
 numTrials = 1;
@@ -73,9 +76,6 @@ end
 move = cell(numMove,1);
 for i = 1:numMove
     move{i} = ReadVelData(movePaths{i});
-    m = filterScan(move{i}, metric, tform);
-
-    LoadMoveScan(i-1,m,3);
     fprintf('loaded moving scan %i\n',i);
 end
 
@@ -84,9 +84,9 @@ for i = 1:numBase
     idx2 = mod(i-1,5)+1;
     idx1 = (i - idx2)/5 + 1;
     baseIn = imread(basePaths{idx1,idx2});
-    baseIn = imresize(baseIn,0.5);
+    %baseIn = imresize(baseIn,0.5);
     mask = imread([path 'LadybugColourVideo\masks\cam' int2str(idx2-1) '.png']);
-    mask = imresize(mask,0.5);
+    %mask = imresize(mask,0.5);
     mask = mask(:,:,1);
 
     for q = 1:size(baseIn,3)
@@ -103,17 +103,43 @@ for i = 1:numBase
         base{i}.c = baseIn(:,:,1);
         base{i}.v = baseIn(:,:,1);
     end
-            
-    b = filterImage(base{i}, metric);
     
-    for q = 1:size(b,3)
-        temp = b(:,:,q);
+    for q = 1:size(base{i}.v,3)
+        temp = base{i}.v(:,:,q);
         temp(mask == 0) = 0;
-        b(:,:,q) = temp;
+        base{i}.v(:,:,q) = temp;
     end
 
-    LoadBaseImage(i-1,b);
     fprintf('loaded base image %i\n',i);
+end
+
+%% setup feature
+if(strcmp(feature,'return'))
+    %already setup
+elseif(strcmp(feature,'distance'))   
+    for i = 1:numMove
+        move{i}(:,4) = sqrt(sum(move{i}(:,1:3).^2,2));
+        move{i}(:,4) = move{i}(:,4) - min(move{i}(:,4));
+        move{i}(:,4) = move{i}(:,4) / max(move{i}(:,4));
+        move{i}(:,4) = 1-histeq(move{i}(:,4));
+    end
+elseif(strcmp(feature,'normals'))
+    for i = 1:numMove
+        move{i} = getNorms(move{i}, tform);
+    end
+else
+    error('Invalid feature type');
+end
+
+%% filter data
+for i = 1:numMove
+    m = filterScan(move{i}, metric, tform);
+    LoadMoveScan(i-1,m,3);
+end
+
+for i = 1:numBase
+    b = filterImage(base{i}, metric);
+    LoadBaseImage(i-1,b);
 end
 
 %% get image alignment

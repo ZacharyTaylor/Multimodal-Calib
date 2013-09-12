@@ -28,29 +28,27 @@ n = knnsearch(kdtreeobj,sphere(:,1:3),'k',(numNeighbours+1));
 %remove self
 n = n(:,2:end);
 
+p = repmat(sphere(:,1:3),numNeighbours,1) - sphere(n(:),1:3);
+p = reshape(p, size(sphere,1),numNeighbours,3);
+
+C = zeros(size(sphere,1),6);
+C(:,1) = sum(p(:,:,1).*p(:,:,1),2);
+C(:,2) = sum(p(:,:,1).*p(:,:,2),2);
+C(:,3) = sum(p(:,:,1).*p(:,:,3),2);
+C(:,4) = sum(p(:,:,2).*p(:,:,2),2);
+C(:,5) = sum(p(:,:,2).*p(:,:,3),2);
+C(:,6) = sum(p(:,:,3).*p(:,:,3),2);
+C = C ./ numNeighbours;
+
 for i = 1:(size(sphere,1)-1)
-    C = zeros(3,3);
-    
-    for j = 1:numNeighbours
-        %get difference
-        p = sphere(i,1:3) - sphere(n(i,j),1:3);  
-        C = C + (p')*(p);
-    end
-    
-    C = C / numNeighbours;
+    Cmat = [C(i,1) C(i,2) C(i,3); C(i,2) C(i,4) C(i,5); C(i,3) C(i,5) C(i,6)];  
     
     %get eigen values and vectors
-    [v,d] = eig(C);
+    [v,d] = eig(Cmat);
     d = diag(d);
     
     [~,k] = min(d);
-    
-    %ensure all points have same direction
-     if(v(k,:)*sphere(i,1:3)' < 0)
-         norm = v(:,k);
-     else
-         norm = -v(:,k);
-     end
+    norm = v(:,k);
     
     %store normal values
     data(i,4) = abs(atan2(abs(norm(1)),sqrt(norm(2)^2 + norm(3)^2)));

@@ -29,7 +29,7 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         SetCameraMatrix(cameraMat);
         
         Transform(pairs(i,2)-1);
-        InterpolateBaseValues(pairs(i,2)-1);
+        InterpolateBaseValues(pairs(i,1)-1);
 
         temp = EvalMetric(pairs(i,2)-1);
         if(~(isnan(temp) || isinf(temp)))
@@ -42,13 +42,13 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
             h = gcf;
             sfigure(FIG.fig);
             
-            b = OutputImage(width, height,pairs(i,2)-1,2);
+            b = OutputImage(width, height,pairs(i,2)-1,4);
             b = b(:,:,1);
-            %b(b ~=0) = histeq(b(b~=0));
+            b(b ~=0) = histeq(b(b~=0));
             b = uint8(255*b);          
 
 
-            comb = uint8(zeros([width height 3]));
+            comb = uint8(zeros([height width 3]));
             comb(:,:,1) = base{pairs(i,1)}.v;
             comb(:,:,2) = b;
             

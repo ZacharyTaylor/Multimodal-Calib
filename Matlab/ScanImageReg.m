@@ -3,8 +3,8 @@ loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
-global DEBUG_TRACE
-DEBUG_TRACE = 2;
+global DEBUG_LEVEL
+DEBUG_LEVEL = 1;
 
 global FIG
 FIG.fig = figure;
@@ -14,22 +14,22 @@ FIG.count = 0;
 param = struct;
 
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 200,...
+param.options = psooptimset('PopulationSize', 2000,...
     'TolCon', 1e-1,...
     'StallGenLimit', 30,...
-    'Generations', 200,...
+    'Generations', 300,...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
-FIG.countMax = 50;
+FIG.countMax = 1000;
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [0.3 0.3 0.3 3 3 3 10];
+range = [4 4 0.5 5 5 10 80];
 range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [1.1 0 0.2 -85 1.5 95 770];
+tform = [0 0 0 -85.7 -2.3 132 770];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -72,15 +72,14 @@ end
 move = getPointClouds(numMove);
 
 for i = 1:numMove
-    move{i} = [move{i}(:,1:3),move{i}(:,7)];
+    %move{i} = [move{i}(:,1:3),move{i}(:,4)];
+    dist = sqrt(sum(move{i}(:,1:3).^2,2));
+    move{i} = move{i}(dist > 25,:);
     m = filterScan(move{i}, metric, tform);
     LoadMoveScan(i-1,m,3);
 end
 
-base{1}.v = double(I(:,:,50));%getImagesC(numBase, true);
-base{1}.v = base{1}.v / max(base{1}.v(:));
-base{1}.v = uint8(base{1}.v*255);
-base{1}.v(:,1600:end) = 0;
+base = getImagesC(numBase, true);
 
 for i = 1:numBase
     b = filterImage(base{i}, metric);

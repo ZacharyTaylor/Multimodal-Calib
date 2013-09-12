@@ -28,11 +28,11 @@ function [ basePaths, movePaths, pairs  ] = MatchImageScan( path, imRange, rep )
         fileName = char(fileName);
         
         %create base paths
-        basePaths{j,1} = [path 'LadybugColourVideo/cam0/' fileName(1:16) '.cam0.png'];
-        basePaths{j,2} = [path 'LadybugColourVideo/cam1/' fileName(1:16) '.cam1.png'];
-        basePaths{j,3} = [path 'LadybugColourVideo/cam2/' fileName(1:16) '.cam2.png'];
-        basePaths{j,4} = [path 'LadybugColourVideo/cam3/' fileName(1:16) '.cam3.png'];
-        basePaths{j,5} = [path 'LadybugColourVideo/cam4/' fileName(1:16) '.cam4.png'];
+        basePaths{j,1} = [path 'LadybugColourVideo/cam0/' fileName(1:16) '.png'];
+        basePaths{j,2} = [path 'LadybugColourVideo/cam1/' fileName(1:16) '.png'];
+        basePaths{j,3} = [path 'LadybugColourVideo/cam2/' fileName(1:16) '.png'];
+        basePaths{j,4} = [path 'LadybugColourVideo/cam3/' fileName(1:16) '.png'];
+        basePaths{j,5} = [path 'LadybugColourVideo/cam4/' fileName(1:16) '.png'];
 
         %get time from name
         time(j) = str2double(fileName(1:16));

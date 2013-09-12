@@ -3,29 +3,23 @@ loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
-global DEBUG_TRACE
-DEBUG_TRACE = 2;
+global DEBUG_LEVEL
+DEBUG_LEVEL = 1;
 
-global FIG
-FIG.fig = figure;
-FIG.count = 0;
+if(~exist('FIG','var'))
+    global FIG
+    FIG.fig = figure;
+    FIG.count = 0;
+end
 
 %% input values
-param = struct;
-
-%options for swarm optimization
-param.options = psooptimset('PopulationSize', 300,...
-    'TolCon', 1e-1,...
-    'StallGenLimit', 30,...
-    'Generations', 200,...
-    'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
 FIG.countMax = 0;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 180 770];
+tform = [0 0 0 -82 -2 132 770];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -59,8 +53,11 @@ end
 
 %% get Data
 
-move = getPointClouds(numMove);
-base = getImagesC(numBase, true);
+if(~exist('move','var'))
+    move = getPointClouds(numMove);
+    base = getImagesC(numBase, true);
+end
+
 
 for i = 1:numMove
     m = filterScan(move{i}, metric, tform);
