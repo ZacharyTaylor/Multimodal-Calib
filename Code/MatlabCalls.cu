@@ -9,21 +9,23 @@
 #include "Render.h"
 #include "Setup.h"
 
+#include <atomic>
+#include <thread>
+
 
 //global so that matlab never has to see them
-SparseScan** moveStore = NULL;
+std::vector<SparseScan*> moveStore;
 unsigned int numMove = 0;
 
-DenseImage** baseStore = NULL;
+std::vector<DenseImage*> baseStore;
 unsigned int numBase = 0;
 
+Metric* metric = NULL;
 Camera* camera = NULL;
 
-Tform* tform = NULL;
-
-Metric* metric = NULL;
-
-SparseScan* gen = NULL;
+std::vector<SparseScan*> genStore;
+std::vector<Tform*> tformStore;
+unsigned int numTforms = 0;
 
 Render render;
 
@@ -36,30 +38,22 @@ DllExport unsigned int getNumBase(void){
 }
 
 DllExport void clearScans(void){
-	if(moveStore != NULL){
-		for(unsigned int i = 0; i < numMove; i++){
-			delete moveStore[i];
-		}
-		delete moveStore;
-		moveStore = NULL;
-	}	
-
-	if(baseStore != NULL){
-		for(unsigned int i = 0; i < numBase; i++){
-			delete baseStore[i];
-		}
-		delete baseStore;
-		baseStore = NULL;
+	while(moveStore.size()){
+		delete moveStore.back();
+		moveStore.pop_back();
 	}
-	if(gen != NULL){
-		delete gen;
-		gen = NULL;
+	while(baseStore.size()){
+		delete baseStore.back();
+		baseStore.pop_back();
+	}
+	while(genStore.size()){
+		delete genStore.back();
+		genStore.pop_back();
 	}
 }
 
 DllExport void clearTform(void){
-	delete tform;
-	tform = NULL;
+	tformStore.clear();
 }
 
 DllExport void clearMetric(void){
@@ -70,28 +64,46 @@ DllExport void clearMetric(void){
 DllExport void clearRender(void){
 }
 
-DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn){
+DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numTformsIn){
 	
-	if((moveStore != NULL) || (baseStore != NULL)){
-		TRACE_INFO("Scans already initalized, clearing and writing new data");
-		clearScans();
-	}
-
 	numMove = numMoveIn;
 	numBase = numBaseIn;
+	numTforms = numTformsIn;
 
-	baseStore = new DenseImage*[numBase];
-	
-	//setting null so can tell if it is allocated
-	for(unsigned int i = 0; i < numBase; i++){
-		baseStore[i] = NULL;
+	while(moveStore.size() < numMove){
+		moveStore.push_back(NULL);
+	}
+	while(moveStore.size() > numMove){
+		delete moveStore.back();
+		moveStore.pop_back();
 	}
 
-	moveStore = new SparseScan*[numMove];
-	
-	//setting null so can tell if it is allocated
-	for(unsigned int i = 0; i < numMove; i++){
-		moveStore[i] = NULL;
+	while(baseStore.size() < numBase){
+		baseStore.push_back(NULL);
+	}
+	while(baseStore.size() > numBase){
+		delete baseStore.back();
+		baseStore.pop_back();
+	}
+
+	while(genStore.size() < numTforms){
+		genStore.push_back(NULL);
+	}
+	while(genStore.size() > numTforms){
+		delete genStore.back();
+		genStore.pop_back();
+	}
+}
+
+DllExport void setNumTforms(unsigned int numTformsIn){
+	numTforms = numTformsIn;
+
+	while(genStore.size() < numTforms){
+		genStore.push_back(NULL);
+	}
+	while(genStore.size() > numTforms){
+		delete genStore.back();
+		genStore.pop_back();
 	}
 }
 
@@ -101,12 +113,8 @@ DllExport void setBaseImage(unsigned int scanNum, unsigned int width, unsigned i
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numBase);
 		return;
 	}
-	if(baseStore[scanNum] != NULL){
-		TRACE_INFO("Base %i already allocated, clearing and overwritng with new data", scanNum);
-		delete baseStore[scanNum];
-		baseStore[scanNum] = NULL;
-	}
 
+	delete baseStore[scanNum];
 	baseStore[scanNum] = new DenseImage(width, height, numCh, base);
 }
 
@@ -116,12 +124,7 @@ DllExport void setMoveImage(unsigned int scanNum, unsigned int width, unsigned i
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numMove);
 		return;
 	}
-	if(moveStore[scanNum] != NULL){
-		TRACE_INFO("Move %i already allocated, clearing and overwritng with new data", scanNum);
-		delete moveStore[scanNum];
-		moveStore[scanNum] = NULL;
-	}
-
+	delete moveStore[scanNum];
 	size_t* dimSize = new size_t[2];
 	dimSize[0] = width;
 	dimSize[1] = height;
@@ -137,12 +140,8 @@ DllExport void setMoveScan(unsigned int scanNum, unsigned int numDim, unsigned i
 		TRACE_ERROR("Cannot set scan %i as only %i scans exist",scanNum,numMove);
 		return;
 	}
-	if(moveStore[scanNum] != NULL){
-		TRACE_INFO("Move %i already allocated, clearing and overwritng with new data", scanNum);
-		delete moveStore[scanNum];
-		moveStore[scanNum] = NULL;
-	}
 
+	delete moveStore[scanNum];
 	moveStore[scanNum] = new SparseScan(numDim,numCh,numPoints,&move[numDim*numPoints],move);
 }
 
@@ -286,37 +285,31 @@ DllExport float* getBaseImage(unsigned int scanNum){
 }
 
 DllExport void setupCamera(int panoramic){
-	if(camera != NULL){
-		TRACE_INFO("Camera already setup, clearing");
-		delete camera;
-		camera = NULL;
-	}
-
 	bool panBool = (panoramic != 0)?true:false;
+	delete camera;
 	camera = new Camera(panBool);
 }
 
 DllExport void setupTformAffine(void){
-	if(tform != NULL){
-		TRACE_INFO("Tform already setup, clearing");
-		delete tform;
-		tform = NULL;
+	tformStore.assign(numTforms,NULL);
+	for(int i = 0; i < numTforms; i++){
+		tformStore[i] = new AffineTform();
 	}
-	tform = new AffineTform();
 }
 
 DllExport void setupCameraTform(void){
-	if(tform != NULL){
-		TRACE_INFO("Tform already setup, clearing");
-		delete tform;
-		tform = NULL;
-	}
-
+	
 	if(camera == NULL){
-		TRACE_WARNING("Camera has not been set up, tform will be unable to run until this is performed");
+			TRACE_WARNING("Camera has not been set up, tform will be unable to run until this is performed");
 	}
 
-	tform = new CameraTform(camera);
+	while(tformStore.size() < numTforms){
+		tformStore.push_back(new CameraTform(camera));
+	}
+	while(tformStore.size() > numTforms){
+		delete tformStore.back();
+		tformStore.pop_back();
+	}
 }
 
 DllExport void setCameraMatrix(float* camMat){
@@ -327,12 +320,16 @@ DllExport void setCameraMatrix(float* camMat){
 	camera->SetCam(camMat);
 }
 
-DllExport void setTformMatrix(float* tMat){
-	if(tform == NULL){
+DllExport void setTformMatrix(float* tMat, unsigned int tformIdx){
+	if(tformStore[tformIdx] == NULL){
 		TRACE_ERROR("Tform not setup, returning");
 		return;
 	}
-	tform->SetTform(tMat);
+	tformStore[tformIdx]->SetTform(tMat);
+}
+
+void threadTform(Tform* tform, SparseScan* move, SparseScan** gen){
+	tform->d_Transform(move,gen);
 }
 
 DllExport void transform(unsigned int imgNum){
@@ -344,20 +341,10 @@ DllExport void transform(unsigned int imgNum){
 
 	SparseScan* move = moveStore[imgNum];
 
-	if(gen != NULL){
-		TRACE_INFO("Clearing generated image ready for new transform");
-		delete gen;
-		gen = NULL;
-	}
-	
 	if(move == NULL){
 		TRACE_ERROR("A moving image is required to transform");
 		return;
 	}
-
-	//setup generated image
-	gen = new SparseScan(move->getNumDim(), 0, move->getNumPoints());
-	gen->GetLocation()->AllocateGpu();
 
 	//ensure move is setup
 	if(!move->GetLocation()->IsOnGpu()){
@@ -365,11 +352,27 @@ DllExport void transform(unsigned int imgNum){
 		move->GetLocation()->CpuToGpu();
 	}
 
-	tform->d_Transform(move, gen);
+	//spawn threads
+	std::vector<std::thread> threads;
+	for(int i = 0; i < numTforms; i++){
+		threads.push_back(std::thread(threadTform,tformStore[i],move,&genStore[i]));
+	}
+
+	//collect threads
+	for(auto& thread : threads){
+        thread.join();
+	}
 }
 
-DllExport float* getGenLocs(void){
+DllExport float* getGenLocs(unsigned int idx){
 	
+	if(idx >= numTforms){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",idx,numTforms);
+		return 0;
+	}
+
+	SparseScan* gen = genStore[idx];
+
 	if((gen == NULL) || (gen->GetLocation() == NULL)){
 		TRACE_ERROR("Generated locations has not been allocated, returning");
 		return NULL;
@@ -382,8 +385,15 @@ DllExport float* getGenLocs(void){
 	return out;
 }
 
-DllExport float* getGenPoints(void){
+DllExport float* getGenPoints(unsigned int idx){
 	
+	if(idx >= numTforms){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",idx,numTforms);
+		return 0;
+	}
+
+	SparseScan* gen = genStore[idx];
+
 	if((gen == NULL) || (gen->getPoints() == NULL)){
 		TRACE_ERROR("Generated points has not been allocated, returning");
 		return NULL;
@@ -396,8 +406,15 @@ DllExport float* getGenPoints(void){
 	return out;
 }
 
-DllExport int getGenNumCh(void){
+DllExport int getGenNumCh(unsigned int idx){
 	
+	if(idx >= numTforms){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",idx,numTforms);
+		return 0;
+	}
+
+	SparseScan* gen = genStore[idx];
+
 	if((gen == NULL)){
 		TRACE_ERROR("Generated image has not been allocated, returning");
 		return NULL;
@@ -407,8 +424,15 @@ DllExport int getGenNumCh(void){
 	return out;
 }
 
-DllExport int getGenNumDim(void){
+DllExport int getGenNumDim(unsigned int idx){
 	
+	if(idx >= numTforms){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",idx,numTforms);
+		return 0;
+	}
+
+	SparseScan* gen = genStore[idx];
+
 	if((gen == NULL)){
 		TRACE_ERROR("Generated image has not been allocated, returning");
 		return NULL;
@@ -418,8 +442,15 @@ DllExport int getGenNumDim(void){
 	return out;
 }
 
-DllExport int getGenNumPoints(void){
+DllExport int getGenNumPoints(unsigned int idx){
 	
+	if(idx >= numTforms){
+		TRACE_ERROR("Cannot get image %i as only %i images exist",idx,numTforms);
+		return 0;
+	}
+
+	SparseScan* gen = genStore[idx];
+
 	if((gen == NULL)){
 		TRACE_ERROR("Generated image has not been allocated, returning");
 		return NULL;
@@ -433,33 +464,21 @@ DllExport void checkCudaErrors(void){
 	CudaCheckError();
 }
 
+void threadInterpolate(DenseImage* base, SparseScan** gen){
+	base->d_interpolate(gen);
+}
+
 DllExport void genBaseValues(unsigned int baseNum){
 	if(baseNum >= numBase){
 		TRACE_ERROR("Cannot get base image %i as only %i images exist",baseNum,numBase);
 		return;
 	}
 
-	if((gen == NULL) || (gen->GetLocation() == NULL)){
-		TRACE_ERROR("A generated location is required for interpolation");
-		return;
-	}
-
-	if(gen->getPoints() != NULL){
-		TRACE_INFO("Clearing generated image ready for new interpolation");
-		delete gen->getPoints();
-	}
-
 	DenseImage* base = baseStore[baseNum];
-	gen->changeNumCh(base->getNumCh());
-
 	if(base == NULL){
 		TRACE_ERROR("A base image is required to interpolate");
 		return;
 	}
-
-	//setup generated image
-	gen->setPoints(new PointsList(base->getNumCh()*gen->getNumPoints()));
-	gen->getPoints()->AllocateGpu();
 
 	//ensure base is setup
 	if(!base->getPoints()->IsOnGpu()){
@@ -467,16 +486,30 @@ DllExport void genBaseValues(unsigned int baseNum){
 		base->getPoints()->CpuToGpu();
 	}
 
-	base->d_interpolate(gen);
+	//spawn threads
+	std::vector<std::thread> threads;
+	for(int i = 0; i < numTforms; i++){
+		threads.push_back(std::thread(threadInterpolate,base,&genStore[i]));
+	}
+
+	//collect threads
+	for(auto& thread : threads){
+        thread.join();
+	}
 }
 
-DllExport void replaceMovePoints(unsigned int scanNum){
+DllExport void replaceMovePoints(unsigned int scanNum, unsigned int genNum){
 	if(scanNum >= numMove){
 		TRACE_ERROR("Cannot get move image %i as only %i images exist",scanNum,numMove);
 		return;
 	}
+	if(genNum >= numTforms){
+		TRACE_ERROR("Cannot get generated scan %i as only %i scans exist",genNum,numTforms);
+		return;
+	}
 
 	SparseScan* move = moveStore[scanNum];
+	SparseScan* gen = genStore[genNum];
 
 	//ensure move is setup
 	if(!move->getPoints()->IsOnGpu()){
@@ -488,75 +521,69 @@ DllExport void replaceMovePoints(unsigned int scanNum){
 }
 
 DllExport void setupSSDMetric(void){
-	if(metric != NULL){
-		TRACE_INFO("A metric already exists, overwriting it");
-		delete metric;
-		metric = NULL;
-	}
-
+	delete metric;
 	metric = new SSD();
 }
 DllExport void setupMIMetric(unsigned int numBins){
-	if(metric != NULL){
-		TRACE_INFO("A metric already exists, overwriting it");
-		delete metric;
-		metric = NULL;
-	}
-
+	delete metric;
 	metric = new MI(numBins);
 }
 DllExport void setupGOMMetric(void){
-	if(metric != NULL){
-		TRACE_INFO("A metric already exists, overwriting it");
-		delete metric;
-		metric = NULL;
-	}
-
+	delete metric;
 	metric = new GOM();
 }
 
 DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int height){
-	if(metric != NULL){
-		TRACE_INFO("A metric already exists, overwriting it");
-		delete metric;
-		metric = NULL;
-	}
-
+	delete metric;
 	metric = new LIV(avImg, width, height);
 }
 
-DllExport float getMetricVal(unsigned int moveNum){
+void threadEval(Metric* metric, SparseScan* move, SparseScan* gen, float* value){
+	metric->EvalMetric(move,gen,value);
+}
+DllExport void getMetricVal(unsigned int moveNum, float* valuesOut){
 	if(metric == NULL){
 		TRACE_ERROR("No metric setup, returning");
-		return 0;
+		return;
 	}
 
 	if(moveNum >= numMove){
 		TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
-		return 0;
+		return;
 	}
 
 	SparseScan* move = moveStore[moveNum];
 	
-	if(move == NULL){
-		TRACE_ERROR("A moving image is required");
-		return 0;
-	}
-	if(gen == NULL){
-		TRACE_ERROR("A generated image is required");
-		return 0;
-	}
-
 	//ensure move is setup
 	if(!move->getPoints()->IsOnGpu()){
 		move->getPoints()->AllocateGpu();
 		move->getPoints()->CpuToGpu();
 	}
 
-	return metric->EvalMetric(move, gen);
+	//spawn threads
+	std::vector<std::thread> threads;
+	std::vector<float> value(numTforms,0);
+	for(int i = 0; i < numTforms; i++){
+		threads.push_back(std::thread(threadEval,metric,move,genStore[i],&value[i]));
+	}
+
+	//collect threads
+	for(auto& thread : threads){
+        thread.join();
+	}
+
+	//collect results
+	for(int i = 0; i < numTforms; i++){
+		valuesOut[i] = value[i];
+	}
+
+	return;
 }
 
 DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){
+	
+	SparseScan* gen = genStore[0];
+
 	if(gen == NULL){
 		TRACE_ERROR("A generated image is required");
 		return 0;
@@ -578,6 +605,9 @@ DllExport float* outputImage(unsigned int width, unsigned int height, unsigned i
 }
 
 DllExport float* outputImageGen(unsigned int width, unsigned int height, unsigned int dilate){
+
+	SparseScan* gen = genStore[0];
+
 	if(gen == NULL){
 		TRACE_ERROR("A generated image is required");
 		return 0;

@@ -148,7 +148,20 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 	}
 }
 
-void DenseImage::d_interpolate(SparseScan* scan){
+void DenseImage::d_interpolate(SparseScan** scan){
+
+	if((*scan == NULL) || ((*scan)->GetLocation() == NULL)){
+		TRACE_ERROR("A generated location is required for interpolation");
+		return;
+	}
+
+	delete (*scan)->getPoints();
+	(*scan)->changeNumCh(this->getNumCh());
+
+	//setup generated points
+	(*scan)->setPoints(new PointsList(this->getNumCh()*(*scan)->getNumPoints()));
+	(*scan)->getPoints()->AllocateGpu();
+
 	if(!getPoints()->IsOnGpu()){
 		TRACE_WARNING("Dense image not on gpu, loading now");
 		getPoints()->AllocateGpu();
@@ -157,7 +170,7 @@ void DenseImage::d_interpolate(SparseScan* scan){
 
 	size_t width = this->getPoints()->GetWidth();
 	size_t height = this->getPoints()->GetHeight();
-	size_t numPoints = scan->getNumPoints();
+	size_t numPoints = (*scan)->getNumPoints();
    
 	// Allocate array and copy image data
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
@@ -173,7 +186,7 @@ void DenseImage::d_interpolate(SparseScan* scan){
 		cudaArray *cuArray = ((cudaArray**)(this->getPoints()->GetGpuPointer()))[i];
 		CudaSafeCall(cudaBindTextureToArray(tex, cuArray, channelDesc));
 
-		DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE>>>(width, height, i,(float*)scan->GetLocation()->GetGpuPointer(), (float*)scan->getPoints()->GetGpuPointer(), numPoints);
+		DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE>>>(width, height, i,(float*)(*scan)->GetLocation()->GetGpuPointer(), (float*)(*scan)->getPoints()->GetGpuPointer(), numPoints);
 		CudaCheckError();
 	}
 }

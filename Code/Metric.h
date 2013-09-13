@@ -13,7 +13,7 @@
 class Metric {
 public:
 	//! Evalutaes two scans A and B to give a measure of their match strength
-	virtual float EvalMetric(SparseScan* A, SparseScan* B);
+	virtual void EvalMetric(SparseScan* A, SparseScan* B, float* value);
 };
 
 //! Evaluates scans using the MI metric
@@ -22,7 +22,7 @@ public:
 	//! Sets up metric, note for MI due to implementation number of bins must be less then 64
 	MI(size_t numBins);
 	//! Evaluates MI for two scans and gives result
-	float EvalMetric(SparseScan* A, SparseScan* B);
+	void EvalMetric(SparseScan* A, SparseScan* B, float* value);
 private:
 	//! Number of bins to use when calculating MI
 	const size_t bins_;
@@ -34,7 +34,7 @@ public:
 	//! Sets up metric
 	SSD(void);
 	//! Evaluates SSD for two scans and gives result
-	float EvalMetric(SparseScan* A, SparseScan* B);
+	void EvalMetric(SparseScan* A, SparseScan* B, float* value);
 };
 
 //! Evaluate scans using the GOM metric
@@ -43,7 +43,7 @@ public:
 	//! Basic setup
 	GOM(void);
 	//! Evaluates GOM for two scans and gives result
-	float EvalMetric(SparseScan* A, SparseScan* B);
+	void EvalMetric(SparseScan* A, SparseScan* B, float* value);
 };
 
 //! Evaluates two scans using the Levinson method
@@ -54,7 +54,7 @@ public:
 	//! Destructor clears avImg_
 	~LIV();
 	//! Evaluates Levinson method for two scans and gives result
-	float EvalMetric(SparseScan* A, SparseScan* B);
+	void EvalMetric(SparseScan* A, SparseScan* B, float* value);
 private:
 	//! Average of all base images
 	PointsList* avImg_;

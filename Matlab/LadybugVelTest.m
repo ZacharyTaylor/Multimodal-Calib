@@ -27,23 +27,23 @@ param.options = psooptimset('PopulationSize', 200,...
     'SocialAttraction',1.25);
 
 %how often to display an output frame
-FIG.countMax = 4;
+FIG.countMax = 2;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = ladybugParam.offset;
+tform = [-0.27081 -0.31797 0.46117 3.138 0.042822 3.1528];
 
 %base path
-path = 'C:\DataSets\Mobile Sensor Plaforms\Shrimp\Apples\';
+path = 'C:\DataSets\Mobile Sensor Plaforms\Shrimp\Almond\';
 %range of images to use
-imRange = 1500;
+imRange = 1;
 
 
 %metric to use
 metric = 'MI';
 
 %feature to use (return, distance, normals)
-feature = 'normals';
+feature = 'distance';
 
 %% setup transforms and images
 SetupCamera(0);

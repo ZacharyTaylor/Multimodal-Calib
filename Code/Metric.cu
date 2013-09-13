@@ -5,26 +5,22 @@
 
 extern "C" float cudaMIa(float* src1, float* src2, int length, int xbins, int ybins, struct cudaHistOptions* p_options, int device, int incZeros);
 
-float Metric::EvalMetric(SparseScan* A, SparseScan* B){
-	return 0;
+void Metric::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+	*value = 0;
 }
 
 MI::MI(size_t bins):
 	bins_(bins){
 }
 
-float MI::EvalMetric(SparseScan* A, SparseScan* B){
+void MI::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	
-	//move scans to gpu if required
-	/*if(A->getPoints()->IsOnGpu()){
-		A->getPoints()->AllocateGpu();
-		A->getPoints()->CpuToGpu();
+	//check scans exist
+	if(A == NULL || B == NULL){
+		TRACE_ERROR("Two scans are required for the metric to operate");
+		*value = 0;
+		return;
 	}
-
-	if(B->getPoints()->IsOnGpu()){
-		B->getPoints()->AllocateGpu();
-		B->getPoints()->CpuToGpu();
-	}*/
 
 	size_t numElements;
 	//check scans of same size
@@ -41,13 +37,20 @@ float MI::EvalMetric(SparseScan* A, SparseScan* B){
 	//struct cudaHistOptions *p_opt = 0;
 	//float miOut = cudaMIa((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, MI_BINS, MI_BINS, p_opt, 1, true);
 
-	return miOut;
+	*value = miOut;
 }
 
 SSD::SSD(){};
 
-float SSD::EvalMetric(SparseScan* A, SparseScan* B){
+void SSD::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	
+	//check scans exist
+	if(A == NULL || B == NULL){
+		TRACE_ERROR("Two scans are required for the metric to operate");
+		*value = 0;
+		return;
+	}
+
 	size_t numElements;
 	//check scans of same size
 	if(A->getPoints()->GetNumEntries() != B->getPoints()->GetNumEntries()){
@@ -78,31 +81,28 @@ float SSD::EvalMetric(SparseScan* A, SparseScan* B){
 
 	res = res/(numElements-z);
 
-	return res;
+	*value = res;
 }
 
 GOM::GOM(){};
 
-float GOM::EvalMetric(SparseScan* A, SparseScan* B){
+void GOM::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	
-	//move scans to gpu if required
-	/*if(A->getPoints()->IsOnGpu()){
-		A->getPoints()->AllocateGpu();
-		A->getPoints()->CpuToGpu();
-	}
+	*value = 0;
 
-	if(B->getPoints()->IsOnGpu()){
-		B->getPoints()->AllocateGpu();
-		B->getPoints()->CpuToGpu();
-	}*/
+	//check scans exist
+	if(A == NULL || B == NULL){
+		TRACE_ERROR("Two scans are required for the metric to operate");
+		return;
+	}
 
 	if(A->getNumCh() != GOM_DEPTH){
 		TRACE_ERROR("GOM requires two channels (mag, phase) to operate and Scan A has %i", A->getNumCh());
-		return 0;
+		return;
 	}
 	if(B->getNumCh() != GOM_DEPTH){
 		TRACE_ERROR("GOM requires two channels (mag, phase) to operate and Scan B has %i", B->getNumCh());
-		return 0;
+		return;
 	}
 
 	size_t numElements;
@@ -136,7 +136,7 @@ float GOM::EvalMetric(SparseScan* A, SparseScan* B){
 	
 	float out = (phaseRes / magRes);
 	
-	return out;
+	*value = out;
 }
 
 LIV::LIV(float* avImg, size_t width, size_t height){
@@ -147,7 +147,15 @@ LIV::~LIV(){
 	delete avImg_;
 }
 
-float LIV::EvalMetric(SparseScan* A, SparseScan* B){
+void LIV::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+
+	//check scans exist
+	if(A == NULL || B == NULL){
+		TRACE_ERROR("Two scans are required for the metric to operate");
+		*value = 0;
+		return;
+	}
+
 	size_t numElements;
 	//check scans of same size
 	if(A->getNumPoints() != B->getNumPoints()){
@@ -169,5 +177,5 @@ float LIV::EvalMetric(SparseScan* A, SparseScan* B){
 	float outVal = reduceEasy(out, numElements);
 	CudaSafeCall(cudaFree(out));
 	
-	return outVal;
+	*value = outVal;
 }

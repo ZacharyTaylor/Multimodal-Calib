@@ -55,7 +55,7 @@ public:
 	//! Gets a pointer to the transformation matrix
 	float* d_GetTform(void);
 	//! Transforms a scans coordinates
-	virtual void d_Transform(SparseScan* in, SparseScan* out) = 0;
+	virtual void d_Transform(SparseScan* in, SparseScan** out) = 0;
 };
 
 //! Places a virtual camera in the scan and projects the points through its lense onto a surface
@@ -70,7 +70,7 @@ public:
 		\param in The input scan, must be 3D, this operation does not modify it
 		\param out The output scan, of the same size as in, memory must be preallocated
 	*/
-	void d_Transform(SparseScan* in, SparseScan* out);
+	void d_Transform(SparseScan* in, SparseScan** out);
 
 private:
 	//! Pointer to the camera being used
@@ -89,7 +89,7 @@ public:
 		\param in The input scan, must be 2D, this operation does not modify it
 		\param out The output scan, of the same size as in, memory must be preallocated
 	*/
-	void d_Transform(SparseScan* in, SparseScan* out);
+	void d_Transform(SparseScan* in, SparseScan** out);
 };
 
 #endif //TFORM_H

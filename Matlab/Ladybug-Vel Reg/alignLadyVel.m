@@ -1,7 +1,10 @@
 function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
 
     global FIG;
-    f = 0;
+    f = zeros(size(tform,1),1);
+    
+    setTformNum(size(tform,1));
+    SetupCameraTform();
     
     for i = 1:size(pairs,1)
         FIG.count = FIG.count + 1;
@@ -13,14 +16,16 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         cam = mod(i-1,5);
         cam = ['cam' int2str(cam)];
                 
-        %baseTform
-        tformMatB = CreateTformMat(tform);
-        
-        %get transformation matrix
-        tformLady = ladybugParam.(cam).offset;
-        tformMat = CreateTformMat(tformLady);
-        tformMat = tformMat/tformMatB;
-        SetTformMatrix(tformMat);
+        for j = 1:size(tform,1)
+            %baseTform
+            tformMatB = CreateTformMat(tform(j,:));
+
+            %get transformation matrix
+            tformLady = ladybugParam.(cam).offset;
+            tformMat = CreateTformMat(tformLady);
+            tformMat = tformMat/tformMatB;
+            SetTformMatrix(tformMat, j-1);
+        end
         
         %setup camera
         focal = ladybugParam.(cam).focal;
@@ -31,10 +36,10 @@ function f=alignLadyVel(base, move, pairs, tform, ladybugParam)
         Transform(pairs(i,2)-1);
         InterpolateBaseValues(pairs(i,1)-1);
 
-        temp = EvalMetric(pairs(i,2)-1);
-        if(~(isnan(temp) || isinf(temp)))
-            f = f + temp;
-        end
+        temp = EvalMetric(pairs(i,2)-1, size(tform,1));
+        temp(isnan(temp)) = 0;
+        temp(isinf(temp)) = 0;
+        f = f + temp;
 
         %display current estimate
         if(FIG.countMax < FIG.count)

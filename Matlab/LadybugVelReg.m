@@ -3,8 +3,8 @@ loadPaths;
 set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
-global DEBUG_TRACE
-DEBUG_TRACE = 2;
+global DEBUG_LEVEL;
+DEBUG_LEVEL = 1;
 
 global FIG
 FIG.fig = figure;
@@ -21,26 +21,28 @@ param = struct;
 %options for swarm optimization
 param.options = psooptimset('PopulationSize', 200,...
     'TolCon', 1e-10,...
-    'StallGenLimit', 50,...
-    'Generations', 200,...
+    'StallGenLimit', 100,...
+    'Generations', 300,...
+    'Vectorized', 'on',...
     'PlotFcns',{@psoplotbestf,@psoplotswarmsurf});
 
 %how often to display an output frame
-FIG.countMax = 2000;
+FIG.countMax = 5;
 
 
 %range to search over (x, y ,z, rX, rY, rZ)
-range = [0.2 0.2 0.2 3 3 3];
+range = [0.5 0.5 0.5 5 5 5];
 range(4:6) = pi*range(4:6)/180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = ladybugParam.offset;
+tform = [-0.035944 -0.052264 0.097832 3.2026 0.03402 3.1563];
+initT = [0 0 0 1.5666 0.004, -1.5686];
 
 %base path
-path = 'C:\DataSets\Mobile Sensor Plaforms\Shrimp\Apples\';
+path = 'C:\DataSets\Mobile Sensor Plaforms\Shrimp\Almond\';
 %range of images to use
-imRange = sort(1+ round(2000*rand(20,1)))';
+imRange = sort(1+ round(2000*rand(10,1)))';
 %metric to use
 metric = 'GOM';
 %feature to use (return, distance, normals)
@@ -51,7 +53,6 @@ numTrials = 1;
 
 %% setup transforms and images
 SetupCamera(0);
-SetupCameraTform();
 
 [basePaths, movePaths, pairs] = MatchImageScan( path, imRange, true);
 
@@ -125,7 +126,7 @@ elseif(strcmp(feature,'distance'))
     end
 elseif(strcmp(feature,'normals'))
     for i = 1:numMove
-        move{i} = getNorms(move{i}, tform);
+        move{i} = getNorms(move{i}, initT);
     end
 else
     error('Invalid feature type');
@@ -133,7 +134,7 @@ end
 
 %% filter data
 for i = 1:numMove
-    m = filterScan(move{i}, metric, tform);
+    m = filterScan(move{i}, metric, initT);
     LoadMoveScan(i-1,m,3);
 end
 

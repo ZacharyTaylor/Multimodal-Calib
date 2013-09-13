@@ -55,29 +55,28 @@ CameraTform::CameraTform(Camera* cam):
 
 CameraTform::~CameraTform(void){
 	CudaSafeCall(cudaFree(d_tform_));
-	delete cam_;
 }
 
 
-void CameraTform::d_Transform(SparseScan* in, SparseScan* out){
+void CameraTform::d_Transform(SparseScan* in, SparseScan** out){
 
-	if(out->getNumPoints() < in->getNumPoints()){
-		TRACE_ERROR("output is too small to hold inputs points, returning");
-		return;
-	}
+	delete *out;
+	*out = new SparseScan(in->getNumDim(), 0, in->getNumPoints());
+	(*out)->GetLocation()->AllocateGpu();
+
 	if(in->getNumDim() != CAM_DIM){
 		TRACE_ERROR("camera transform can only operate on a 3d input, returning untransformed points");
-		CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
+		CudaSafeCall(cudaMemcpy((*out)->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 		return;
 	}
 	if(cam_ == NULL){
 		TRACE_ERROR("camera transform requires a setup camera, returning untransformed points");
-		 CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
+		 CudaSafeCall(cudaMemcpy((*out)->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 		return;
 	}
 
 	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>
-		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocation()->GetGpuPointer(), (float*)out->GetLocation()->GetGpuPointer(), in->getDimSize(0), cam_->IsPanoramic());
+		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0), cam_->IsPanoramic());
 	CudaCheckError();
 }
 
@@ -88,18 +87,18 @@ AffineTform::~AffineTform(void){
 	CudaSafeCall(cudaFree(d_tform_));
 }
 
-void AffineTform::d_Transform(SparseScan* in, SparseScan* out){
+void AffineTform::d_Transform(SparseScan* in, SparseScan** out){
 
-	if(out->getNumPoints() < in->getNumPoints()){
-		TRACE_ERROR("output is too small to hold inputs points, returning");
-		return;
-	}
+	delete *out;
+	*out = new SparseScan(in->getNumDim(), 0, in->getNumPoints());
+	(*out)->GetLocation()->AllocateGpu();
+
 	if(in->getNumDim() != AFFINE_DIM){
 		TRACE_ERROR("affine transform can only operate on a 2d input, returning untransformed points");
-		CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
+		CudaSafeCall(cudaMemcpy((*out)->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 		return;
 	}
 
-	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>(d_tform_, (float*)in->GetLocation()->GetGpuPointer(), (float*)out->GetLocation()->GetGpuPointer(), in->getDimSize(0));
+	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>(d_tform_, (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0));
 	 //CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 }

@@ -38,8 +38,15 @@ DllExport void clearRender(void);
 /*!
 	\param numBaseIn number of base scans
 	\param numMoveIn number of moving scans
+	\param numTformsIn number of transforms that will be performed to scans concurrently
 */
-DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn);
+DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, unsigned int numTformsIn);
+
+//! Sets a new number of transforms to use (doing this clears the generated images)
+/*!
+	\param numTformsIn number of transforms
+*/
+DllExport void setNumTforms(unsigned int numTformsIn);
 
 //! Loads an image from matlab to use as a base scan
 /*!
@@ -129,8 +136,9 @@ DllExport void setCameraMatrix(float* camMat);
 //! Sets the n by n tform matrix in column major order
 /*!
 	\param tMat n by n transform matrix in column major order. Must be 3 by 3 for affine transforms and 4 by 4 for camera transforms.
+	\param tformIdx the index of the transformation matrix to set
 */
-DllExport void setTformMatrix(float* tMat);
+DllExport void setTformMatrix(float* tMat, unsigned int tformIdx);
 
 //! Transforms a moving images location and stores it in the SparseScan Gen
 /*!
@@ -142,26 +150,36 @@ DllExport void transform(unsigned int imgNum);
 /*!
 	\return gives an array of size numDim*numPoints holding the location values of gen in column major order
 */
-DllExport float* getGenLocs(void);
+DllExport float* getGenLocs(unsigned int idx);
 //! Gets the intensity of points in the generated Scan gen
 /*!
+	\param idx index of generated scan to get the locations of
 	\return gives an array of size numCh*numPoints holding the intensity values of gen in column major order
 */
-DllExport float* getGenPoints(void);
+DllExport float* getGenPoints(unsigned int idx);
 
 //! Replaces the points in the specified moving scan with the current generated one
 /*!
+	/param scanNum index of scan
+	/param genNum index of generated scan whose points will be replaced
 	NOTE this only replaces the points intensity, not their location
 	Also note to operate efficiently this function SWAPS THE POINTERS OF MOVE AND GEN so cannot be called multiple times unless gen is regenerated first
 */
-DllExport void replaceMovePoints(unsigned int scanNum);
+DllExport void replaceMovePoints(unsigned int scanNum, unsigned int genNum);
 
-//! Gets the number of channels the generated scan has
-DllExport int getGenNumCh(void);
-//! Gets the number of dimensions the generated scan has
-DllExport int getGenNumDim(void);
-//! Gets the number of points the generated scan has
-DllExport int getGenNumPoints(void);
+/*! Gets the number of channels the generated scan has
+	\param idx index of generated scan
+*/
+DllExport int getGenNumCh(unsigned int idx);
+
+/*! Gets the number of dimensions the generated scan has
+	\param idx index of generated scan
+*/
+DllExport int getGenNumDim(unsigned int idx);
+/*! Gets the number of points the generated scan has
+	\param idx index of generated scan
+*/
+DllExport int getGenNumPoints(unsigned int idx);
 
 //! Gives the generated scan the same intensity values as the specified base scan
 /*
@@ -179,7 +197,7 @@ DllExport void setupGOMMetric(void);
 DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int height);
 
 //! Gets the value of the metric when evaluated between the generated scan Gen and the specified moving scan.
-DllExport float getMetricVal(unsigned int moveNum);
+DllExport void getMetricVal(unsigned int moveNum, float* outValues);
 
 DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate);
 DllExport float* outputImageGen(unsigned int width, unsigned int height, unsigned int dilate);

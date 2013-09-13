@@ -188,7 +188,7 @@ public:
 	/*!
 		\param scan Scan to interpolate
 	*/
-	void d_interpolate(SparseScan* scan);
+	void d_interpolate(SparseScan** scan);
 
 private:
 

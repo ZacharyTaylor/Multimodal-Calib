@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include <stdlib.h>
+#include <vector>
 #include <math.h>
 #include <cuda.h>
 #include "cuda_runtime.h"

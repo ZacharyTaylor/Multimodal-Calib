@@ -18,7 +18,7 @@ if((numMove ~= round(numMove)) || (numMove < 0))
     numMove = 0;
 end
 
-calllib('LibCal','initalizeScans', numBase, numMove);
+calllib('LibCal','initalizeScans', numBase, numMove, 1);
 
 end
 

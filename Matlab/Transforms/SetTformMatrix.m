@@ -1,4 +1,4 @@
-function [] = SetTformMatrix(tMat)
+function [] = SetTformMatrix(tMat, idx)
 %SETTFORMMATRIX sets tform matrix
 
 %check input
@@ -7,9 +7,14 @@ if(~ismatrix(tMat) || (ndims(tMat) ~= 2) || (size(tMat,1) ~= size(tMat,2)) || (s
     return;
 end
 
+if((idx ~= round(idx)) || (idx < 0))
+    TRACE_ERROR('idx must be a positive integer, returning without setting');
+    return;
+end
+
 %ensures the library is loaded
 CheckLoaded();
 
-calllib('LibCal','setTformMatrix', single(tMat));
+calllib('LibCal','setTformMatrix', single(tMat), round(idx));
 
 end
