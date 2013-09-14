@@ -148,7 +148,7 @@ __global__ void DenseImageInterpolateKernel(const size_t width, const size_t hei
 	}
 }
 
-void DenseImage::d_interpolate(SparseScan** scan){
+void DenseImage::d_interpolate(SparseScan** scan, cudaStream_t* stream){
 
 	if((*scan == NULL) || ((*scan)->GetLocation() == NULL)){
 		TRACE_ERROR("A generated location is required for interpolation");
@@ -186,7 +186,7 @@ void DenseImage::d_interpolate(SparseScan** scan){
 		cudaArray *cuArray = ((cudaArray**)(this->getPoints()->GetGpuPointer()))[i];
 		CudaSafeCall(cudaBindTextureToArray(tex, cuArray, channelDesc));
 
-		DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE>>>(width, height, i,(float*)(*scan)->GetLocation()->GetGpuPointer(), (float*)(*scan)->getPoints()->GetGpuPointer(), numPoints);
+		DenseImageInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE, 0, *stream>>>(width, height, i,(float*)(*scan)->GetLocation()->GetGpuPointer(), (float*)(*scan)->getPoints()->GetGpuPointer(), numPoints);
 		CudaCheckError();
 	}
 }

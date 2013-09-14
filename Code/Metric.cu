@@ -5,7 +5,7 @@
 
 extern "C" float cudaMIa(float* src1, float* src2, int length, int xbins, int ybins, struct cudaHistOptions* p_options, int device, int incZeros);
 
-void Metric::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+void Metric::EvalMetric(SparseScan* A, SparseScan* B, float* value, cudaStream_t* stream){
 	*value = 0;
 }
 
@@ -13,7 +13,7 @@ MI::MI(size_t bins):
 	bins_(bins){
 }
 
-void MI::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+void MI::EvalMetric(SparseScan* A, SparseScan* B, float* value, cudaStream_t* stream){
 	
 	//check scans exist
 	if(A == NULL || B == NULL){
@@ -33,7 +33,7 @@ void MI::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	}
 
 	//float miOut = 0;
-	float miOut = miRun((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), bins_, numElements);
+	float miOut = miRun((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), bins_, numElements, stream);
 	//struct cudaHistOptions *p_opt = 0;
 	//float miOut = cudaMIa((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, MI_BINS, MI_BINS, p_opt, 1, true);
 
@@ -42,7 +42,7 @@ void MI::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 
 SSD::SSD(){};
 
-void SSD::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+void SSD::EvalMetric(SparseScan* A, SparseScan* B, float* value, cudaStream_t* stream){
 	
 	//check scans exist
 	if(A == NULL || B == NULL){
@@ -66,7 +66,7 @@ void SSD::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	float* zeroEl;
 	CudaSafeCall(cudaMalloc(&zeroEl, sizeof(float)*numElements));
 
-	SSDKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+	SSDKernel<<<gridSize(numElements), BLOCK_SIZE, 0, *stream>>>
 		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, out, zeroEl);
 	CudaCheckError();
 
@@ -86,7 +86,7 @@ void SSD::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 
 GOM::GOM(){};
 
-void GOM::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+void GOM::EvalMetric(SparseScan* A, SparseScan* B, float* value, cudaStream_t* stream){
 	
 	*value = 0;
 
@@ -120,7 +120,7 @@ void GOM::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	CudaSafeCall(cudaMalloc(&phaseOut, sizeof(float)*numElements));
 	CudaSafeCall(cudaMalloc(&magOut, sizeof(float)*numElements));
     
-	GOMKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+	GOMKernel<<<gridSize(numElements), BLOCK_SIZE, 0, *stream>>>
 		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, phaseOut, magOut);
 	CudaCheckError();
 
@@ -147,7 +147,7 @@ LIV::~LIV(){
 	delete avImg_;
 }
 
-void LIV::EvalMetric(SparseScan* A, SparseScan* B, float* value){
+void LIV::EvalMetric(SparseScan* A, SparseScan* B, float* value, cudaStream_t* stream){
 
 	//check scans exist
 	if(A == NULL || B == NULL){
@@ -169,7 +169,7 @@ void LIV::EvalMetric(SparseScan* A, SparseScan* B, float* value){
 	float* out;
 	CudaSafeCall(cudaMalloc(&out, sizeof(float)*numElements));
 	
-	livValKernel<<<gridSize(numElements), BLOCK_SIZE>>>
+	livValKernel<<<gridSize(numElements), BLOCK_SIZE, 0, *stream>>>
 		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), (float*)avImg_->GetGpuPointer(), numElements, out);
 	CudaCheckError();
 

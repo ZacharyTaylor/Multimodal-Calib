@@ -7,26 +7,22 @@
 //!	PointsList class holds the device and host arrays of points. It contains methods for moving the data to and from the gpu and keeps track of the number of elements.
 class PointsList {
 protected:
-	//! number of elements
-	const size_t numEntries_;
-
-	//! array of points stored in host memory
-	float* points_;
+	//! vector of points stored in host memory
+	 std::vector<float> points;
 	//! array of points stored in device memory
 	void* d_points_;
 
 	//! creates and fills points_
 	/*! \sa PointsList() and ~PointsList()
 	*/
-	static float* PointsSetup(float* points, const size_t numEntries, bool copy);
+	static float* PointsSetup(std::vector<float> points, bool copy);
 
 public:
 	//!	Creates a PointsList using given points
-	/*!	\param points an array of points
-		\param numEntries the number of elements in the array
+	/*!	\param points a vector of points
 		\param copy	if true creates a deep copy of float (always use this if points was created in matlab or things will crash if matlab modifies points)
 	*/
-	PointsList(float* points, const size_t numEntries, bool copy);
+	PointsList(std::vector<float> points, bool copy);
 
 	//!	Creates an empty PointsList of size numElements
 	/*!	\param numEntries number of entries in PointList
@@ -43,14 +39,8 @@ public:
 	//! Returns the location of the array on device memory
 	void* GetGpuPointer();
 
-	//! Returns the location of the array on host memory
-	float* GetCpuPointer();
-
-	//! Returns true if array loaded into device memory
-	bool IsOnGpu();
-
-	//! Allocates memory on device
-	void AllocateGpu(void);
+	//! Returns a vector of points
+	float* GetPoints();
 
 	//! Clears array from device memory
 	/*! Will generate a warning if no array is allocated

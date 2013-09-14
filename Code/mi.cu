@@ -125,7 +125,7 @@ __global__ void entKernel(const unsigned int* histIn, const unsigned int numElem
 *	imNum - which image in imData will have the mi calculated
 *	Output - the normalized mutual information
 */
-float miRun(float* A, float* B, size_t bins, size_t numElements){
+float miRun(float* A, float* B, size_t bins, size_t numElements, cudaStream_t* stream){
 
 	if(bins > 60){
 		TRACE_WARNING("%i bins will probably not fit in shared memory, expect errors",bins);
@@ -154,7 +154,7 @@ float miRun(float* A, float* B, size_t bins, size_t numElements){
 	CudaSafeCall(cudaMalloc((void**)&histABF, sizeof(float)*bins*bins));
 
 	//fill main histogram
-	HistKernel<<<gridSize(1024), BLOCK_SIZE, bins*bins*sizeof(unsigned int)>>>
+	HistKernel<<<gridSize(1024), BLOCK_SIZE, bins*bins*sizeof(unsigned int), *stream>>>
 		(A, B, histABI, bins, numElements);
 	CudaCheckError();
 
@@ -162,16 +162,16 @@ float miRun(float* A, float* B, size_t bins, size_t numElements){
 	unsigned int* histSize;
 	CudaSafeCall(cudaMalloc((void**)&histSize, sizeof(unsigned int)));
 	CudaSafeCall(cudaMemcpy(histSize, &numElements, sizeof(unsigned int),cudaMemcpyHostToDevice));
-	splitHistKernel<<<gridSize(bins*bins), BLOCK_SIZE>>>
+	splitHistKernel<<<gridSize(bins*bins), BLOCK_SIZE, 0, *stream>>>
 		(histABI, histAI, histBI, (bins*bins), histSize, bins);
 	CudaCheckError();
 
 	//get entropy
-	entKernel<<<gridSize(bins*bins), BLOCK_SIZE>>>(histABI, (bins*bins), histSize, histABF);
+	entKernel<<<gridSize(bins*bins), BLOCK_SIZE, 0, *stream>>>(histABI, (bins*bins), histSize, histABF);
 	CudaCheckError();
-	entKernel<<<gridSize(bins), BLOCK_SIZE>>>(histAI, bins, histSize, histAF);
+	entKernel<<<gridSize(bins), BLOCK_SIZE, 0, *stream>>>(histAI, bins, histSize, histAF);
 	CudaCheckError();
-	entKernel<<<gridSize(bins), BLOCK_SIZE>>>(histBI, bins, histSize, histBF);
+	entKernel<<<gridSize(bins), BLOCK_SIZE, 0, *stream>>>(histBI, bins, histSize, histBF);
 	CudaCheckError();
 
 	//reduce

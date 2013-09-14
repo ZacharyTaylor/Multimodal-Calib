@@ -58,7 +58,7 @@ CameraTform::~CameraTform(void){
 }
 
 
-void CameraTform::d_Transform(SparseScan* in, SparseScan** out){
+void CameraTform::d_Transform(SparseScan* in, SparseScan** out, cudaStream_t* stream){
 
 	delete *out;
 	*out = new SparseScan(in->getNumDim(), 0, in->getNumPoints());
@@ -75,7 +75,7 @@ void CameraTform::d_Transform(SparseScan* in, SparseScan** out){
 		return;
 	}
 
-	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>
+	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE, 0, *stream>>>
 		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0), cam_->IsPanoramic());
 	CudaCheckError();
 }
@@ -87,7 +87,7 @@ AffineTform::~AffineTform(void){
 	CudaSafeCall(cudaFree(d_tform_));
 }
 
-void AffineTform::d_Transform(SparseScan* in, SparseScan** out){
+void AffineTform::d_Transform(SparseScan* in, SparseScan** out, cudaStream_t* stream){
 
 	delete *out;
 	*out = new SparseScan(in->getNumDim(), 0, in->getNumPoints());
@@ -99,6 +99,6 @@ void AffineTform::d_Transform(SparseScan* in, SparseScan** out){
 		return;
 	}
 
-	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE>>>(d_tform_, (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0));
+	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE, 0, *stream>>>(d_tform_, (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0));
 	 //CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 }

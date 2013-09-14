@@ -25,6 +25,7 @@ Camera* camera = NULL;
 
 std::vector<SparseScan*> genStore;
 std::vector<Tform*> tformStore;
+std::vector<cudaStream_t> streams;
 unsigned int numTforms = 0;
 
 Render render;
@@ -54,6 +55,7 @@ DllExport void clearScans(void){
 
 DllExport void clearTform(void){
 	tformStore.clear();
+	streams.clear();
 }
 
 DllExport void clearMetric(void){
@@ -74,7 +76,6 @@ DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, un
 		moveStore.push_back(NULL);
 	}
 	while(moveStore.size() > numMove){
-		delete moveStore.back();
 		moveStore.pop_back();
 	}
 
@@ -82,7 +83,6 @@ DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, un
 		baseStore.push_back(NULL);
 	}
 	while(baseStore.size() > numBase){
-		delete baseStore.back();
 		baseStore.pop_back();
 	}
 
@@ -90,7 +90,6 @@ DllExport void initalizeScans(unsigned int numBaseIn, unsigned int numMoveIn, un
 		genStore.push_back(NULL);
 	}
 	while(genStore.size() > numTforms){
-		delete genStore.back();
 		genStore.pop_back();
 	}
 }
@@ -102,8 +101,15 @@ DllExport void setNumTforms(unsigned int numTformsIn){
 		genStore.push_back(NULL);
 	}
 	while(genStore.size() > numTforms){
-		delete genStore.back();
 		genStore.pop_back();
+	}
+
+	while(streams.size() < numTforms){
+		streams.push_back(NULL);
+		cudaStreamCreate(&(streams.back()));
+	}
+	while(streams.size() > numTforms){
+		streams.pop_back();
 	}
 }
 
@@ -328,8 +334,8 @@ DllExport void setTformMatrix(float* tMat, unsigned int tformIdx){
 	tformStore[tformIdx]->SetTform(tMat);
 }
 
-void threadTform(Tform* tform, SparseScan* move, SparseScan** gen){
-	tform->d_Transform(move,gen);
+void threadTform(Tform* tform, SparseScan* move, SparseScan** gen, cudaStream_t* stream){
+	tform->d_Transform(move,gen,stream);
 }
 
 DllExport void transform(unsigned int imgNum){
@@ -355,7 +361,7 @@ DllExport void transform(unsigned int imgNum){
 	//spawn threads
 	std::vector<std::thread> threads;
 	for(int i = 0; i < numTforms; i++){
-		threads.push_back(std::thread(threadTform,tformStore[i],move,&genStore[i]));
+		threads.push_back(std::thread(threadTform,tformStore[i],move,&genStore[i],&streams[i]));
 	}
 
 	//collect threads
@@ -464,8 +470,8 @@ DllExport void checkCudaErrors(void){
 	CudaCheckError();
 }
 
-void threadInterpolate(DenseImage* base, SparseScan** gen){
-	base->d_interpolate(gen);
+void threadInterpolate(DenseImage* base, SparseScan** gen, cudaStream_t* stream){
+	base->d_interpolate(gen, stream);
 }
 
 DllExport void genBaseValues(unsigned int baseNum){
@@ -489,7 +495,7 @@ DllExport void genBaseValues(unsigned int baseNum){
 	//spawn threads
 	std::vector<std::thread> threads;
 	for(int i = 0; i < numTforms; i++){
-		threads.push_back(std::thread(threadInterpolate,base,&genStore[i]));
+		threads.push_back(std::thread(threadInterpolate,base,&genStore[i],&streams[i]));
 	}
 
 	//collect threads
@@ -538,8 +544,8 @@ DllExport void setupLIVMetric(float* avImg, unsigned int width, unsigned int hei
 	metric = new LIV(avImg, width, height);
 }
 
-void threadEval(Metric* metric, SparseScan* move, SparseScan* gen, float* value){
-	metric->EvalMetric(move,gen,value);
+void threadEval(Metric* metric, SparseScan* move, SparseScan* gen, float* value, cudaStream_t* stream){
+	metric->EvalMetric(move,gen,value,stream);
 }
 DllExport void getMetricVal(unsigned int moveNum, float* valuesOut){
 	if(metric == NULL){
@@ -564,7 +570,7 @@ DllExport void getMetricVal(unsigned int moveNum, float* valuesOut){
 	std::vector<std::thread> threads;
 	std::vector<float> value(numTforms,0);
 	for(int i = 0; i < numTforms; i++){
-		threads.push_back(std::thread(threadEval,metric,move,genStore[i],&value[i]));
+		threads.push_back(std::thread(threadEval,metric,move,genStore[i],&value[i],&streams[i]));
 	}
 
 	//collect threads
