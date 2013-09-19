@@ -8,15 +8,12 @@
 //! Holds the sensors scans
 class ScanList {
 private:
-	//! vector holding all the scans location data
-	std::vector<thrust::device_vector<float>> scanL;
+	//! vector holding all the scans location data, indexed by [scan num][dimension num][point num]
+	std::vector<std::vector<thrust::device_vector<float>>> scanL;
 	
-	//! vector holding all the scans intensity data
-	std::vector<thrust::device_vector<float>> scanI;
+	//! vector holding all the scans intensity data, indexed by [scan num][channel num][point num]
+	std::vector<std::vector<thrust::device_vector<float>>> scanI;
 	
-	//! vector holding the index of scans in vectors
-	thrust::device_vector<size_t> scanIdx;
-
 public:
 	//! Constructor creates an empty scan
 	ScanList(void);
@@ -24,27 +21,35 @@ public:
 	//! Destructor
 	~ScanList(void);
 
-	//! Gets the number of dimensions the scans have
-	size_t getNumDim(void);
+	//! Gets the number of dimensions the specified scan has
+	/*! \param idx index of the scan
+	*/
+	size_t getNumDim(size_t idx);
 	
-	//! Gets the number of channels the scans have
-	size_t getNumCh(void);
+	//! Gets the number of channels the specified scan has
+	/*! \param idx index of the scan
+	*/
+	size_t getNumCh(size_t idx);
 	
-	//! Gets the number of points the scans have
-	size_t getNumPoints(void);
+	//! Gets the number of points the specified scan has
+	/*! \param idx index of the scan
+	*/
+	size_t getNumPoints(size_t idx);
+
+	//! Gets the number of scans
+	size_t getNumScans(void);
 
 	//! Gets the pointer of the location array
-	/*! \param idx index of the dimension to return
+	/*! \param idx index of scan
+		\param dim index of dimension
 	*/
-	float* getLP(size_t idx);
+	float* getLP(size_t idx, size_t dim);
 
 	//! Gets the pointer of the intensity array
-	/*! \param idx index of the intensity channel to return
+	/*! \param idx index of the scan
+		\param ch index of the intensity channel to return
 	*/
-	float* getIP(size_t idx);
-
-	//! Gets the pointer of scans index
-	size_t* getIdxP(void);
+	float* getIP(size_t idx, size_t ch);
 
 	//! Adds a scan to the list
 	/*! \param scanLIn input scans location information
@@ -68,9 +73,6 @@ public:
 
 	//! Removes all of the scans in the list
 	void removeAllScans();
-
-	//! Allocates memory until it is the same size as input or it hits capacity (may clear scans)
-	size_t allocateMemory(size_t dims, size_t ch, size_t length);
 };
 
 #endif //SCANLIST_H

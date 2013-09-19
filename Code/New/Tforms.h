@@ -5,11 +5,6 @@
 //#include "Kernel.h"
 #include "New\Scans.h"
 
-//! width of camera projection matrix
-#define CAM_WIDTH 4
-//! height of camera projection matrix
-#define CAM_HEIGHT 3
-
 //! dimensionality of data an affine transform can be used on
 #define AFFINE_DIM 2
 //! dimensionality of data a camera transform can be used on
@@ -18,22 +13,34 @@
 //! Holds the properties of the virtual camera, contains the camera matrix and properties for setting it and the type of camera
 class Cameras {
 private:
+
+	//! structre holding infomation about each camera
+	typedef struct {
+		//! vector holding camera matrix
+		thrust::device_vector<float> cam;
+
+		//! flag for if camera is boolean
+		boolean panoramic;
+	} cam;
+
 	//! Vector storing camera matrices
-	thrust::device_vector<float> camD;
-	//! True for panoramic camera, false otherwise
-	thrust::device_vector<bool> panormaic;
+	std::vector<cam> camD;
 
 public:
 	//! Adds new camera matrices
-	void addCams(thrust::device_vector<float> camDIn);
+	void addCams(thrust::device_vector<float> camDIn, boolean panoramic);
 	//! Adds new camera matrices
-	void addCams(thrust::host_vector<float> camDIn);
+	void addCams(thrust::host_vector<float> camDIn, boolean panoramic);
 	//! Clears all the cameras from memory
 	void removeAllCameras(void);
-	//! Get a pointer to the camera matrices
-	float* getCamP(void);
-	//! Get a pointer to panoramic flags
-	float* getPanP(void);
+	//! Get a pointer to a camera matrix
+	/*! /param index of matrix
+	*/
+	float* getCamP(size_t idx);
+	//! Get if camera is panoramic
+	/*! /param index of matrix
+	*/
+	float* getPanoramic(size_t idx);
 };
 
 //! Holds the transform matrix and methods for applying it to the data

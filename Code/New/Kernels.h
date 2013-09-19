@@ -2,12 +2,24 @@
 #define KERNEL_H
 
 #include "common.h"
-#include "trace.h"
 
 //ugly but textures cannot be passed into functions so must be declared globally
 texture<float, 2, cudaReadModeElementType> tex;
 
-__global__ void transformKernel(float *outputData, int width, int height, float theta);
+__global__ void CameraTransformKernel(const float* const tforms,
+									  const size_t* const tformIdx,
+									  const float* const cams,
+									  const bool* const pans,
+									  const size_t* const camIdx,
+									  const float* const xIn,
+									  const float* const yIn,
+									  const float* const zIn,
+									  const float* const pointsIdx,
+									  const size_t numScans,
+									  float* const xOut,
+									  float* const yOut,
+									  const size_t numPoints,
+									  const size_t offset);
 
 __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate);
 

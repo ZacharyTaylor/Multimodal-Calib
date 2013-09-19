@@ -62,6 +62,6 @@ float Calib::evalMetric(void){
 	size_t genLength = genStore->allocateMemory(IMAGE_DIM,baseStore->getDepth(),moveStore->getNumPoints());
 
 	for(size_t i = 0; i < moveStore->getNumPoints(); i+= (genLength+1)){
-		tformStore->transform(moveStore, genStore, baseStore, i, i+genLength);
+		tformStore->transform(moveStore, genStore, baseStore, i);
 	}
-	
+}

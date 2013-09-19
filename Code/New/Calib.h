@@ -6,6 +6,7 @@
 #include "ScanList.h"
 #include "Tforms.h"
 #include "Setup.h"
+#include "Kernels.h"
 
 #define IMAGE_DIM 2
 

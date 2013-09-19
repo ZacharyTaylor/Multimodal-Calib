@@ -1,96 +1,99 @@
 #include "ImageList.h"
 
-ImageList::ImageList(size_t height, size_t width, size_t depth):
-		height_(height),
-		width_(width),
-		depth_(depth){};
+ImageList::ImageList(void){}
 
-ImageList::~ImageList(void){};
+ImageList::~ImageList(void){}
 
-size_t ImageList::getHeight(void){
-	return height_;
+size_t ImageList::getHeight(size_t idx){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot get height of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+
+	return imageD[idx].height;
 }
 	
-size_t ImageList::getWidth(void){
-	return width_;
+size_t ImageList::getWidth(size_t idx){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot get width of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+
+	return imageD[idx].width;
 }
 
-size_t ImageList::getDepth(void){
-	return depth_;
+size_t ImageList::getDepth(size_t idx){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot get depth of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+
+	return imageD[idx].depth;
 }
 	
 size_t ImageList::getNumImages(void){
-	return imageIdx.size();
+	return imageD.size();
 }
 	
-float* ImageList::getIP(void){
-	return thrust::raw_pointer_cast(&imageD[0]);
+float* ImageList::getIP(size_t idx){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot get pointer to element " << idx << " as only " << imageD.size() << " elements exist. Returning NULL\n";
+		return NULL;
+	}
+	return thrust::raw_pointer_cast(&imageD[idx].image[0]);
 }
 
-size_t* ImageList::getIdxP(void){
-	return thrust::raw_pointer_cast(&imageIdx[0]);
+size_t ImageList::getScanIdx(size_t idx){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot get index of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+	return imageD[idx].scanIdx;
 }
 
-void ImageList::addImage(thrust::device_vector<float> imageDIn){
-	imageD.insert(imageD.end(), imageDIn.begin(), imageDIn.end());
+size_t ImageList::getTformIdx(size_t idx){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot get index of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+	return imageD[idx].tformIdx;
+}
 
-	if(imageIdx.size()){
-		imageIdx.push_back(imageIdx.back() + imageDIn.size());
-	}
-	else{
-		imageIdx.push_back(imageDIn.size());
-	}
+void ImageList::addImage(thrust::device_vector<float> imageDIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx){
+	image input;
+	imageD.push_back(input);
+	imageD.back().depth = depth;
+	imageD.back().height = height;
+	imageD.back().width = width;
+	imageD.back().scanIdx = scanIdx;
+	imageD.back().tformIdx = tformIdx;
+	imageD.back().image = imageDIn;
 }
 
 
-void ImageList::addImage(thrust::host_vector<float> imageDIn){
-	imageD.insert(imageD.end(), imageDIn.begin(), imageDIn.end());
-
-	if(imageIdx.size()){
-		imageIdx.push_back(imageIdx.back() + imageDIn.size());
-	}
-	else{
-		imageIdx.push_back(imageDIn.size());
-	}
+void ImageList::addImage(thrust::host_vector<float> imageDIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx){
+	image input;
+	imageD.push_back(input);
+	imageD.back().depth = depth;
+	imageD.back().height = height;
+	imageD.back().width = width;
+	imageD.back().scanIdx = scanIdx;
+	imageD.back().tformIdx = tformIdx;
+	imageD.back().image = imageDIn;
 }
 
 void ImageList::removeImage(size_t idx){
-
-	thrust::device_vector<float>::iterator start, end;
-	
-	if(idx >= imageIdx.size()){
+	if(imageD.size() > idx){
+		std::cerr << "Cannot erase element " << idx << " as only " << imageD.size() << " elements exist. Returning\n";
 		return;
 	}
-	else if((idx+1) != imageIdx.size()){
-		end = imageD.begin() + imageIdx[idx+1] - 1;
-	}
-	else{
-		end = imageD.end();
-	}
-
-	start = imageD.begin() + imageIdx[idx];
-	imageD.erase(start, end);
-
-	size_t size = imageIdx[idx];
-	if(idx != 0){
-		size -= imageIdx[idx-1];
-	}
-	for(size_t i = idx+1; i < imageIdx.size(); i++){
-		imageIdx[i] -= size;
-	}
-	imageIdx.erase(imageIdx.begin() + idx);
+	imageD.erase(imageD.begin() + idx);
 }
 
 void ImageList::removeLastImage(){
-	thrust::device_vector<float>::iterator start;
-		
-	start = imageD.end() - imageIdx.back();
-	imageD.erase(start, imageD.end());
-
-	imageIdx.pop_back();
+	imageD.pop_back();
 }
 
 void ImageList::removeAllImages(){
 	imageD.clear();
-	imageIdx.clear();
 };

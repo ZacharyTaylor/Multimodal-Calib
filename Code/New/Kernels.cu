@@ -1,5 +1,8 @@
 #include "Kernels.h"
 
+#define CAM_TFORM_SIZE 16
+#define CAM_MAT_SIZE 12
+
 __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -47,14 +50,16 @@ __global__ void AffineTransformKernel(const float* tform, const float* pointsIn,
 
 }
 
-__global__ void CameraTransformKernel(const float* const tform,
+__global__ void CameraTransformKernel(const float* const tforms,
 									  const size_t* const tformIdx,
-									  const float* const cam,
-									  const bool* const panoramic,
+									  const float* const cams,
+									  const bool* const pans,
 									  const size_t* const camIdx,
 									  const float* const xIn,
 									  const float* const yIn,
 									  const float* const zIn,
+									  const float* const pointsIdx,
+									  const size_t numScans,
 									  float* const xOut,
 									  float* const yOut,
 									  const size_t numPoints,
@@ -62,30 +67,39 @@ __global__ void CameraTransformKernel(const float* const tform,
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-	unsigned int tIdx, cIdx;
-
-	//get transform index (inefficient as hell, if things are running slow look at this line)
-	for(unsigned int tIdx = 0; tformIdx[tIdx] < (i+offset); tIdx++); 
-	//get camera index
-
 	if(i >= numPoints){
 		return;
 	}
 
-	//transform points
-	float x = xIn*tform[0] + yIn*tform[4] + zIn*tform[8] + tform[12];
-	float y = xIn*tform[1] + yIn*tform[5] + zIn*tform[9] + tform[13];
-	float z = xIn*tform[2] + yIn*tform[6] + zIn*tform[10] + tform[14];
+	unsigned int idx;
 
-	if((z <= 0) && !panoramic){
+	//index (inefficient as hell, if things are running slow look here first)
+	if(pointsIdx[numScans-1] < i){
+		idx = numScans-1;
+	}
+	else{
+		for(idx = 0; pointsIdx[idx] < (i+offset); idx++);
+		idx--;
+	}
+
+	//get correct transform
+	const float* const tform = &tforms[CAM_TFORM_SIZE*tformIdx[idx]];
+	//get correct camera
+	const float* const cam = &cams[CAM_MAT_SIZE*camIdx[idx]];
+	//get if panoramic
+	const bool* const pan = &pans[camIdx[idx]];
+
+	//transform points
+	float x = xIn[i]*tform[0] + yIn[i]*tform[4] + zIn[i]*tform[8] + tform[12];
+	float y = xIn[i]*tform[1] + yIn[i]*tform[5] + zIn[i]*tform[9] + tform[13];
+	float z = xIn[i]*tform[2] + yIn[i]*tform[6] + zIn[i]*tform[10] + tform[14];
+
+	if((z <= 0) && !pan){
 		x = -1;
 		y = -1;
 	}
 	else{
-
-		
-
-		if(panoramic){
+		if(pan){
 			//panoramic camera model
 			y = (y/sqrt(z*z + x*x));
 			x = atan2(x,z);
@@ -108,8 +122,8 @@ __global__ void CameraTransformKernel(const float* const tform,
 	}
 
 	//output points
-	pointsOut[i + 0*numPoints] = x;
-	pointsOut[i + 1*numPoints] = y;
+	xOut[i] = x;
+	yOut[i] = y;
 }
 
 __global__ void SSDKernel(const float* A, const float* B, const size_t length, float* out, float* zeroEl){

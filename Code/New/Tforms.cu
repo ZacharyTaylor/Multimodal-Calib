@@ -55,9 +55,26 @@ void CameraTforms::removeAllTforms(void){
 	camIdx.clear();
 }
 
-void CameraTforms::transform(ScanList* in, ScanList* out, ImageList* index, size_t start, size_t end){
+void CameraTforms::transform(ScanList* in, ScanList* out, ImageList* index, size_t start){
 
-	
+	CameraTransformKernel(
+		this->getTformP(),
+		index->getTformIdxP(),
+		camStore->getCamP(),
+		camStore->getPanP(),
+		index->getCamIdxP(),
+		in->getLP(0),
+		in->getLP(1),
+		in->getLP(2),
+		in->getIdxP(),
+		in->getNumScans(),
+		out->getLP(0),
+		out->getLP(1),
+		out->getNumPoints(),
+		start
+	);
+
+
 	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE, 0, *stream>>>
 		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0), cam_->IsPanoramic());
 	CudaCheckError();

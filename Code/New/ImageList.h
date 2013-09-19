@@ -6,55 +6,86 @@
 //! holds the sensors images
 class ImageList {
 private:
+
+	//! structre holding infomation about each image
+	typedef struct {
+		//! vector holding image data
+		thrust::device_vector<float> image;
+
+		//! index of transform to use on image
+		size_t tformIdx;
+		//! index of scan assosiated with image
+		size_t scanIdx;
+		
+		//! image height
+		size_t height;
+		//! image width
+		size_t width;
+		//! image depth
+		size_t depth;
+	} image;
+
 	//! vector holding all the images data
-	thrust::device_vector<float> imageD;
-	
-	//! vector holding the index of images in the data vector
-	thrust::device_vector<size_t> imageIdx;
-	//! vector holding the index of transforms to apply to project scan onto each image
-	thrust::device_vector<size_t> tformIdx;
-	//! vector holding the index of which scan is assosiated with which image
-	thrust::device_vector<size_t> scanIdx;
+	std::vector<image> imageD;
 
 public:
 
-	const size_t height_;
-	const size_t width_;
-	const size_t depth_;
-
-	//! Constructor creates an empty scan
-	ImageList(size_t height, size_t width, size_t depth);
+	//! Constructor
+	ImageList(void);
 
 	//! Destructor
 	~ImageList(void);
 
-	//! Gets the height of the images
-	size_t getHeight(void);
+	//! Gets the height of the image
+	/*! /param idx index of image
+	*/
+	size_t getHeight(size_t idx);
 	
-	//! Gets the width of the images
-	size_t getWidth(void);
+	//! Gets the width of the image
+	/*! /param idx index of image
+	*/
+	size_t getWidth(size_t idx);
 
-	//! Gets the depth of the images
-	size_t getDepth(void);
+	//! Gets the depth of the image
+	/*! /param idx index of image
+	*/
+	size_t getDepth(size_t idx);
 	
 	//! Gets the number of images stored
 	size_t getNumImages(void);
 	
 	//! Gets the pointer of the image data array
-	float* getIP(void);
+	/*! /param idx index of image
+	*/
+	float* getIP(size_t idx);
 
-	//! Gets the pointer of images index
-	size_t* getIdxP(void);
+	//! Get scan index
+	/*! /param idx index of image
+	*/
+	size_t getScanIdx(size_t idx);
+
+	//! Gets the pointer of transform index
+	/*! /param idx index of image
+	*/
+	size_t getTformIdx(size_t idx);
 
 	//! Adds an image to the list
-	/*! \param imageIn input image
+	/*! \param imageDIn input image data
+		\param height height of image
+		\param width width of image
+		\param tformIdx index of assosiated transform
+		\param scanIdx index of assosiated scan
 	*/
-	void addImage(thrust::device_vector<float> imageDIn);
+	void addImage(thrust::device_vector<float> imageDIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx);
 
 	//! Adds an image to the list
-	/*! \param imageIn input image
+	/*! \param imageDIn input image data
+		\param height height of image
+		\param width width of image
+		\param tformIdx index of assosiated transform
+		\param scanIdx index of assosiated scan
 	*/
-	void addImage(thrust::host_vector<float> imageDIn);
+	void addImage(thrust::host_vector<float> imageDIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx);
 
 	//! Removes an image from the list
 	/*! \param idx index of image to remove
