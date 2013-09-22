@@ -50,20 +50,15 @@ __global__ void AffineTransformKernel(const float* tform, const float* pointsIn,
 
 }
 
-__global__ void CameraTransformKernel(const float* const tforms,
-									  const size_t* const tformIdx,
-									  const float* const cams,
-									  const bool* const pans,
-									  const size_t* const camIdx,
+__global__ void CameraTransformKernel(const float* const tform,
+									  const float* const cam,
+									  const bool const pan,
 									  const float* const xIn,
 									  const float* const yIn,
 									  const float* const zIn,
-									  const float* const pointsIdx,
-									  const size_t numScans,
-									  float* const xOut,
-									  float* const yOut,
 									  const size_t numPoints,
-									  const size_t offset){
+									  float* const xOut,
+									  float* const yOut){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -72,22 +67,6 @@ __global__ void CameraTransformKernel(const float* const tforms,
 	}
 
 	unsigned int idx;
-
-	//index (inefficient as hell, if things are running slow look here first)
-	if(pointsIdx[numScans-1] < i){
-		idx = numScans-1;
-	}
-	else{
-		for(idx = 0; pointsIdx[idx] < (i+offset); idx++);
-		idx--;
-	}
-
-	//get correct transform
-	const float* const tform = &tforms[CAM_TFORM_SIZE*tformIdx[idx]];
-	//get correct camera
-	const float* const cam = &cams[CAM_MAT_SIZE*camIdx[idx]];
-	//get if panoramic
-	const bool* const pan = &pans[camIdx[idx]];
 
 	//transform points
 	float x = xIn[i]*tform[0] + yIn[i]*tform[4] + zIn[i]*tform[8] + tform[12];

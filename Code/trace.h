@@ -20,6 +20,14 @@ C++ Error at trace.h(13): testing
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+void traceInfo(std::string in);
+
+void traceWarning(std::string in);
+
+void traceError(std::string in);
+
+/*
 #if(_WIN32)
 	#include <crtdbg.h>
 #endif
@@ -104,5 +112,5 @@ C++ Error at trace.h(13): testing
 			
 	#endif
 #endif
-
+*/
 #endif // TRACE_H

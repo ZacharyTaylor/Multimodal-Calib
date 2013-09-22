@@ -4,7 +4,7 @@ set(0,'DefaultFigureWindowStyle','normal');
 clc;
 
 global DEBUG_LEVEL;
-DEBUG_LEVEL = 1;
+DEBUG_LEVEL = 3;
 
 global FIG
 FIG.fig = figure;
@@ -19,7 +19,7 @@ ladybugParam = ladybugParam.Ladybug;
 param = struct;
 
 %options for swarm optimization
-param.options = psooptimset('PopulationSize', 200,...
+param.options = psooptimset('PopulationSize', 20,...
     'TolCon', 1e-10,...
     'StallGenLimit', 100,...
     'Generations', 300,...
@@ -42,7 +42,7 @@ initT = [0 0 0 1.5666 0.004, -1.5686];
 %base path
 path = 'C:\DataSets\Mobile Sensor Plaforms\Shrimp\Almond\';
 %range of images to use
-imRange = sort(1+ round(2000*rand(10,1)))';
+imRange = 1;%sort(1+ round(2000*rand(10,1)))';
 %metric to use
 metric = 'GOM';
 %feature to use (return, distance, normals)

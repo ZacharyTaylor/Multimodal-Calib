@@ -1,78 +1,99 @@
 #include "Tforms.h"
 #include "ScanList.h"
 #include "ImageList.h"
+#include "Kernels.h"
 
-Camera::Camera(bool panoramic):
-	panoramic_(panoramic){
-	size_t camMemSize = CAM_WIDTH * CAM_HEIGHT * sizeof(float);
-	CudaSafeCall(cudaMalloc((void**)&d_camera_, camMemSize));
-	CudaSafeCall(cudaMemset(d_camera_, 0, camMemSize));
+void Tforms::addTforms(thrust::device_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY){
+	if(tformDIn.size() != (tformSizeX*tformSizeY)){
+		std::cerr << "Error input tform matricies must be same size as given dimensions in size. Returning without setting\n";
+		return;
+	}
+	tform tformIn;
+	tformD.push_back(tformIn);
+	tformD.back().tform = tformDIn;
+	tformD.back().tformSizeX = tformSizeX;
+	tformD.back().tformSizeY = tformSizeY;
 }
 
-Camera::~Camera(void){
-	 CudaSafeCall(cudaFree(d_camera_));
-}
-
-void Camera::SetCam(float* cam){
-	size_t tformMemSize = CAM_WIDTH * CAM_HEIGHT * sizeof(float);
-	 CudaSafeCall(cudaMemcpy(d_camera_, cam, tformMemSize, cudaMemcpyHostToDevice));
-}
-
-float* Camera::d_GetCam(void){
-	return d_camera_;
-}
-
-bool Camera::IsPanoramic(void){
-	return panoramic_;
-}
-
-Tforms::Tforms(size_t tformSizeX, size_t tformSizeY):
-	tformSizeX_(tformSizeX),
-	tformSizeY_(tformSizeY){};
-
-void Tforms::addTforms(thrust::device_vector<float> tformDIn){
-	tformD.insert(tformD.end(), tformDIn.begin(), tformDIn.end());
-}
-
-void Tforms::addTforms(thrust::host_vector<float> tformDIn){
-	tformD.insert(tformD.end(), tformDIn.begin(), tformDIn.end());
+void Tforms::addTforms(thrust::host_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY){
+	if(tformDIn.size() != (tformSizeX*tformSizeY)){
+		std::cerr << "Error input tform matricies must be same size as given dimensions in size. Returning without setting\n";
+		return;
+	}
+	tform tformIn;
+	tformD.push_back(tformIn);
+	tformD.back().tform = tformDIn;
+	tformD.back().tformSizeX = tformSizeX;
+	tformD.back().tformSizeY = tformSizeY;
 }
 
 void Tforms::removeAllTforms(void){
 	tformD.clear();
 }
 
-float* Tforms::getTformP(void){
-	thrust::raw_pointer_cast(&tformD[0]);
+float* Tforms::getTformP(size_t idx){
+	if(tformD.size() > idx){
+		std::cerr << "Cannot get pointer to element " << idx << " as only " << tformD.size() << " elements exist. Returning NULL\n";
+		return NULL;
+	}
+	return thrust::raw_pointer_cast(&(tformD[idx].tform[0]));
 }
 
-size_t Tforms::getTformSize(void){
-	return tformSizeX_*tformSizeY_;
+size_t Tforms::getTformSize(size_t idx){
+	if(tformD.size() > idx){
+		std::cerr << "Cannot get element " << idx << " as only " << tformD.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+	return (tformD[idx].tformSizeX * tformD[idx].tformSizeY);
 }
 
-void CameraTforms::removeAllTforms(void){
-	tformD.clear();
-	camIdx.clear();
+size_t CameraTforms::getCameraIdx(size_t idx){
+	if(cameraIdx.size() > idx){
+		std::cerr << "Cannot get index " << idx << " as only " << cameraIdx.size() << " elements exist. Returning 0\n";
+		return 0;
+	}
+
+	return cameraIdx[idx];
 }
 
-void CameraTforms::transform(ScanList* in, ScanList* out, ImageList* index, size_t start){
+void CameraTforms::addTforms(thrust::device_vector<float> tformDIn, size_t camIdx){
+	if(tformDIn.size() != 16){
+		std::cerr << "Error input tform matricies must be same size as given dimensions in size. Returning without setting\n";
+		return;
+	}
+	tform tformIn;
+	tformD.push_back(tformIn);
+	tformD.back().tform = tformDIn;
+	tformD.back().tformSizeX = 4;
+	tformD.back().tformSizeY = 4;
+	cameraIdx.push_back(camIdx);
+}
+
+void CameraTforms::addTforms(thrust::host_vector<float> tformDIn, size_t camIdx){
+	if(tformDIn.size() != 16){
+		std::cerr << "Error input tform matricies must be same size as given dimensions in size. Returning without setting\n";
+		return;
+	}
+	tform tformIn;
+	tformD.push_back(tformIn);
+	tformD.back().tform = tformDIn;
+	tformD.back().tformSizeX = 4;
+	tformD.back().tformSizeY = 4;
+	cameraIdx.push_back(camIdx);
+}
+
+void CameraTforms::transform(ScanList* scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t streams){
 
 	CameraTransformKernel(
-		this->getTformP(),
-		index->getTformIdxP(),
-		camStore->getCamP(),
-		camStore->getPanP(),
-		index->getCamIdxP(),
-		in->getLP(0),
-		in->getLP(1),
-		in->getLP(2),
-		in->getIdxP(),
-		in->getNumScans(),
-		out->getLP(0),
-		out->getLP(1),
-		out->getNumPoints(),
-		start
-	);
+		this->getTformP(tformIdx),
+		cameraStore.getCamP(camIdx),
+		cameraStore.getPanoramic(camIdx),
+		scansIn->getLP(scanIdx,0),
+		scansIn->getLP(scanIdx,1),
+		scansIn->getLP(scanIdx,2),
+		scansIn->getNumPoints(scanIdx),
+		locOut[0],
+		locOut[1]);
 
 
 	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE, 0, *stream>>>
@@ -80,6 +101,21 @@ void CameraTforms::transform(ScanList* in, ScanList* out, ImageList* index, size
 	CudaCheckError();
 }
 
+void AffineTforms::addTforms(thrust::host_vector<float> tformDIn){
+	tform tformIn;
+	tformD.push_back(tformIn);
+	tformD.back().tform = tformDIn;
+	tformD.back().tformSizeX = 3;
+	tformD.back().tformSizeY = 3;
+}
+
+void AffineTforms::addTforms(thrust::device_vector<float> tformDIn){
+	tform tformIn;
+	tformD.push_back(tformIn);
+	tformD.back().tform = tformDIn;
+	tformD.back().tformSizeX = 3;
+	tformD.back().tformSizeY = 3;
+}
 
 void AffineTform::transform(SparseScan* in, SparseScan** out, cudaStream_t* stream){
 

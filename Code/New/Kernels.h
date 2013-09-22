@@ -6,20 +6,15 @@
 //ugly but textures cannot be passed into functions so must be declared globally
 texture<float, 2, cudaReadModeElementType> tex;
 
-__global__ void CameraTransformKernel(const float* const tforms,
-									  const size_t* const tformIdx,
-									  const float* const cams,
-									  const bool* const pans,
-									  const size_t* const camIdx,
+__global__ void CameraTransformKernel(const float* const tform,
+									  const float* const cam,
+									  const bool const pan,
 									  const float* const xIn,
 									  const float* const yIn,
 									  const float* const zIn,
-									  const float* const pointsIdx,
-									  const size_t numScans,
-									  float* const xOut,
-									  float* const yOut,
 									  const size_t numPoints,
-									  const size_t offset);
+									  float* const xOut,
+									  float* const yOut);
 
 __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate);
 
