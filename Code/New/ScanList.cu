@@ -137,35 +137,3 @@ void ScanList::removeAllScans(){
 	scanL.clear();
 	scanI.clear();
 }
-
-size_t ScanList::allocateMemory(size_t dims, size_t ch, size_t length){
-	
-	if(scanL[0].size() <= length){
-		return length;
-	}
-
-	for(size_t i = 0; i < scanL.size; i++){
-		scanL[i].clear();
-		scanI[i].clear();
-		scanL[i].shrink_to_fit();
-		scanI[i].shrink_to_fit();
-	}
-	size_t free;
-	size_t total;
-	cuMemGetInfo(&free, &total);
-	CudaCheckError();
-
-	free = free * MEM_LIMIT;
-	ch = (ch != 0) ? ch : 1;
-	dims = (dims != 0) ? dims : 1;
-	free = free / (dims * ch * sizeof(float));
-
-	length = (length > free) ? free : length;
-
-	for(size_t i = 0; i < scanL.size; i++){
-		scanL[i].resize(length);
-		scanI[i].resize(length);
-	}
-
-	return length;
-}

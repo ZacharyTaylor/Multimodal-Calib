@@ -27,7 +27,7 @@ protected:
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
-	Calib::Calib(std::string metricType);
+	Calib(std::string metricType);
 
 	//! Clears all the scans, excluding generated ones
 	void clearScans(void);
@@ -36,10 +36,12 @@ public:
 	//! Clears all the transforms
 	void clearTforms(void);
 	//! Clears any extra parts that may be setup by derived classes
-	virtual void clearExtras(void);
+	void clearExtras(void);
 	//! Clears all the scans, images transforms etc
 	void clearEverything(void);
 	
+	//! Adds a camera onto the end of stored cameras
+	void addCamera(thrust::host_vector<float> cameraIn, boolean panoramic);
 	//! Adds scan onto end of stored scans
 	void addScan(std::vector<thrust::host_vector<float>> ScanLIn, std::vector<thrust::host_vector<float>> ScanIIn);
 	//! Adds image onto end of stored images
@@ -48,7 +50,7 @@ public:
 	void addTform(thrust::host_vector<float> tformIn, size_t tformSizeX, size_t tformSizeY);
 
 	//! Calculates the metrics value for the given data
-	virtual float evalMetric(void);
+	float evalMetric(void);
 	
 	//! Outputs a render of the current alignment
 	thrust::host_vector<float> getRender(size_t imageIdx);
@@ -62,10 +64,13 @@ protected:
 	std::vector<size_t> cameraIdx;
 
 public:
+	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
+	CameraCalib(std::string metricType);
+
 	//! Adds image onto end of stored images
 	void addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx, size_t cameraIdxIn);
 	//! Adds a camera onto the end of stored cameras
-	void addCamera(thrust::host_vector<float> cameraIn, bool panoramic);
+	void addCamera(thrust::host_vector<float> cameraIn, boolean panoramic);
 	//! Calculates the metrics value for the given data
 	float evalMetric(void);
 };

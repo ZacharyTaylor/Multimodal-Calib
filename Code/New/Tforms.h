@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include "Cameras.h"
+#include "ScanList.h"
+#include "ImageList.h"
 
 //! dimensionality of data an affine transform can be used on
 #define AFFINE_DIM 2
@@ -85,7 +87,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	void transform(ScanList* scanIn, std::vector<float*> locOut, ImageList* index, size_t start, cudaStream_t streams);
+	void transform(ScanList* in, std::vector<float*> out, cudaStream_t* stream);
 };
 
 #endif //TFORM_H

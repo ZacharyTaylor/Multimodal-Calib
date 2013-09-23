@@ -1,5 +1,5 @@
 #include "MatCalls.h"
-
+#include "Cameras.h"
 #include "Calib.h"
 
 //global so that matlab never has to see them
@@ -39,7 +39,7 @@ DllExport void initalizeCamera(void){
 	if(calibStore){
 		delete calibStore;
 	}
-	calibStore = new CameraCalib;
+	calibStore = new CameraCalib("test");
 }
 
 DllExport void addMovingScan(float* moveLIn, float* moveIIn, unsigned int length, unsigned int numDim, unsigned int numCh){ 
@@ -79,11 +79,11 @@ DllExport void addTform(float* tformIn, unsigned int tformSizeX, unsigned int tf
 	calibStore->addTform(tIn, tformSizeX, tformSizeY);
 }
 
-DllExport void addCamera(float* cIn, bool panoramic){ 
+DllExport void addCamera(float* camIn, bool panoramic){ 
 
 	//copys data (slow and memory inefficient, but easy and memory safe)
 	thrust::host_vector<float> cIn;
-	cIn.assign(camIn, camIn + CAM_SIZE_X*CAM_SIZE_Y);
+	cIn.assign(camIn, camIn + CAM_WIDTH*CAM_HEIGHT);
 
 	calibStore->addCamera(cIn, panoramic);
 }

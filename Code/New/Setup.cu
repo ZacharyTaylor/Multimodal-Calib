@@ -43,6 +43,6 @@ void checkForCUDA(void) {
 	std::cout << "  Device name: " << prop.name << "\n";
 	std::cout << "  Memory Clock Rate (KHz): " << prop.memoryClockRate << "\n";
 	std::cout << "  Memory Bus Width (bits): " << prop.memoryBusWidth << "\n";
-	std::cout << "  Peak Memory Bandwidth (GB/s): " << 2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6) << "\n";
+	std::cout << "  Peak Memory Bandwidth (GB/s): " << 2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/(1.0e6) << "\n";
 	std::cout << "  Total Global Memory (MB): " << prop.totalGlobalMem/(1.0e6) << "\n";
 }

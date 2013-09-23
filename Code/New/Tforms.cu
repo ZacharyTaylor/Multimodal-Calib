@@ -103,18 +103,6 @@ void AffineTforms::addTforms(thrust::device_vector<float> tformDIn){
 	tformD.back().tformSizeY = 3;
 }
 
-void AffineTform::transform(SparseScan* in, SparseScan** out, cudaStream_t* stream){
+void AffineTforms::transform(ScanList* in, std::vector<float*> out, cudaStream_t* stream){
 
-	delete *out;
-	*out = new SparseScan(in->getNumDim(), 0, in->getNumPoints());
-	(*out)->GetLocation()->AllocateGpu();
-
-	if(in->getNumDim() != AFFINE_DIM){
-		TRACE_ERROR("affine transform can only operate on a 2d input, returning untransformed points");
-		CudaSafeCall(cudaMemcpy((*out)->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumDim()*in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
-		return;
-	}
-
-	AffineTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE, 0, *stream>>>(d_tform_, (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0));
-	 //CudaSafeCall(cudaMemcpy(out->GetLocation()->GetGpuPointer(), in->GetLocation()->GetGpuPointer(), in->getNumPoints()*sizeof(float), cudaMemcpyDeviceToDevice));
 }

@@ -9,10 +9,10 @@
 class ScanList {
 private:
 	//! vector holding all the scans location data, indexed by [scan num][dimension num][point num]
-	std::vector<std::vector<thrust::device_vector<float>>> scanL;
+	std::vector< std::vector< thrust::device_vector< float > > > scanL;
 	
 	//! vector holding all the scans intensity data, indexed by [scan num][channel num][point num]
-	std::vector<std::vector<thrust::device_vector<float>>> scanI;
+	std::vector< std::vector< thrust::device_vector< float > > > scanI;
 	
 public:
 	//! Constructor creates an empty scan

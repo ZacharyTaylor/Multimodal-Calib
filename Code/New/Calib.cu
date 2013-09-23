@@ -4,7 +4,7 @@
 
 Calib::Calib(std::string metricType){
 	checkForCUDA();
-
+	/*
 	std::transform(metricType.begin(), metricType.end(), metricType.begin(), ::tolower);
 
 	if(tformType == "affine"){
@@ -20,7 +20,7 @@ Calib::Calib(std::string metricType){
 
 	moveStore = new ScanList();
 	baseStore = new ImageList();
-
+	*/
 }
 
 void Calib::clearScans(void){
@@ -33,6 +33,10 @@ void Calib::clearImages(void){
 
 void Calib::clearTforms(void){
 	tformStore->removeAllTforms();
+}
+
+void Calib::clearExtras(void){
+	return;
 }
 
 void Calib::clearEverything(void){
@@ -53,6 +57,12 @@ void Calib::addImage(thrust::host_vector<float> imageIn, size_t height, size_t w
 
 void Calib::addTform(thrust::host_vector<float> tformIn, size_t tformSizeX, size_t tformSizeY){
 	tformStore->addTforms(tformIn, tformSizeX, tformSizeY);
+}
+
+void Calib::addCamera(thrust::host_vector<float> cameraIn, boolean panoramic){};
+
+float Calib::evalMetric(void){
+	return 0;
 }
 
 size_t Calib::allocateGenMem(ScanList* points, ImageList* images, std::vector<std::vector<float*>> genL, std::vector<std::vector<float*>> genI, size_t startIdx){
@@ -96,6 +106,8 @@ size_t Calib::allocateGenMem(ScanList* points, ImageList* images, std::vector<st
 	return i;
 }
 
+CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
+
 void CameraCalib::addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdxIn, size_t scanIdxIn, size_t cameraIdxIn){
 	tformIdx.push_back(tformIdxIn);
 	scanIdx.push_back(scanIdxIn);
@@ -104,7 +116,7 @@ void CameraCalib::addImage(thrust::host_vector<float> imageIn, size_t height, si
 }
 
 void CameraCalib::addCamera(thrust::host_vector<float> cameraIn, boolean panoramic){
-	cameraStore->addTforms(cameraIn, panoramic);
+	cameraStore->addCams(cameraIn, panoramic);
 }
 
 float CameraCalib::evalMetric(void){
@@ -127,5 +139,7 @@ float CameraCalib::evalMetric(void){
 
 		}
 	}
+
+	return 0;
 }
 
