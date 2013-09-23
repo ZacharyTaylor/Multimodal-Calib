@@ -45,8 +45,10 @@ void Calib::addScan(std::vector<thrust::host_vector<float>> scanLIn, std::vector
 	moveStore->addScan(scanLIn, scanIIn);
 }
 
-void Calib::addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx){
-	baseStore->addImage(imageIn, height, width, depth, tformIdx, scanIdx);
+void Calib::addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdxIn, size_t scanIdxIn){
+	tformIdx.push_back(tformIdxIn);
+	scanIdx.push_back(scanIdxIn);
+	baseStore->addImage(imageIn, height, width, depth);
 }
 
 void Calib::addTform(thrust::host_vector<float> tformIn, size_t tformSizeX, size_t tformSizeY){
@@ -65,7 +67,7 @@ size_t Calib::allocateGenMem(ScanList* points, ImageList* images, std::vector<st
 
 		genL[i].resize(IMAGE_DIM);
 		for(size_t j = 0; j < IMAGE_DIM; j++){
-			cudaError_t currentErr = cudaMalloc(&genL[i][j], sizeof(float)*points->getNumPoints(images->getScanIdx(i)));
+			cudaError_t currentErr = cudaMalloc(&genL[i][j], sizeof(float)*points->getNumPoints(scanIdx[i]));
 			if(currentErr != cudaSuccess){
 				err = cudaErrorMemoryAllocation;
 				break;
@@ -73,7 +75,7 @@ size_t Calib::allocateGenMem(ScanList* points, ImageList* images, std::vector<st
 		}
 		genI[i].resize(images->getDepth(i));
 		for(size_t j = 0; j < images->getDepth(i); j++){
-			cudaError_t currentErr = cudaMalloc(&genI[i][j], sizeof(float)*points->getNumPoints(images->getScanIdx(i)));
+			cudaError_t currentErr = cudaMalloc(&genI[i][j], sizeof(float)*points->getNumPoints(scanIdx[i]));
 			if(currentErr != cudaSuccess){
 				err = cudaErrorMemoryAllocation;
 				break;
@@ -92,6 +94,13 @@ size_t Calib::allocateGenMem(ScanList* points, ImageList* images, std::vector<st
 	}
 
 	return i;
+}
+
+void CameraCalib::addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdxIn, size_t scanIdxIn, size_t cameraIdxIn){
+	tformIdx.push_back(tformIdxIn);
+	scanIdx.push_back(scanIdxIn);
+	cameraIdx.push_back(cameraIdxIn);
+	baseStore->addImage(imageIn, height, width, depth);
 }
 
 void CameraCalib::addCamera(thrust::host_vector<float> cameraIn, boolean panoramic){
@@ -114,7 +123,8 @@ float CameraCalib::evalMetric(void){
 		streams.resize(genLength-i);
 		for(size_t j = 0; j < streams.size(); j++){
 			cudaStreamCreate ( &streams[j]);
-			tformStore->transform(moveStore, genL[j], baseStore->getTformIdx(i+j), ((CameraTforms*)tformStore)->getCameraIdx(i+j), baseStore->getScanIdx(i+j), streams[j]);
+			tformStore->transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
+
 		}
 	}
 }

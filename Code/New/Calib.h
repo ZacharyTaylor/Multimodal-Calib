@@ -18,6 +18,11 @@ protected:
 
 	Tforms* tformStore;
 
+	//! index of transform to use on image
+	std::vector<size_t> tformIdx;
+	//! index of scan assosiated with image
+	std::vector<size_t> scanIdx;
+
 	size_t allocateGenMem(ScanList* points, ImageList* images, std::vector<std::vector<float*>> genL, std::vector<std::vector<float*>> genI, size_t startIdx);
 
 public:
@@ -54,7 +59,11 @@ protected:
 	CameraTforms* tformStore;
 	Cameras* cameraStore;
 
+	std::vector<size_t> cameraIdx;
+
 public:
+	//! Adds image onto end of stored images
+	void addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx, size_t cameraIdxIn);
 	//! Adds a camera onto the end of stored cameras
 	void addCamera(thrust::host_vector<float> cameraIn, bool panoramic);
 	//! Calculates the metrics value for the given data

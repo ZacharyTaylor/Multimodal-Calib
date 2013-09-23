@@ -55,14 +55,9 @@ public:
 //! Places a virtual camera in the scan and projects the points through its lense onto a surface
 class CameraTforms: public Tforms {
 public:
-	
-	Cameras cameraStore;
+	void addTforms(thrust::device_vector<float> tformDIn);
 
-	size_t getCameraIdx(size_t idx);
-
-	void addTforms(thrust::device_vector<float> tformDIn, size_t camIdx);
-
-	void addTforms(thrust::host_vector<float> tformDIn, size_t camIdx);
+	void addTforms(thrust::host_vector<float> tformDIn);
 
 	//! Transforms the scans coordinates
 	/*! \param in the original scans
@@ -70,7 +65,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	void transform(ScanList* scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t streams);
+	void transform(ScanList* scansIn, std::vector<float*> locOut, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t streams);
 
 private:
 	std::vector<size_t> cameraIdx;

@@ -47,16 +47,7 @@ size_t Tforms::getTformSize(size_t idx){
 	return (tformD[idx].tformSizeX * tformD[idx].tformSizeY);
 }
 
-size_t CameraTforms::getCameraIdx(size_t idx){
-	if(cameraIdx.size() > idx){
-		std::cerr << "Cannot get index " << idx << " as only " << cameraIdx.size() << " elements exist. Returning 0\n";
-		return 0;
-	}
-
-	return cameraIdx[idx];
-}
-
-void CameraTforms::addTforms(thrust::device_vector<float> tformDIn, size_t camIdx){
+void CameraTforms::addTforms(thrust::device_vector<float> tformDIn){
 	if(tformDIn.size() != 16){
 		std::cerr << "Error input tform matricies must be same size as given dimensions in size. Returning without setting\n";
 		return;
@@ -66,10 +57,9 @@ void CameraTforms::addTforms(thrust::device_vector<float> tformDIn, size_t camId
 	tformD.back().tform = tformDIn;
 	tformD.back().tformSizeX = 4;
 	tformD.back().tformSizeY = 4;
-	cameraIdx.push_back(camIdx);
 }
 
-void CameraTforms::addTforms(thrust::host_vector<float> tformDIn, size_t camIdx){
+void CameraTforms::addTforms(thrust::host_vector<float> tformDIn){
 	if(tformDIn.size() != 16){
 		std::cerr << "Error input tform matricies must be same size as given dimensions in size. Returning without setting\n";
 		return;
@@ -79,15 +69,14 @@ void CameraTforms::addTforms(thrust::host_vector<float> tformDIn, size_t camIdx)
 	tformD.back().tform = tformDIn;
 	tformD.back().tformSizeX = 4;
 	tformD.back().tformSizeY = 4;
-	cameraIdx.push_back(camIdx);
 }
 
-void CameraTforms::transform(ScanList* scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t streams){
+void CameraTforms::transform(ScanList* scansIn, std::vector<float*> locOut, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){
 
-	CameraTransformKernel(
+	CameraTransformKernel<<<gridSize(scansIn->getNumPoints(scanIdx)), BLOCK_SIZE, 0, stream>>>(
 		this->getTformP(tformIdx),
-		cameraStore.getCamP(camIdx),
-		cameraStore.getPanoramic(camIdx),
+		cam->getCamP(camIdx),
+		cam->getPanoramic(camIdx),
 		scansIn->getLP(scanIdx,0),
 		scansIn->getLP(scanIdx,1),
 		scansIn->getLP(scanIdx,2),
@@ -95,9 +84,6 @@ void CameraTforms::transform(ScanList* scansIn, std::vector<float*> locOut, size
 		locOut[0],
 		locOut[1]);
 
-
-	CameraTransformKernel<<<gridSize(in->getDimSize(0)), BLOCK_SIZE, 0, *stream>>>
-		(d_tform_, cam_->d_GetCam(), (float*)in->GetLocation()->GetGpuPointer(), (float*)(*out)->GetLocation()->GetGpuPointer(), in->getDimSize(0), cam_->IsPanoramic());
 	CudaCheckError();
 }
 

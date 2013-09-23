@@ -11,12 +11,7 @@ private:
 	typedef struct {
 		//! vector holding image data
 		thrust::device_vector<float> image;
-
-		//! index of transform to use on image
-		size_t tformIdx;
-		//! index of scan assosiated with image
-		size_t scanIdx;
-		
+	
 		//! image height
 		size_t height;
 		//! image width
@@ -59,33 +54,19 @@ public:
 	*/
 	float* getIP(size_t idx);
 
-	//! Get scan index
-	/*! /param idx index of image
+	//! Adds an image to the list
+	/*! \param imageDIn input image data
+		\param height height of image
+		\param width width of image
 	*/
-	size_t getScanIdx(size_t idx);
-
-	//! Gets the pointer of transform index
-	/*! /param idx index of image
-	*/
-	size_t getTformIdx(size_t idx);
+	void addImage(thrust::device_vector<float> imageDIn, size_t height, size_t width, size_t depth);
 
 	//! Adds an image to the list
 	/*! \param imageDIn input image data
 		\param height height of image
 		\param width width of image
-		\param tformIdx index of assosiated transform
-		\param scanIdx index of assosiated scan
 	*/
-	void addImage(thrust::device_vector<float> imageDIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx);
-
-	//! Adds an image to the list
-	/*! \param imageDIn input image data
-		\param height height of image
-		\param width width of image
-		\param tformIdx index of assosiated transform
-		\param scanIdx index of assosiated scan
-	*/
-	void addImage(thrust::host_vector<float> imageDIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx);
+	void addImage(thrust::host_vector<float> imageDIn, size_t height, size_t width, size_t depth);
 
 	//! Removes an image from the list
 	/*! \param idx index of image to remove

@@ -16,6 +16,14 @@ __global__ void CameraTransformKernel(const float* const tform,
 									  float* const xOut,
 									  float* const yOut);
 
+__global__ void LinearInterpolateKernel(const float* const imageIn,
+										float* const out,
+										const size_t height,
+										const size_t width,
+										const size_t depth,
+										const float* const x,
+										const float* const y);
+
 __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate);
 
 __global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints);

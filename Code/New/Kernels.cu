@@ -29,6 +29,75 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 	}
 }
 
+__global__ void LinearInterpolateKernel(const float* const imageIn,
+										float* const out,
+										const size_t height,
+										const size_t width,
+										const size_t depth,
+										const float* const x,
+										const float* const y,
+										const size_t numPoints){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= numPoints){
+		return;
+	}
+
+	int xF = (int)x[i];
+	int yF = (int)y[i];
+	float xD = x[i] - (float)xF;
+	float yD = y[i] - (float)yF;
+
+	//check image boundries
+	if((xF < 0) || (yF < 0) || (xF >= width) || (yF >= height)){
+		for(int j = 0; j < depth; j++){
+			out[i + numPoints*j] = 0;
+		}
+		return;
+	}
+
+	//linear interpolate
+	for(int j = 0; j < depth; j++){
+		out[i + numPoints*j] = (1-yD)*(1-xD)*imageIn[xF + yF*width + j*height*width] + 
+			(1-yD)*xD*imageIn[xF+1 + yF*width + j*height*width] + 
+			yD*(1-xD)*imageIn[xF + (yF+1)*width + j*height*width] +
+			yD*xD*imageIn[xF+1 + (yF+1)*width + j*height*width];
+	}
+}
+
+__global__ void NearNeighKernel(const float* const imageIn,
+										float* const out,
+										const size_t height,
+										const size_t width,
+										const size_t depth,
+										const float* const x,
+										const float* const y,
+										const size_t numPoints){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= numPoints){
+		return;
+	}
+
+	int xF = (int)(x[i]+0.5);
+	int yF = (int)(y[i]+0.5);
+
+	//check image boundries
+	if((xF < 0) || (yF < 0) || (xF >= width) || (yF >= height)){
+		for(int j = 0; j < depth; j++){
+			out[i + numPoints*j] = 0;
+		}
+		return;
+	}
+
+	//nearest neighbour interpolation
+	for(int j = 0; j < depth; j++){
+		out[i + numPoints*j] = imageIn[xF + yF*width + j*height*width];
+	}
+}
+
 __global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
