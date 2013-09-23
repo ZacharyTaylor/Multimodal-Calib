@@ -5,6 +5,7 @@
 #include "ImageList.h"
 #include "ScanList.h"
 #include "Tforms.h"
+#include "Cameras.h"
 #include "Setup.h"
 #include "Kernels.h"
 
@@ -21,7 +22,7 @@ protected:
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
-	Calib::Calib(std::string tformType, std::string metricType);
+	Calib::Calib(std::string metricType);
 
 	//! Clears all the scans, excluding generated ones
 	void clearScans(void);
@@ -29,6 +30,8 @@ public:
 	void clearImages(void);
 	//! Clears all the transforms
 	void clearTforms(void);
+	//! Clears any extra parts that may be setup by derived classes
+	virtual void clearExtras(void);
 	//! Clears all the scans, images transforms etc
 	void clearEverything(void);
 	
@@ -37,14 +40,25 @@ public:
 	//! Adds image onto end of stored images
 	void addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx);
 	//! Adds transform onto end of stored transforms
-	void addTform(thrust::host_vector<float> tformIn);
+	void addTform(thrust::host_vector<float> tformIn, size_t tformSizeX, size_t tformSizeY);
 
 	//! Calculates the metrics value for the given data
 	virtual float evalMetric(void);
 	
 	//! Outputs a render of the current alignment
 	thrust::host_vector<float> getRender(size_t imageIdx);
-}
+};
 
+class CameraCalib: public Calib {
+protected:
+	CameraTforms* tformStore;
+	Cameras* cameraStore;
+
+public:
+	//! Adds a camera onto the end of stored cameras
+	void addCamera(thrust::host_vector<float> cameraIn, bool panoramic);
+	//! Calculates the metrics value for the given data
+	float evalMetric(void);
+};
 
 #endif CALIB_H
