@@ -2,7 +2,8 @@
 
 void Cameras::addCams(thrust::device_vector<float> camDIn, boolean panoramic){
 	if(camDIn.size() != (CAM_WIDTH * CAM_HEIGHT)){
-		std::cerr << "Error input camera matricies must be " << (CAM_WIDTH * CAM_HEIGHT) << " in size. Returning without setting\n";
+		std::ostringstream err; err << "Error input camera matricies must be " << (CAM_WIDTH * CAM_HEIGHT) << " in size";
+		mexErrMsgTxt(err.str().c_str());
 		return;
 	}
 	cam camIn;
@@ -13,7 +14,8 @@ void Cameras::addCams(thrust::device_vector<float> camDIn, boolean panoramic){
 
 void Cameras::addCams(thrust::host_vector<float> camDIn, boolean panoramic){
 	if(camDIn.size() != (CAM_WIDTH * CAM_HEIGHT)){
-		std::cerr << "Error input camera matricies must be " << (CAM_WIDTH * CAM_HEIGHT) << " in size. Returning without setting\n";
+		std::ostringstream err; err << "Error input camera matricies must be " << (CAM_WIDTH * CAM_HEIGHT) << " in size";
+		mexErrMsgTxt(err.str().c_str());
 		return;
 	}
 	cam camIn;
@@ -28,7 +30,8 @@ void Cameras::removeAllCameras(void){
 
 float* Cameras::getCamP(size_t idx){
 	if(camD.size() > idx){
-		std::cerr << "Cannot get pointer to element " << idx << " as only " << camD.size() << " elements exist. Returning NULL\n";
+		std::ostringstream err; err << "Cannot get pointer to element " << idx << " as only " << camD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return NULL;
 	}
 	return thrust::raw_pointer_cast(&(camD[idx].cam[0]));
@@ -36,7 +39,8 @@ float* Cameras::getCamP(size_t idx){
 
 bool Cameras::getPanoramic(size_t idx){
 		if(camD.size() > idx){
-		std::cerr << "Cannot get element " << idx << " as only " << camD.size() << " elements exist. Returning false\n";
+		std::ostringstream err; err << "Cannot get element " << idx << " as only " << camD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return false;
 	}
 		return camD[idx].panoramic;

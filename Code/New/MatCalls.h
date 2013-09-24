@@ -54,7 +54,7 @@ DllExport void addMovingScan(float* moveLIn, float* moveIIn, unsigned int length
 	\param tformIdx index of the transform that will be applied to project moving scans onto this image
 	\param scanIdx index of the scan that will be projected onto this image
 */
-DllExport void addBaseImage(float* baseIn, unsigned int height, unsigned int width, unsigned int depth, unsigned int tformIdx, unsigned int scanIdx);
+DllExport void addBaseImage(float* baseIn, unsigned int height, unsigned int width, unsigned int depth);
 
 //! Adds a transform that will be used to project moving scans onto base images
 /*! \param tformIn array holding transform in column major order (y,x)
@@ -68,6 +68,24 @@ DllExport void addTform(float* tformIn, unsigned int tformSizeX, unsigned int tf
 	\param panoramic true if camera is panoramic, false otherwise
 */
 DllExport void addCamera(float* cIn, bool panoramic);
+
+//! Adds index of transform that matches to each image
+/*! \param index the index of the transform to use for the corrosponding image
+	\param length length of index being added
+*/
+DllExport void addTformIndex(unsigned int* index, unsigned int* length);
+
+//! Adds index of scan that matches to each image
+/*! \param index the index of the scan to use for the corrosponding image
+	\param length length of index being added
+*/
+DllExport void addScanIndex(unsigned int* index, unsigned int* length);
+
+//! Adds index of camera that matches to each image
+/*! \param index the index of the camera to use for the corrosponding image
+	\param length length of index being added
+*/
+DllExport void addCameraIndex(unsigned int* index, unsigned int* length);
 
 //!Evalutaes and returns metric
 DllExport float evalMetric(void);

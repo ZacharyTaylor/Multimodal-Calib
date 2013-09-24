@@ -6,7 +6,8 @@ ImageList::~ImageList(void){}
 
 size_t ImageList::getHeight(size_t idx){
 	if(imageD.size() > idx){
-		std::cerr << "Cannot get height of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		std::ostringstream err; err << "Cannot get height of element " << idx << " as only " << imageD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return 0;
 	}
 
@@ -15,7 +16,8 @@ size_t ImageList::getHeight(size_t idx){
 	
 size_t ImageList::getWidth(size_t idx){
 	if(imageD.size() > idx){
-		std::cerr << "Cannot get width of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		std::ostringstream err; err << "Cannot get width of element " << idx << " as only " << imageD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return 0;
 	}
 
@@ -24,7 +26,8 @@ size_t ImageList::getWidth(size_t idx){
 
 size_t ImageList::getDepth(size_t idx){
 	if(imageD.size() > idx){
-		std::cerr << "Cannot get depth of element " << idx << " as only " << imageD.size() << " elements exist. Returning 0\n";
+		std::ostringstream err; err << "Cannot get depth of element " << idx << " as only " << imageD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return 0;
 	}
 
@@ -37,7 +40,8 @@ size_t ImageList::getNumImages(void){
 	
 float* ImageList::getIP(size_t idx){
 	if(imageD.size() > idx){
-		std::cerr << "Cannot get pointer to element " << idx << " as only " << imageD.size() << " elements exist. Returning NULL\n";
+		std::ostringstream err; err << "Cannot get pointer to element " << idx << " as only " << imageD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return NULL;
 	}
 	return thrust::raw_pointer_cast(&imageD[idx].image[0]);
@@ -64,7 +68,8 @@ void ImageList::addImage(thrust::host_vector<float> imageDIn, size_t height, siz
 
 void ImageList::removeImage(size_t idx){
 	if(imageD.size() > idx){
-		std::cerr << "Cannot erase element " << idx << " as only " << imageD.size() << " elements exist. Returning\n";
+		std::ostringstream err; err << "Cannot erase element " << idx << " as only " << imageD.size() << " elements exist";
+		mexErrMsgTxt(err.str().c_str());
 		return;
 	}
 	imageD.erase(imageD.begin() + idx);

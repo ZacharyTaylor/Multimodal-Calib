@@ -13,17 +13,17 @@
 
 class Calib {
 protected:
-	ScanList* moveStore;
-	ImageList* baseStore;
+	ScanList moveStore;
+	ImageList baseStore;
 
-	Tforms* tformStore;
+	Tforms tformStore;
 
 	//! index of transform to use on image
 	std::vector<size_t> tformIdx;
 	//! index of scan assosiated with image
 	std::vector<size_t> scanIdx;
 
-	size_t allocateGenMem(ScanList* points, ImageList* images, std::vector<std::vector<float*>> genL, std::vector<std::vector<float*>> genI, size_t startIdx);
+	size_t allocateGenMem(ScanList points, ImageList images, std::vector<std::vector<float*>> genL, std::vector<std::vector<float*>> genI, size_t startIdx);
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
@@ -41,16 +41,23 @@ public:
 	void clearEverything(void);
 	
 	//! Adds a camera onto the end of stored cameras
-	void addCamera(thrust::host_vector<float> cameraIn, boolean panoramic);
+	virtual void addCamera(thrust::host_vector<float> cameraIn, boolean panoramic);
 	//! Adds scan onto end of stored scans
 	void addScan(std::vector<thrust::host_vector<float>> ScanLIn, std::vector<thrust::host_vector<float>> ScanIIn);
 	//! Adds image onto end of stored images
-	void addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx);
+	void addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth);
 	//! Adds transform onto end of stored transforms
 	void addTform(thrust::host_vector<float> tformIn, size_t tformSizeX, size_t tformSizeY);
 
+	//! Adds the cameras indecies relating cameras to images
+	virtual void addCameraIndices(std::vector<size_t> cameraIdxIn);
+	//! Adds the transforms indecies relating tforms to images
+	void addTformIndices(std::vector<size_t> tformsIdxIn);
+	//! Adds the scans indecies relating scans to images
+	void addScanIndices(std::vector<size_t> scanIdxIn);
+
 	//! Calculates the metrics value for the given data
-	float evalMetric(void);
+	virtual float evalMetric(void);
 	
 	//! Outputs a render of the current alignment
 	thrust::host_vector<float> getRender(size_t imageIdx);
@@ -58,8 +65,8 @@ public:
 
 class CameraCalib: public Calib {
 protected:
-	CameraTforms* tformStore;
-	Cameras* cameraStore;
+	CameraTforms tformStore;
+	Cameras cameraStore;
 
 	std::vector<size_t> cameraIdx;
 
@@ -67,8 +74,8 @@ public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	CameraCalib(std::string metricType);
 
-	//! Adds image onto end of stored images
-	void addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth, size_t tformIdx, size_t scanIdx, size_t cameraIdxIn);
+	//! Adds the cameras indecies relating cameras to images
+	void addCameraIndices(std::vector<size_t> cameraIdxIn);
 	//! Adds a camera onto the end of stored cameras
 	void addCamera(thrust::host_vector<float> cameraIn, boolean panoramic);
 	//! Calculates the metrics value for the given data

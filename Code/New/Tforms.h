@@ -51,7 +51,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	virtual void transform(ScanList* scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t streams);
+	void transform(ScanList scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
 };
 
 //! Places a virtual camera in the scan and projects the points through its lense onto a surface
@@ -67,7 +67,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	void transform(ScanList* scansIn, std::vector<float*> locOut, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t streams);
+	void transform(ScanList scansIn, std::vector<float*> locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
 
 private:
 	std::vector<size_t> cameraIdx;
@@ -87,7 +87,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	void transform(ScanList* in, std::vector<float*> out, cudaStream_t* stream);
+	void transform(ScanList in, std::vector<float*> out, cudaStream_t stream);
 };
 
 #endif //TFORM_H

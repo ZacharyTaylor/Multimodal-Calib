@@ -6,12 +6,15 @@
 #include <math.h>
 #include <cuda.h>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <thrust\device_vector.h>
 #include <thrust\host_vector.h>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
+#define BUFF_SIZE 500
 
 // includes, graphics
 #if defined (__APPLE__) || defined(MACOSX)

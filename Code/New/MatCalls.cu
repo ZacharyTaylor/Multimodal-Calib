@@ -35,7 +35,6 @@ DllExport void clearEverything(void){
 }
 
 DllExport void initalizeCamera(void){
-	checkForCUDA();
 	if(calibStore){
 		delete calibStore;
 	}
@@ -48,26 +47,26 @@ DllExport void addMovingScan(float* moveLIn, float* moveIIn, unsigned int length
 	std::vector<thrust::host_vector<float>> scanLIn;
 	scanLIn.resize(numDim);
 	for( size_t i = 0; i < numDim; i++){
-		scanLIn[i].assign(&moveLIn[i*length], moveLIn + length);
+		scanLIn[i].assign(&moveLIn[i*length], &moveLIn[i*length] + length);
 	}
 
 	std::vector<thrust::host_vector<float>> scanIIn;
 	scanIIn.resize(numCh);
 	for( size_t i = 0; i < numCh; i++){
-		scanIIn[i].assign(&moveIIn[i*length], moveIIn + length);
+		scanIIn[i].assign(&moveIIn[i*length], &moveIIn[i*length] + length);
 	}
 
 	calibStore->addScan(scanLIn, scanIIn);
 
 }
 
-DllExport void addBaseImage(float* baseIn, unsigned int height, unsigned int width, unsigned int depth, unsigned int tformIdx, unsigned int scanIdx){ 
+DllExport void addBaseImage(float* baseIn, unsigned int height, unsigned int width, unsigned int depth){ 
 
 	//copys data (slow and memory inefficient, but easy and memory safe)
 	thrust::host_vector<float> imageIn;
 	imageIn.assign(baseIn, baseIn + (height*width*depth));
 
-	calibStore->addImage(imageIn, height, width, depth, tformIdx, scanIdx);
+	calibStore->addImage(imageIn, height, width, depth);
 }
 
 DllExport void addTform(float* tformIn, unsigned int tformSizeX, unsigned int tformSizeY){ 

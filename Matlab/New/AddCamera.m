@@ -4,7 +4,7 @@ function [] = AddCamera( cIn, panoramic )
 % panoramic true if camera is panoramic, false otherwise
 
 cIn = single(cIn);
-panoramic = boolean(panoramic(0));
+panoramic = boolean(panoramic(1));
 calllib('LibCal','addCamera',cIn, panoramic);
 
 end
