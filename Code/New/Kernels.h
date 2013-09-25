@@ -20,9 +20,17 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 										float* const out,
 										const size_t height,
 										const size_t width,
-										const size_t depth,
 										const float* const x,
-										const float* const y);
+										const float* const y,
+										const size_t numPoints);
+
+__global__ void NearNeighKernel(const float* const imageIn,
+										float* const out,
+										const size_t height,
+										const size_t width,
+										const float* const x,
+										const float* const y,
+										const size_t numPoints);
 
 __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate);
 
@@ -30,7 +38,7 @@ __global__ void AffineTransformKernel(const float* tform, const float* pointsIn,
 
 __global__ void CameraTransformKernel(const float* tform, const float* cam, const float* pointsIn, float* pointsOut, const size_t numPoints, const bool panoramic);
 
-__global__ void SSDKernel(const float* A, const float* B, const size_t length, float* out, float* zeroEl);
+__global__ void SSDKernel(float* const gen, const float* const scan, const size_t length);
 
 __global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut);
 

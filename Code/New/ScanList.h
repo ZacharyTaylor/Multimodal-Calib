@@ -55,13 +55,13 @@ public:
 	/*! \param scanLIn input scans location information
 		\param scanIIn input scans intensity information
 	*/
-	void addScan(std::vector<thrust::device_vector<float>> scanLIn, std::vector<thrust::device_vector<float>> scanIIn);
+	void addScan(std::vector<thrust::device_vector<float>>& scanLIn, std::vector<thrust::device_vector<float>>& scanIIn);
 
 	//! Adds a scan to the list
 	/*! \param scanLIn input scans location information
 		\param scanIIn input scans intensity information
 	*/
-	void addScan(std::vector<thrust::host_vector<float>> scanLIn, std::vector<thrust::host_vector<float>> scanIIn);
+	void addScan(std::vector<thrust::host_vector<float>>& scanLIn, std::vector<thrust::host_vector<float>>& scanIIn);
 
 	//! Removes a scan from the list
 	/*! \param idx index of scan to remove

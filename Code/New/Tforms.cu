@@ -5,7 +5,7 @@
 #include "ImageList.h"
 #include "Kernels.h"
 
-void Tforms::addTforms(thrust::device_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY){
+void Tforms::addTforms(thrust::device_vector<float>& tformDIn, size_t tformSizeX, size_t tformSizeY){
 	if(tformDIn.size() != (tformSizeX*tformSizeY)){
 		mexErrMsgTxt("Error input tform matricies must be same size as given dimensions in size");
 		return;
@@ -17,7 +17,7 @@ void Tforms::addTforms(thrust::device_vector<float> tformDIn, size_t tformSizeX,
 	tformD.back().tformSizeY = tformSizeY;
 }
 
-void Tforms::addTforms(thrust::host_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY){
+void Tforms::addTforms(thrust::host_vector<float>& tformDIn, size_t tformSizeX, size_t tformSizeY){
 	if(tformDIn.size() != (tformSizeX*tformSizeY)){
 		mexErrMsgTxt("Error input tform matricies must be same size as given dimensions in size");
 		return;
@@ -34,7 +34,7 @@ void Tforms::removeAllTforms(void){
 }
 
 float* Tforms::getTformP(size_t idx){
-	if(tformD.size() > idx){
+	if(tformD.size() <= idx){
 		std::ostringstream err;
 		err << "Cannot get pointer to element " << idx << " as only " << tformD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
@@ -44,7 +44,7 @@ float* Tforms::getTformP(size_t idx){
 }
 
 size_t Tforms::getTformSize(size_t idx){
-	if(tformD.size() > idx){
+	if(tformD.size() <= idx){
 		std::ostringstream err; err << "Cannot get element " << idx << " as only " << tformD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
 		return 0;
@@ -54,7 +54,7 @@ size_t Tforms::getTformSize(size_t idx){
 
 void Tforms::transform(ScanList scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){}
 
-void CameraTforms::addTforms(thrust::device_vector<float> tformDIn){
+void CameraTforms::addTforms(thrust::device_vector<float>& tformDIn){
 	if(tformDIn.size() != 16){
 		std::ostringstream err; err << "Error input tform matricies must be same size as given dimensions in size";
 		mexErrMsgTxt(err.str().c_str());
@@ -67,7 +67,7 @@ void CameraTforms::addTforms(thrust::device_vector<float> tformDIn){
 	tformD.back().tformSizeY = 4;
 }
 
-void CameraTforms::addTforms(thrust::host_vector<float> tformDIn){
+void CameraTforms::addTforms(thrust::host_vector<float>& tformDIn){
 	if(tformDIn.size() != 16){
 		std::ostringstream err; err << "Error input tform matricies must be same size as given dimensions in size";
 		mexErrMsgTxt(err.str().c_str());
@@ -80,7 +80,7 @@ void CameraTforms::addTforms(thrust::host_vector<float> tformDIn){
 	tformD.back().tformSizeY = 4;
 }
 
-void CameraTforms::transform(ScanList scansIn, std::vector<float*> locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){
+void CameraTforms::transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){
 
 	CameraTransformKernel<<<gridSize(scansIn.getNumPoints(scanIdx)), BLOCK_SIZE, 0, stream>>>(
 		getTformP(tformIdx),
@@ -96,7 +96,7 @@ void CameraTforms::transform(ScanList scansIn, std::vector<float*> locOut, Camer
 	CudaCheckError();
 }
 
-void AffineTforms::addTforms(thrust::host_vector<float> tformDIn){
+void AffineTforms::addTforms(thrust::host_vector<float>& tformDIn){
 	tform tformIn;
 	tformD.push_back(tformIn);
 	tformD.back().tform = tformDIn;
@@ -104,7 +104,7 @@ void AffineTforms::addTforms(thrust::host_vector<float> tformDIn){
 	tformD.back().tformSizeY = 3;
 }
 
-void AffineTforms::addTforms(thrust::device_vector<float> tformDIn){
+void AffineTforms::addTforms(thrust::device_vector<float>& tformDIn){
 	tform tformIn;
 	tformD.push_back(tformIn);
 	tformD.back().tform = tformDIn;
@@ -112,6 +112,6 @@ void AffineTforms::addTforms(thrust::device_vector<float> tformDIn){
 	tformD.back().tformSizeY = 3;
 }
 
-void AffineTforms::transform(ScanList in, std::vector<float*> out, cudaStream_t stream){
+void AffineTforms::transform(ScanList in, std::vector<float*>& out, cudaStream_t stream){
 
 }

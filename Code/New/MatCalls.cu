@@ -87,6 +87,28 @@ DllExport void addCamera(float* camIn, bool panoramic){
 	calibStore->addCamera(cIn, panoramic);
 }
 
+DllExport void addTformIndex(unsigned int* indexIn, unsigned int length){
+	std::vector<size_t> index;
+	index.assign(indexIn, indexIn + length);
+	calibStore->addTformIndices(index);
+}
+
+DllExport void addScanIndex(unsigned int* indexIn, unsigned int length){
+	std::vector<size_t> index;
+	index.assign(indexIn, indexIn + length);
+	calibStore->addScanIndices(index);
+}
+
+DllExport void addCameraIndex(unsigned int* indexIn, unsigned int length){
+	std::vector<size_t> index;
+	index.assign(indexIn, indexIn + length);
+	calibStore->addCameraIndices(index);
+}
+
+DllExport void setupSSDMetric(void){
+	calibStore->setSSDMetric();
+}
+
 DllExport float evalMetric(void){
 	return calibStore->evalMetric();
 }

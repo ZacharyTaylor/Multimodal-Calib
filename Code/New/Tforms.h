@@ -30,9 +30,9 @@ protected:
 
 public:
 	//! Adds new transformation matricies
-	void addTforms(thrust::device_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY);
+	void addTforms(thrust::device_vector<float>& tformDIn, size_t tformSizeX, size_t tformSizeY);
 	//! Adds new transformation matricies
-	void addTforms(thrust::host_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY);
+	void addTforms(thrust::host_vector<float>& tformDIn, size_t tformSizeX, size_t tformSizeY);
 	//! Clear all the transforms
 	void removeAllTforms(void);
 	//! Gets a pointer to the transformation matrices
@@ -57,9 +57,9 @@ public:
 //! Places a virtual camera in the scan and projects the points through its lense onto a surface
 class CameraTforms: public Tforms {
 public:
-	void addTforms(thrust::device_vector<float> tformDIn);
+	void addTforms(thrust::device_vector<float>& tformDIn);
 
-	void addTforms(thrust::host_vector<float> tformDIn);
+	void addTforms(thrust::host_vector<float>& tformDIn);
 
 	//! Transforms the scans coordinates
 	/*! \param in the original scans
@@ -67,7 +67,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	void transform(ScanList scansIn, std::vector<float*> locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
+	void transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
 
 private:
 	std::vector<size_t> cameraIdx;
@@ -77,9 +77,9 @@ private:
 class AffineTforms: public Tforms {
 public:
 
-	void addTforms(thrust::device_vector<float> tformDIn);
+	void addTforms(thrust::device_vector<float>& tformDIn);
 
-	void addTforms(thrust::host_vector<float> tformDIn);
+	void addTforms(thrust::host_vector<float>& tformDIn);
 
 	//! Performs the affine transform on a scan
 	/*! \param in the original scans
@@ -87,7 +87,7 @@ public:
 		\param start index of first point to transform
 		\param end index of last point to transform
 	*/
-	void transform(ScanList in, std::vector<float*> out, cudaStream_t stream);
+	void transform(ScanList in, std::vector<float*>& out, cudaStream_t stream);
 };
 
 #endif //TFORM_H

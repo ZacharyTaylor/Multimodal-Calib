@@ -43,6 +43,9 @@ for i = 1:size(cam,1)
     AddCamera(cam{i}, false);
 end
 
+%set indecies
+SetSingleScanIndex();
+
 EvalMetric();
 
 %% Clean up

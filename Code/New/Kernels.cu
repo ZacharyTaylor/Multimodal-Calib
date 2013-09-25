@@ -33,7 +33,6 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 										float* const out,
 										const size_t height,
 										const size_t width,
-										const size_t depth,
 										const float* const x,
 										const float* const y,
 										const size_t numPoints){
@@ -51,26 +50,21 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 
 	//check image boundries
 	if((xF < 0) || (yF < 0) || (xF >= width) || (yF >= height)){
-		for(int j = 0; j < depth; j++){
-			out[i + numPoints*j] = 0;
-		}
+		out[i] = 0;
 		return;
 	}
 
 	//linear interpolate
-	for(int j = 0; j < depth; j++){
-		out[i + numPoints*j] = (1-yD)*(1-xD)*imageIn[xF + yF*width + j*height*width] + 
-			(1-yD)*xD*imageIn[xF+1 + yF*width + j*height*width] + 
-			yD*(1-xD)*imageIn[xF + (yF+1)*width + j*height*width] +
-			yD*xD*imageIn[xF+1 + (yF+1)*width + j*height*width];
-	}
+	out[i] = (1-yD)*(1-xD)*imageIn[xF + yF*width] + 
+		(1-yD)*xD*imageIn[xF+1 + yF*width] + 
+		yD*(1-xD)*imageIn[xF + (yF+1)*width] +
+		yD*xD*imageIn[xF+1 + (yF+1)*width];
 }
 
 __global__ void NearNeighKernel(const float* const imageIn,
 										float* const out,
 										const size_t height,
 										const size_t width,
-										const size_t depth,
 										const float* const x,
 										const float* const y,
 										const size_t numPoints){
@@ -86,16 +80,12 @@ __global__ void NearNeighKernel(const float* const imageIn,
 
 	//check image boundries
 	if((xF < 0) || (yF < 0) || (xF >= width) || (yF >= height)){
-		for(int j = 0; j < depth; j++){
-			out[i + numPoints*j] = 0;
-		}
+		out[i] = 0;
 		return;
 	}
 
 	//nearest neighbour interpolation
-	for(int j = 0; j < depth; j++){
-		out[i + numPoints*j] = imageIn[xF + yF*width + j*height*width];
-	}
+	out[i] = imageIn[xF + yF*width];
 }
 
 __global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints){
@@ -174,7 +164,7 @@ __global__ void CameraTransformKernel(const float* const tform,
 	yOut[i] = y;
 }
 
-__global__ void SSDKernel(const float* A, const float* B, const size_t length, float* out, float* zeroEl){
+__global__ void SSDKernel(float* const gen, const float* const scan, const size_t length){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -182,19 +172,10 @@ __global__ void SSDKernel(const float* A, const float* B, const size_t length, f
 		return;
 	}
 
-	float temp;
-
 	//ignore zeros
-	if((A[i] == 0) || (B[i] == 0)){
-		temp = 0;
-		zeroEl[i] = 1;
+	if((gen[i] != 0) && (scan[i] != 0)){
+		gen[i] = (gen[i] - scan[i])*(gen[i] - scan[i]);
 	}
-	else{
-		temp = fabs(A[i] - B[i]);
-		zeroEl[i] = 0;
-	}
-
-	out[i] = temp;
 }
 
 __global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut){

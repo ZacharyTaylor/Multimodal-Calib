@@ -45,15 +45,15 @@ void Calib::clearEverything(void){
 	clearTforms();
 }
 
-void Calib::addScan(std::vector<thrust::host_vector<float>> scanLIn, std::vector<thrust::host_vector<float>> scanIIn){
+void Calib::addScan(std::vector<thrust::host_vector<float>>& scanLIn, std::vector<thrust::host_vector<float>>& scanIIn){
 	moveStore.addScan(scanLIn, scanIIn);
 }
 
-void Calib::addImage(thrust::host_vector<float> imageIn, size_t height, size_t width, size_t depth){
+void Calib::addImage(thrust::host_vector<float>& imageIn, size_t height, size_t width, size_t depth){
 	baseStore.addImage(imageIn, height, width, depth);
 }
 
-void Calib::addTform(thrust::host_vector<float> tformIn, size_t tformSizeX, size_t tformSizeY){
+void Calib::addTform(thrust::host_vector<float>& tformIn, size_t tformSizeX, size_t tformSizeY){
 	tformStore.addTforms(tformIn, tformSizeX, tformSizeY);
 }
 
@@ -61,15 +61,15 @@ float Calib::evalMetric(void){
 	return 0;
 }
 
-void Calib::addTformIndices(std::vector<size_t> tformsIdxIn){
+void Calib::addTformIndices(std::vector<size_t>& tformsIdxIn){
 	tformIdx.insert(tformIdx.end(), tformsIdxIn.begin(), tformsIdxIn.end());
 }
 
-void Calib::addScanIndices(std::vector<size_t> scansIdxIn){
+void Calib::addScanIndices(std::vector<size_t>& scansIdxIn){
 	scanIdx.insert(scanIdx.end(),scansIdxIn.begin(), scansIdxIn.end());
 }
 
-size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std::vector<float*>> genL, std::vector<std::vector<float*>> genI, size_t startIdx){
+size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx){
 	
 	cudaError_t err = cudaSuccess;
 	size_t i;
@@ -110,13 +110,27 @@ size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std:
 	return i;
 }
 
+void Calib::setSSDMetric(void){
+	metric = SSD();
+}
+
+void Calib::addCameraIndices(std::vector<size_t>& cameraIdxIn){
+	mexErrMsgTxt("Attempted to setup camera for use with non-camera calibration");
+	return;
+}
+
+void Calib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
+	mexErrMsgTxt("Attempted to setup camera for use with non-camera calibration");
+	return;
+}
+
 CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
 
-void CameraCalib::addCameraIndices(std::vector<size_t> cameraIdxIn){
+void CameraCalib::addCameraIndices(std::vector<size_t>& cameraIdxIn){
 	cameraIdx.insert(cameraIdx.end(),cameraIdxIn.begin(), cameraIdxIn.end());
 }
 
-void CameraCalib::addCamera(thrust::host_vector<float> cameraIn, boolean panoramic){
+void CameraCalib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
 	cameraStore.addCams(cameraIn, panoramic);
 }
 
@@ -146,17 +160,23 @@ float CameraCalib::evalMetric(void){
 	}
 
 	size_t genLength = 0;
+	float out = 0;
 	for(size_t i = 0; i < moveStore.getNumScans(); i+= (genLength+1)){
 		genLength = allocateGenMem(moveStore, baseStore, genL, genI, i);
+
+		if(genLength == 0){
+			mexErrMsgTxt("Memory allocation for generated scans failed\n");
+		}
 		
 		streams.resize(genLength-i);
 		for(size_t j = 0; j < streams.size(); j++){
 			cudaStreamCreate ( &streams[j]);
 			tformStore.transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
-
+			baseStore.interpolateImage(i+j, moveStore, scanIdx[i+j], genI[j], true, streams[j]);
+			out += metric.evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
 		}
 	}
 
-	return 0;
+	return out;
 }
 

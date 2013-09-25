@@ -73,20 +73,24 @@ DllExport void addCamera(float* cIn, bool panoramic);
 /*! \param index the index of the transform to use for the corrosponding image
 	\param length length of index being added
 */
-DllExport void addTformIndex(unsigned int* index, unsigned int* length);
+DllExport void addTformIndex(unsigned int* index, unsigned int length);
 
 //! Adds index of scan that matches to each image
 /*! \param index the index of the scan to use for the corrosponding image
 	\param length length of index being added
 */
-DllExport void addScanIndex(unsigned int* index, unsigned int* length);
+DllExport void addScanIndex(unsigned int* index, unsigned int length);
 
 //! Adds index of camera that matches to each image
 /*! \param index the index of the camera to use for the corrosponding image
 	\param length length of index being added
 */
-DllExport void addCameraIndex(unsigned int* index, unsigned int* length);
+DllExport void addCameraIndex(unsigned int* index, unsigned int length);
+
+//! Sets up SSD metric
+DllExport void setupSSDMetric(void);
 
 //!Evalutaes and returns metric
 DllExport float evalMetric(void);
+
 #endif //MATLAB_CALLS_H

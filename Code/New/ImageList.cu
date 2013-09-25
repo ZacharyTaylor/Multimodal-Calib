@@ -1,11 +1,13 @@
 #include "ImageList.h"
+#include "ScanList.h"
+#include "Kernels.h"
 
 ImageList::ImageList(void){}
 
 ImageList::~ImageList(void){}
 
 size_t ImageList::getHeight(size_t idx){
-	if(imageD.size() > idx){
+	if(imageD.size() <= idx){
 		std::ostringstream err; err << "Cannot get height of element " << idx << " as only " << imageD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
 		return 0;
@@ -15,7 +17,7 @@ size_t ImageList::getHeight(size_t idx){
 }
 	
 size_t ImageList::getWidth(size_t idx){
-	if(imageD.size() > idx){
+	if(imageD.size() <= idx){
 		std::ostringstream err; err << "Cannot get width of element " << idx << " as only " << imageD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
 		return 0;
@@ -25,7 +27,7 @@ size_t ImageList::getWidth(size_t idx){
 }
 
 size_t ImageList::getDepth(size_t idx){
-	if(imageD.size() > idx){
+	if(imageD.size() <= idx){
 		std::ostringstream err; err << "Cannot get depth of element " << idx << " as only " << imageD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
 		return 0;
@@ -38,16 +40,21 @@ size_t ImageList::getNumImages(void){
 	return imageD.size();
 }
 	
-float* ImageList::getIP(size_t idx){
-	if(imageD.size() > idx){
+float* ImageList::getIP(size_t idx, size_t depthIdx){
+	if(imageD.size() <= idx){
 		std::ostringstream err; err << "Cannot get pointer to element " << idx << " as only " << imageD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
 		return NULL;
 	}
-	return thrust::raw_pointer_cast(&imageD[idx].image[0]);
+	if(imageD[idx].depth <= depthIdx){
+		std::ostringstream err; err << "Cannot get depth " << depthIdx << " as " << imageD[idx].depth << " is the images maximum depth";
+		mexErrMsgTxt(err.str().c_str());
+		return NULL;
+	}
+	return thrust::raw_pointer_cast(&imageD[idx].image[depthIdx*imageD[idx].height*imageD[idx].width]);
 }
 
-void ImageList::addImage(thrust::device_vector<float> imageDIn, size_t height, size_t width, size_t depth){
+void ImageList::addImage(thrust::device_vector<float>& imageDIn, size_t height, size_t width, size_t depth){
 	image input;
 	imageD.push_back(input);
 	imageD.back().depth = depth;
@@ -57,7 +64,7 @@ void ImageList::addImage(thrust::device_vector<float> imageDIn, size_t height, s
 }
 
 
-void ImageList::addImage(thrust::host_vector<float> imageDIn, size_t height, size_t width, size_t depth){
+void ImageList::addImage(thrust::host_vector<float>& imageDIn, size_t height, size_t width, size_t depth){
 	image input;
 	imageD.push_back(input);
 	imageD.back().depth = depth;
@@ -67,7 +74,7 @@ void ImageList::addImage(thrust::host_vector<float> imageDIn, size_t height, siz
 }
 
 void ImageList::removeImage(size_t idx){
-	if(imageD.size() > idx){
+	if(imageD.size() <= idx){
 		std::ostringstream err; err << "Cannot erase element " << idx << " as only " << imageD.size() << " elements exist";
 		mexErrMsgTxt(err.str().c_str());
 		return;
@@ -82,3 +89,29 @@ void ImageList::removeLastImage(){
 void ImageList::removeAllImages(){
 	imageD.clear();
 };
+
+void ImageList::interpolateImage(size_t imageIdx, ScanList scan, size_t scanIdx, std::vector<float*>& interVals, boolean linear, cudaStream_t stream){
+	
+	for(size_t i = 0; i < getDepth(imageIdx); i++){
+		if(linear){
+			LinearInterpolateKernel<<<gridSize(scan.getNumPoints(scanIdx)), BLOCK_SIZE, 0, stream>>>(
+				getIP(imageIdx, i),
+				scan.getIP(scanIdx,i),
+				getHeight(imageIdx),
+				getWidth(imageIdx),
+				scan.getLP(scanIdx,0),
+				scan.getLP(scanIdx,1),
+				scan.getNumPoints(scanIdx));
+		}
+		else{
+			NearNeighKernel<<<gridSize(scan.getNumPoints(scanIdx)), BLOCK_SIZE, 0, stream>>>(
+				getIP(imageIdx, i),
+				scan.getIP(scanIdx,i),
+				getHeight(imageIdx),
+				getWidth(imageIdx),
+				scan.getLP(scanIdx,0),
+				scan.getLP(scanIdx,1),
+				scan.getNumPoints(scanIdx));
+		}
+	}
+}

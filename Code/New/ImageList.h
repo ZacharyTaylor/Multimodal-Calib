@@ -2,6 +2,7 @@
 #define IMAGELIST_H
 
 #include "common.h"
+#include "ScanList.h"
 
 //! holds the sensors images
 class ImageList {
@@ -52,21 +53,21 @@ public:
 	//! Gets the pointer of the image data array
 	/*! /param idx index of image
 	*/
-	float* getIP(size_t idx);
+	float* getIP(size_t idx, size_t depthIdx);
 
 	//! Adds an image to the list
 	/*! \param imageDIn input image data
 		\param height height of image
 		\param width width of image
 	*/
-	void addImage(thrust::device_vector<float> imageDIn, size_t height, size_t width, size_t depth);
+	void addImage(thrust::device_vector<float>& imageDIn, size_t height, size_t width, size_t depth);
 
 	//! Adds an image to the list
 	/*! \param imageDIn input image data
 		\param height height of image
 		\param width width of image
 	*/
-	void addImage(thrust::host_vector<float> imageDIn, size_t height, size_t width, size_t depth);
+	void addImage(thrust::host_vector<float>& imageDIn, size_t height, size_t width, size_t depth);
 
 	//! Removes an image from the list
 	/*! \param idx index of image to remove
@@ -78,6 +79,14 @@ public:
 
 	//! Removes all of the images in the list
 	void removeAllImages();
+
+	//! Interpolates specified image at given locations
+	/*! \param imageIdx the index of the image
+		\param scan the scan providing the locations to use in interpolating the image
+		\param scanIdx the index of the scan to use
+		\param linear true for linear interpolation, false for nearset neighbour
+	*/
+	void interpolateImage(size_t imageIdx, ScanList scan, size_t scanIdx, std::vector<float*>& interVals, boolean linear, cudaStream_t stream);
 };
 
 #endif //IMAGELIST_H

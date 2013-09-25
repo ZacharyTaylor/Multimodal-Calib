@@ -26,9 +26,9 @@ private:
 
 public:
 	//! Adds new camera matrices
-	void addCams(thrust::device_vector<float> camDIn, boolean panoramic);
+	void addCams(thrust::device_vector<float>& camDIn, boolean panoramic);
 	//! Adds new camera matrices
-	void addCams(thrust::host_vector<float> camDIn, boolean panoramic);
+	void addCams(thrust::host_vector<float>& camDIn, boolean panoramic);
 	//! Clears all the cameras from memory
 	void removeAllCameras(void);
 	//! Get a pointer to a camera matrix
