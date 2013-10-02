@@ -43,17 +43,20 @@ function f=alignPoints(base, move, pairs, tform)
                 sfigure(FIG.fig);
 
                 b = OutputImage(width, height,pairs(i,2)-1,2);
-                b = b(:,:,1);
-                b(b ~=0) = histeq(b(b~=0));
-                b = uint8(255*b);
+%                 b = b(:,:,1);
+%                 b(b ~=0) = histeq(b(b~=0));
+%                 b = uint8(255*b);
+% 
+%                 comb = uint8(zeros([height width 3]));
+%                 comb(:,:,1) = base{pairs(i,1)}.v;
+%                 comb(:,:,2) = b;
+                
 
-                comb = uint8(zeros([height width 3]));
-                comb(:,:,1) = base{pairs(i,1)}.v;
-                comb(:,:,2) = b;
-
-                subplot(3,1,1); imshow(b);
-                subplot(3,1,2); imshow(base{pairs(i,1)}.v);
-                subplot(3,1,3); imshow(comb);
+                %subplot(3,1,1); 
+                %imshow(b);
+                imsave(imshow(b));
+                %subplot(3,1,2); imshow(base{pairs(i,1)}.v);
+                %subplot(3,1,3); imshow(comb);
 
                 drawnow
                 fprintf('current transform:\n     metric = %1.3f\n     translation = [%1.2f, %1.2f, %1.2f]\n     rotation = [%1.2f, %1.2f, %1.2f]\n\n',...

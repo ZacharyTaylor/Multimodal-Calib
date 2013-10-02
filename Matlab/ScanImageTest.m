@@ -19,7 +19,7 @@ FIG.countMax = 0;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -82 -2 132 770];
+tform = [0 0 0 -95 0 -15 500];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -33,7 +33,7 @@ pairs = [1 1];
 metric = 'MI';
 
 %if camera panoramic
-panoramic = 1;
+panoramic = 0;
 
 %% setup transforms and images
 SetupCamera(panoramic);

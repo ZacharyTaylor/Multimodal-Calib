@@ -30,7 +30,7 @@ range(4:6) = pi.*range(4:6)./180;
 
 %inital guess of parameters (x, y ,z, rX, rY, rZ) (rotate then translate,
 %rotation order ZYX)
-tform = [0 0 0 -90 0 180 770];
+tform = [0 0 0 -90 0 175 770];
 tform(4:6) = pi.*tform(4:6)./180;
 
 %number of images
@@ -44,7 +44,7 @@ pairs = [1 1];
 metric = 'GOM';
 
 %feature to use (return, distance, normals)
-feature = 'normals';
+feature = 'return';
 
 %if camera panoramic
 panoramic = 1;

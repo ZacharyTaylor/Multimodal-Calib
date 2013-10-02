@@ -19,11 +19,11 @@ base = getImagesC(1, false);
 
 %get transform
 tform = cell(1,1);
-tform{1} = eye(4);
+tform{1} = [0.092061 0.15907 -0.3949 -1.549 -0.036013 3.0793];
 
 %get camera
 cam = cell(1,1);
-cam{1} = zeros(3,4);
+cam{1} = [750, size(base{1}.v,2),size(base{1}.v,1)];
 
 %% Transfer to GPU
 %load scans

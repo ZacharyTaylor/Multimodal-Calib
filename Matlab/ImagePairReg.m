@@ -25,7 +25,7 @@ param.options = psooptimset('PopulationSize', 200,...
 FIG.countMax = 1000;
 
 %range to search over (x, y, r, sx, sy, kx, ky)
-range = [30 30 10 0.2 0.2 0.05 0.05];
+range = [30 30 0 0 0 0 0];
 
 %inital guess of parameters (x, y, r, sx, sy, kx, ky)
 tform = [0 0 0 1 1 0 0];
@@ -38,10 +38,10 @@ numBase = 1;
 pairs = [1 1];
 
 %number of times to run
-numTrials = 10;
+numTrials = 1;
 
 %metric to use
-metric = 'MI';
+metric = 'GOM';
 
 %% setup transform and images
 SetupAffineTform();
@@ -83,22 +83,29 @@ tformTotal = zeros(numTrials,size(tform,2));
 tformIn = zeros(numTrials,size(tform,2));
 fTotal = zeros(numTrials,1);
 
-for i = 1:numTrials
-    
-    tformIn(i,:) = tform + (2*rand(size(tform,1), size(tform,2)) - 1).*range;
-    tformRun = tformIn(i,:);
-    
-    [tformOut, fOut]=pso(@(tformRun) alignImages(base, move, pairs, tformRun), 7,[],[],[],[],param.lower,param.upper,[],param.options);
-
-    tformTotal(i,:) = tformOut;
-    fTotal(i) = fOut;
+i = 0;
+val = zeros(101,1);
+for x = -0.5:0.01:0.5
+    i = i+1;
+        val(i) = alignImages(base, move, pairs, [0,x*320,0,1,1,0,0]);
 end
+plot(val(:,1));
+% for i = 1:numTrials
+%     
+%     tformIn(i,:) = tform + (2*rand(size(tform,1), size(tform,2)) - 1).*range;
+%     tformRun = tformIn(i,:);
+%     
+%     [tformOut, fOut]=pso(@(tformRun) alignImages(base, move, pairs, tformRun), 7,[],[],[],[],param.lower,param.upper,[],param.options);
+% 
+%     tformTotal(i,:) = tformOut;
+%     fTotal(i) = fOut;
+% end
 
-tform = sum(tformTotal,1) / numTrials;
-f = sum(fTotal) / numTrials;
-
- fprintf('Final transform:\n     metric = %1.3f\n     translation = [%3.0f, %3.0f]\n     rotation = %1.2f\n     scale = [%1.2f,%1.2f]\n     shear = [%0.3f, %0.3f]\n\n',...
-            f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6),tform(7));
+% tform = sum(tformTotal,1) / numTrials;
+% f = sum(fTotal) / numTrials;
+% 
+%  fprintf('Final transform:\n     metric = %1.3f\n     translation = [%3.0f, %3.0f]\n     rotation = %1.2f\n     scale = [%1.2f,%1.2f]\n     shear = [%0.3f, %0.3f]\n\n',...
+%             f,tform(1),tform(2),tform(3),tform(4),tform(5),tform(6),tform(7));
 
 %% cleanup
 ClearLibrary;
