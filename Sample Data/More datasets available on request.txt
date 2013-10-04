@@ -1,0 +1,4 @@
+We have several scans of the ACFR with corresponding images available on request.
+The images are taken using hyperspectral cameras and so 300+ light frequencies between 400 and 2000 nm are available in addition to the standard RGB bands.
+
+Email z.taylor@acfr.usyd.edu.au with your request.
