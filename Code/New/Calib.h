@@ -19,7 +19,7 @@ protected:
 
 	Tforms tformStore;
 
-	Metric metric;
+	Metric* metric;
 
 	//! index of transform to use on image
 	std::vector<size_t> tformIdx;
@@ -61,6 +61,8 @@ public:
 
 	//! Sets the metric to use SSD for evaluation
 	void setSSDMetric(void);
+	//! Sets the metric to use GOM for evaluation
+	void setGOMMetric(void);
 
 	//! Calculates the metrics value for the given data
 	virtual float evalMetric(void);
@@ -84,6 +86,8 @@ public:
 	void addCameraIndices(std::vector<size_t>& cameraIdxIn);
 	//! Adds a camera onto the end of stored cameras
 	void addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic);
+	
+	void addTform(thrust::host_vector<float>& tformIn);
 	//! Calculates the metrics value for the given data
 	float evalMetric(void);
 };

@@ -40,7 +40,7 @@ __global__ void CameraTransformKernel(const float* tform, const float* cam, cons
 
 __global__ void SSDKernel(float* const gen, const float* const scan, const size_t length);
 
-__global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut);
+__global__ void GOMKernel(float* const genMag, float* const genPhase, const float* const mag, const float* const phase, const size_t length);
 
 __global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out);
 

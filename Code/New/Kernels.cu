@@ -59,6 +59,11 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 		(1-yD)*xD*imageIn[xF+1 + yF*width] + 
 		yD*(1-xD)*imageIn[xF + (yF+1)*width] +
 		yD*xD*imageIn[xF+1 + (yF+1)*width];
+
+	//keep numbers finite
+	if(!isfinite(out[i])){
+		out[i] = 0;
+	}
 }
 
 __global__ void NearNeighKernel(const float* const imageIn,
@@ -86,6 +91,11 @@ __global__ void NearNeighKernel(const float* const imageIn,
 
 	//nearest neighbour interpolation
 	out[i] = imageIn[xF + yF*width];
+
+	//keep numbers finite
+	if(!isfinite(out[i])){
+		out[i] = 0;
+	}
 }
 
 __global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints){
@@ -176,34 +186,31 @@ __global__ void SSDKernel(float* const gen, const float* const scan, const size_
 	if((gen[i] != 0) && (scan[i] != 0)){
 		gen[i] = (gen[i] - scan[i])*(gen[i] - scan[i]);
 	}
+	else{
+		gen[i] = 0;
+	}
 }
 
-__global__ void GOMKernel(const float* A, const float* B, const size_t length, float* phaseOut, float* magOut){
+__global__ void GOMKernel(float* const genMag, float* const genPhase, const float* const mag, const float* const phase, const size_t length){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= length){
 		return;
 	}
-
-	const float* magA = &A[0];
-	const float* magB = &B[0];
-	const float* phaseA = &A[length];
-	const float* phaseB = &B[length];
 	
-	//float phase = abs(magA[i]-magB[i]);
-	float phase = PI*abs(phaseA[i] - phaseB[i])/180;
+	float phaseOut = PI*abs(genPhase[i] - phase[i])/180;
 
-    phase = (cos(2*phase)+1)/2;
-	float mag = magA[i]*magB[i];
+    phaseOut = (cos(2*phaseOut)+1)/2;
+	float magOut = genMag[i]*mag[i];
 
 	//ignore zeros
-	if((phaseA[i] == 0) || (phaseB[i] == 0)){
-		mag = 0;
+	if((phase[i] == 0) || (genPhase[i] == 0)){
+		magOut = 0;
 	}
 
-    phaseOut[i] =  mag*phase;
-	magOut[i] = mag;
+    genPhase[i] =  magOut*phaseOut;
+	genMag[i] = magOut;
 }
 
 __global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out){

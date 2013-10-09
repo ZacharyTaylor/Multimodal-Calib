@@ -75,7 +75,7 @@ DllExport void addTform(float* tformIn, unsigned int tformSizeX, unsigned int tf
 	thrust::host_vector<float> tIn;
 	tIn.assign(tformIn, tformIn + (tformSizeX*tformSizeY));
 
-	calibStore->addTform(tIn, tformSizeX, tformSizeY);
+	((CameraCalib*)calibStore)->addTform(tIn);
 }
 
 DllExport void addCamera(float* camIn, bool panoramic){ 
@@ -107,6 +107,10 @@ DllExport void addCameraIndex(unsigned int* indexIn, unsigned int length){
 
 DllExport void setupSSDMetric(void){
 	calibStore->setSSDMetric();
+}
+
+DllExport void setupGOMMetric(void){
+	calibStore->setGOMMetric();
 }
 
 DllExport float evalMetric(void){

@@ -1,4 +1,4 @@
-function [ mag, phase ] = get2DGradient( in, tform )
+function [ mag, phase ] = Get2DGradient( in, tform )
 %GETGRADIENT Calculates an estimate of the gradients at each point
 
 cloud = in(:,1:3);
@@ -6,7 +6,12 @@ cloud(:,4) = 1;
 
 %transform points
 tform = double(tform);   
-tformMat = CreateTformMat(tform);
+
+tformMat = angle2dcm(tform(6), tform(5), tform(4));
+tformMat(4,4) = 1;
+tformMat(1,4) = tform(1);
+tformMat(2,4) = tform(2);
+tformMat(3,4) = tform(3);
 
 vals = in(:,4);
 cloud = (tformMat*(cloud'))';

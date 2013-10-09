@@ -90,6 +90,9 @@ DllExport void addCameraIndex(unsigned int* index, unsigned int length);
 //! Sets up SSD metric
 DllExport void setupSSDMetric(void);
 
+//! Sets up GOM metric
+DllExport void setupGOMMetric(void);
+
 //!Evalutaes and returns metric
 DllExport float evalMetric(void);
 

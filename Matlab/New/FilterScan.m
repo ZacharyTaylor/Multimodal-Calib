@@ -1,4 +1,4 @@
-function [ out ] = filterScan( scan, metric, tform)
+function [ out ] = FilterScan( scan, metric, tform)
 %FILTERSCAN filters scan ready for use with metric
 
 if(strcmp(metric,'MI'))
@@ -6,7 +6,7 @@ if(strcmp(metric,'MI'))
 elseif(strcmp(metric,'GOM'))   
     out = single(scan);
     
-    [mag, phase ] = get2DGradient(out,tform);
+    [mag, phase ] = Get2DGradient(out,tform);
     mag = mag - min(mag(:));
     mag = mag / max(mag(:));
 
@@ -14,6 +14,8 @@ elseif(strcmp(metric,'GOM'))
 elseif(strcmp(metric,'LIV'))
     out = single(scan);
     out = livLidar(out);
+elseif(strcmp(metric,'SSD'))
+    out = single(scan);
 else
     error('Invalid metric type');
 end

@@ -1,5 +1,6 @@
 #include "Metrics.h"
 #include "Kernels.h"
+#include "reduction.h"
 
 float Metric::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
 	mexErrMsgTxt("No metric has been specified");
@@ -49,65 +50,33 @@ float SSD::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 	CudaCheckError();
 
 	//perform reduction
-	return thrust::reduce(&gen[0][0], &gen[0][scan.getNumPoints(index)-1], 0.0f);
+	float temp = reduceEasy(gen[0], scan.getNumPoints(index));
+	temp = sqrt(temp);
+
+	return temp;
 }
-/*
+
 GOM::GOM(){};
 
-void GOM::evalMetric(std::vector<float*> A, std::vector< thrust::device_vector<float>> B, cudaStream_t stream){
+float GOM::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
 	
-	*value = 0;
-
-	//check scans exist
-	if(A == NULL || B == NULL){
-		TRACE_ERROR("Two scans are required for the metric to operate");
-		return;
+	if((gen.size() != 2) || (scan.getNumCh(index) != 2)){
+		mexErrMsgTxt("GOM metric can only accept a two intensity channels (mag and angle)");
 	}
-
-	if(A->getNumCh() != GOM_DEPTH){
-		TRACE_ERROR("GOM requires two channels (mag, phase) to operate and Scan A has %i", A->getNumCh());
-		return;
-	}
-	if(B->getNumCh() != GOM_DEPTH){
-		TRACE_ERROR("GOM requires two channels (mag, phase) to operate and Scan B has %i", B->getNumCh());
-		return;
-	}
-
-	size_t numElements;
-	//check scans of same size
-	if(A->getNumPoints() != B->getNumPoints()){
-		numElements = (A->getNumPoints() > B->getNumPoints()) ? B->getNumPoints() : A->getNumPoints();
-		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getNumPoints(),B->getNumPoints(),numElements);
-	}
-	else{
-		numElements = A->getNumPoints();
-	}
-
-	float* phaseOut;
-	float* magOut;
-	CudaSafeCall(cudaMalloc(&phaseOut, sizeof(float)*numElements));
-	CudaSafeCall(cudaMalloc(&magOut, sizeof(float)*numElements));
-    
-	GOMKernel<<<gridSize(numElements), BLOCK_SIZE, 0, *stream>>>
-		((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, phaseOut, magOut);
+   
+	GOMKernel<<<gridSize(scan.getNumPoints(index)), BLOCK_SIZE, 0, stream>>>
+		(gen[0],gen[1],scan.getIP(index,0),scan.getIP(index,1), scan.getNumPoints(index));
 	CudaCheckError();
-
-	//perform reduction
-	int numThreads = 512;
-	int numBlocks = ceil(((float)numElements)/((float)numThreads));
 	
-	float phaseRes = reduceEasy(phaseOut, numElements);
-	CudaSafeCall(cudaFree(phaseOut));
+	float phase = reduceEasy(gen[0], scan.getNumPoints(index));
+	float mag = reduceEasy(gen[1], scan.getNumPoints(index));
 	
-	float magRes = reduceEasy(magOut, numElements);
-	CudaSafeCall(cudaFree(magOut));
+	float out = (phase / mag);
 	
-	float out = (phaseRes / magRes);
-	
-	*value = out;
+	return out;
 }
 
-LIV::LIV(float* avImg, size_t width, size_t height){
+/*LIV::LIV(float* avImg, size_t width, size_t height){
 	avImg_ = new PointsList(avImg, (width*height), true);
 }
 

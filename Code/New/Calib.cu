@@ -111,7 +111,11 @@ size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std:
 }
 
 void Calib::setSSDMetric(void){
-	metric = SSD();
+	metric = new SSD();
+}
+
+void Calib::setGOMMetric(void){
+	metric = new GOM();
 }
 
 void Calib::addCameraIndices(std::vector<size_t>& cameraIdxIn){
@@ -125,6 +129,10 @@ void Calib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
 }
 
 CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
+
+void CameraCalib::addTform(thrust::host_vector<float>& tformIn){
+	tformStore.addTforms(tformIn);
+}
 
 void CameraCalib::addCameraIndices(std::vector<size_t>& cameraIdxIn){
 	cameraIdx.insert(cameraIdx.end(),cameraIdxIn.begin(), cameraIdxIn.end());
@@ -172,8 +180,11 @@ float CameraCalib::evalMetric(void){
 		for(size_t j = 0; j < streams.size(); j++){
 			cudaStreamCreate ( &streams[j]);
 			tformStore.transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
+			cudaDeviceSynchronize();
 			baseStore.interpolateImage(i+j, moveStore, scanIdx[i+j], genI[j], true, streams[j]);
-			out += metric.evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
+			cudaDeviceSynchronize();
+			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
+			cudaDeviceSynchronize();
 		}
 	}
 
