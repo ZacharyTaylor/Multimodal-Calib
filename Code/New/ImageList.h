@@ -82,11 +82,13 @@ public:
 
 	//! Interpolates specified image at given locations
 	/*! \param imageIdx the index of the image
-		\param scan the scan providing the locations to use in interpolating the image
 		\param scanIdx the index of the scan to use
+		\param interLocs locations to use in interpolation
+		\param interVals location to store interpolated result
+		\param numPoints number of points to interpolate
 		\param linear true for linear interpolation, false for nearset neighbour
 	*/
-	void interpolateImage(size_t imageIdx, ScanList scan, size_t scanIdx, std::vector<float*>& interVals, boolean linear, cudaStream_t stream);
+	void ImageList::interpolateImage(size_t imageIdx, size_t scanIdx, std::vector<float*>& interLocs, std::vector<float*>& interVals, size_t numPoints, boolean linear, cudaStream_t stream);
 };
 
 #endif //IMAGELIST_H

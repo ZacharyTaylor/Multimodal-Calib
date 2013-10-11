@@ -20,17 +20,16 @@
 	#endif
 #endif
 
-//! Gets the number of moving scans
-DllExport unsigned int getNumMove(void);
-//! Gets the number of base scans
-DllExport unsigned int getNumBase(void);
-
 //! Clears the memory allocated for the scans
 DllExport void clearScans(void);
+//! Clears the memory allocated for the images
+DllExport void clearImages(void);
 //! Clears the memory allocated for transforms
-DllExport void clearTform(void);
+DllExport void clearTforms(void);
 //! Clears the memory allocated for extra parameters of inherited classes
 DllExport void clearExtras(void);
+//! Clears indices
+DllExport void clearIndices(void);
 //! Clears everything
 DllExport void clearEverything(void);
 

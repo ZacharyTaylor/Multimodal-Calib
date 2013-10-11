@@ -45,9 +45,12 @@ float SSD::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 	if((gen.size() != 1) || (scan.getNumCh(index) != 1)){
 		mexErrMsgTxt("SSD metric can only accept a single intensity channel");
 	}
+
 	SSDKernel<<<gridSize(scan.getNumPoints(index)), BLOCK_SIZE, 0, stream>>>
 		(gen[0], scan.getIP(index,0), scan.getNumPoints(index));
 	CudaCheckError();
+
+	cudaDeviceSynchronize();
 
 	//perform reduction
 	float temp = reduceEasy(gen[0], scan.getNumPoints(index));
@@ -68,10 +71,12 @@ float GOM::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 		(gen[0],gen[1],scan.getIP(index,0),scan.getIP(index,1), scan.getNumPoints(index));
 	CudaCheckError();
 	
+	cudaDeviceSynchronize();
+
 	float phase = reduceEasy(gen[0], scan.getNumPoints(index));
 	float mag = reduceEasy(gen[1], scan.getNumPoints(index));
 	
-	float out = (phase / mag);
+	float out = (phase / (2*mag));
 	
 	return out;
 }

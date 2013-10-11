@@ -34,6 +34,12 @@ DllExport void clearEverything(void){
 	calibStore = NULL;
 }
 
+DllExport void clearIndices(void){
+	if(calibStore){
+		calibStore->clearIndices();
+	}
+}
+
 DllExport void initalizeCamera(void){
 	if(calibStore){
 		delete calibStore;

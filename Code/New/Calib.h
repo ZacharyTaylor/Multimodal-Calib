@@ -38,10 +38,10 @@ public:
 	void clearImages(void);
 	//! Clears all the transforms
 	void clearTforms(void);
+	//! Clear indicies
+	virtual void clearIndices(void);
 	//! Clears any extra parts that may be setup by derived classes
-	void clearExtras(void);
-	//! Clears all the scans, images transforms etc
-	void clearEverything(void);
+	virtual void clearExtras(void);
 	
 	//! Adds a camera onto the end of stored cameras
 	virtual void addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic);
@@ -82,6 +82,10 @@ public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	CameraCalib(std::string metricType);
 
+	//! Clear indicies
+	void clearIndices(void);
+	//! Clears extras (in this case the camera)
+	void clearExtras(void);
 	//! Adds the cameras indecies relating cameras to images
 	void addCameraIndices(std::vector<size_t>& cameraIdxIn);
 	//! Adds a camera onto the end of stored cameras

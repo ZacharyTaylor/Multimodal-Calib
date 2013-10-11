@@ -39,10 +39,9 @@ void Calib::clearExtras(void){
 	return;
 }
 
-void Calib::clearEverything(void){
-	clearScans();
-	clearImages();
-	clearTforms();
+void Calib::clearIndices(void){
+	tformIdx.clear();
+	scanIdx.clear();
 }
 
 void Calib::addScan(std::vector<thrust::host_vector<float>>& scanLIn, std::vector<thrust::host_vector<float>>& scanIIn){
@@ -130,6 +129,17 @@ void Calib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
 
 CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
 
+void CameraCalib::clearExtras(void){
+	cameraStore.removeAllCameras();
+	return;
+}
+
+void CameraCalib::clearIndices(void){
+	tformIdx.clear();
+	scanIdx.clear();
+	cameraIdx.clear();
+}
+
 void CameraCalib::addTform(thrust::host_vector<float>& tformIn){
 	tformStore.addTforms(tformIn);
 }
@@ -181,7 +191,7 @@ float CameraCalib::evalMetric(void){
 			cudaStreamCreate ( &streams[j]);
 			tformStore.transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
-			baseStore.interpolateImage(i+j, moveStore, scanIdx[i+j], genI[j], true, streams[j]);
+			baseStore.interpolateImage(i+j, scanIdx[i+j], genL[j], genI[j], moveStore.getNumPoints(i+j), true, streams[j]);
 			cudaDeviceSynchronize();
 			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
