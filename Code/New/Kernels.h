@@ -32,7 +32,7 @@ __global__ void NearNeighKernel(const float* const imageIn,
 										const float* const y,
 										const size_t numPoints);
 
-__global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate);
+__global__ void generateOutputKernel(float* x, float* y, float* vals, float* out, size_t width, size_t height, size_t numPoints, size_t dilate);
 
 __global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints);
 

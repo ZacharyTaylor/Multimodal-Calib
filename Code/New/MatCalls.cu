@@ -122,3 +122,24 @@ DllExport void setupGOMMetric(void){
 DllExport float evalMetric(void){
 	return calibStore->evalMetric();
 }
+
+DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){
+if(gen == NULL){
+TRACE_ERROR("A generated image is required");
+return 0;
+}
+if(moveNum >= numMove){
+TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
+return 0;
+}
+
+SparseScan* move = moveStore[moveNum];
+
+if(move == NULL){
+TRACE_ERROR("A moving image is required");
+return 0;
+}
+
+render.GetImage(move->getPoints(), gen->GetLocation(), move->getNumPoints(), width, height, move->getNumCh(), dilate);
+return render.out_;
+}

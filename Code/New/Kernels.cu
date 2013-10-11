@@ -3,7 +3,7 @@
 #define CAM_TFORM_SIZE 16
 #define CAM_MAT_SIZE 12
 
-__global__ void generateOutputKernel(float* locs, float* vals, float* out, size_t width, size_t height, size_t depth, size_t numPoints, size_t dilate){
+__global__ void generateOutputKernel(float* x, float* y, float* vals, float* out, size_t width, size_t height, size_t numPoints, size_t dilate){
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
@@ -11,8 +11,8 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 	}
 
 	int2 loc;
-	loc.x = floor(locs[i]+0.5f);
-	loc.y = floor(locs[i + numPoints]+0.5f);
+	loc.x = floor(x[i]+0.5f);
+	loc.y = floor(y[i]+0.5f);
 
 	for(int dx = (-((int)dilate)+1); dx < ((int)dilate); dx++){
 		for(int dy = (-((int)dilate)+1); dy < ((int)dilate); dy++){
@@ -21,8 +21,8 @@ __global__ void generateOutputKernel(float* locs, float* vals, float* out, size_
 				(0 <= (loc.y + dy)) && ((loc.y + dy) < height));
 
 			if (inside){
-				for(size_t j = 0; j < depth; j++){
-					out[(loc.x + dx) + width*(loc.y + dy) + j*width*height] = vals[i + j*numPoints];
+				if(!out[(loc.x + dx) + width*(loc.y + dy)]){
+					out[(loc.x + dx) + width*(loc.y + dy)] = vals[i];
 				}
 			}
 		}
