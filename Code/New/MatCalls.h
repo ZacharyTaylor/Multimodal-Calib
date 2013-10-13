@@ -95,4 +95,13 @@ DllExport void setupGOMMetric(void);
 //!Evalutaes and returns metric
 DllExport float evalMetric(void);
 
+//! Outputs the current image of the stored scan
+/*! \param image image to output
+	\param width width of the image
+	\param height height of the image
+	\param moveNum the index of the scan to use
+	\param dilate number of pixels to dilate each point by
+*/
+DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate);
+
 #endif //MATLAB_CALLS_H

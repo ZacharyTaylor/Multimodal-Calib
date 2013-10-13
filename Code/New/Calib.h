@@ -68,7 +68,7 @@ public:
 	virtual float evalMetric(void);
 	
 	//! Outputs a render of the current alignment
-	thrust::host_vector<float> getRender(size_t imageIdx);
+	virtual void generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
 };
 
 class CameraCalib: public Calib {
@@ -94,6 +94,9 @@ public:
 	void addTform(thrust::host_vector<float>& tformIn);
 	//! Calculates the metrics value for the given data
 	float evalMetric(void);
+
+	//! Outputs a render of the current alignment
+	void generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
 };
 
 #endif CALIB_H

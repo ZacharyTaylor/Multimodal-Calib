@@ -127,6 +127,10 @@ void Calib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
 	return;
 }
 
+void Calib::generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
+	return;
+}
+
 CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
 
 void CameraCalib::clearExtras(void){
@@ -199,5 +203,63 @@ float CameraCalib::evalMetric(void){
 	}
 
 	return out;
+}
+
+void CameraCalib::generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
+
+	std::vector<float*> genL;
+	std::vector<float*> genI;
+
+	genL.resize(IMAGE_DIM);
+	for(size_t j = 0; j < IMAGE_DIM; j++){
+		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
+		if(currentErr != cudaSuccess){
+			mexErrMsgTxt("Memory allocation error when generating image");
+			break;
+		}
+	}
+	if(imageColour){
+		genI.resize(baseStore.getDepth(idx));
+		for(size_t j = 0; j < baseStore.getDepth(idx); j++){
+			cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
+			if(currentErr != cudaSuccess){
+				mexErrMsgTxt("Memory allocation error when generating image");
+				break;
+			}
+		}
+	}
+
+	cudaStream_t stream;
+	cudaStreamCreate(&stream);
+	tformStore.transform(moveStore, genL, cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], stream);
+	cudaDeviceSynchronize();
+
+	if(imageColour){
+		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
+			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
+				genL[0],
+				genL[1],
+				moveStore.getIP(scanIdx[idx],i),
+				&image[width*height*i],
+				width,
+				height,
+				moveStore.getNumPoints(scanIdx[idx]),
+				dilate);
+		}
+	}
+	else{
+		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
+			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
+				genL[0],
+				genL[1],
+				genI[i],
+				&image[width*height*i],
+				width,
+				height,
+				moveStore.getNumPoints(scanIdx[idx]),
+				dilate);
+		}
+	}
+
 }
 

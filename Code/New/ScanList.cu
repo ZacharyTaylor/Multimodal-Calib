@@ -152,22 +152,3 @@ void ScanList::removeAllScans(){
 	scanL.clear();
 	scanI.clear();
 }
-
-void ScanList::generateImage(thrust::device_vector<float>& out, size_t idx, size_t width, size_t height, size_t dilate){
-		
-	out.resize(width*height*this->getNumCh(idx));
-
-	for(size_t i = 0; i < this->getNumCh(idx); i++){
-		generateOutputKernel<<<gridSize(this->getNumPoints(idx)) ,BLOCK_SIZE>>>(
-			this->getLP(idx,0),
-			this->getLP(idx,1),
-			this->getIP(idx,i),
-			thrust::raw_pointer_cast(&out[width*height*i]),
-			width,
-			height,
-			this->getNumPoints(idx),
-			dilate);
-	}
-
-	CudaCheckError();
-}

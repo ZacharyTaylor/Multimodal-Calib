@@ -73,9 +73,6 @@ public:
 
 	//! Removes all of the scans in the list
 	void removeAllScans();
-
-	void generateImage(thrust::device_vector<float>& out, size_t idx, size_t width, size_t height, size_t dilate);
-
 };
 
 #endif //SCANLIST_H

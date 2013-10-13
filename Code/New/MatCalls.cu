@@ -123,7 +123,7 @@ DllExport float evalMetric(void){
 	return calibStore->evalMetric();
 }
 
-DllExport float* outputImage(unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){
+DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){
 if(gen == NULL){
 TRACE_ERROR("A generated image is required");
 return 0;
