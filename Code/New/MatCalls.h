@@ -108,6 +108,6 @@ DllExport float evalMetric(void);
 	\param dilate number of pixels to dilate each point by
 	\param imageColour false to colour using scan intensities, true to colour using image intensities
 */
-DllExport float* outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour);
+DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour);
 
 #endif //MATLAB_CALLS_H

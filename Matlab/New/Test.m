@@ -19,13 +19,13 @@ tform = [0.092061 0.15907 -0.3949 -1.549 -0.036013 3.0793];
 baseTform = tform;
 
 %get camera
-cam = [750, size(base{1}.v,2),size(base{1}.v,1)];
+cam = [750, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
 
 Setup(metric, move, base, tform, cam, false, baseTform);
 
 %% Evaluate metric
 %val = EvalMetric();
-image = GenerateImage( 1000, 1000, 0, 3, false);
+image = GenerateImage( 1500, 1000, 0, 3, true);
 
 imshow(image);
 

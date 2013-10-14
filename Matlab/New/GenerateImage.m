@@ -13,12 +13,15 @@ else
     depth = calllib('LibCal','getNumCh',scanIdx);
 end
 
-image = single(zeros(width,height,depth));
+imagePtr = libpointer('singlePtr',single(zeros(height,width,depth)));
 
-imagePtr = calllib('LibCal','outputImage',image, width, height, scanIdx, dilate, imageColour);
+calllib('LibCal','outputImage',imagePtr, width, height, scanIdx, dilate, imageColour);
 
-setdatatype(imagePtr,'singlePtr',width,height*depth);
-out = get(imagePtr);
+image = get(imagePtr,'value');
+
+image = image - min(image(:));
+image = image/max(image(:));
+image(image ~= 0) = histeq(image(image ~= 0));
 
 end
 

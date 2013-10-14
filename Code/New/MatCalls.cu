@@ -140,15 +140,10 @@ DllExport float evalMetric(void){
 	return calibStore->evalMetric();
 }
 
-DllExport float* outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour){
+DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour){
 	if(calibStore){
 		thrust::device_vector<float> devImage;
 		calibStore->generateImage(devImage, width, height, dilate, moveNum, imageColour);
-
-		thrust::host_vector<float> test;
-		test = devImage;
-		//thrust::copy(devImage.begin(), devImage.end(), image);
+		thrust::copy(devImage.begin(), devImage.end(), image);
 	}
-	image[0] = 1;
-	return image;
 }

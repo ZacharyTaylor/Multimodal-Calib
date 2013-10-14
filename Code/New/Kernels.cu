@@ -26,8 +26,8 @@ __global__ void generateOutputKernel(float* x, float* y, float* vals, float* out
 				(0 <= (loc.y + dy)) && ((loc.y + dy) < height));
 
 			if (inside){
-				if(!out[(loc.x + dx) + width*(loc.y + dy)]){
-					out[(loc.x + dx) + width*(loc.y + dy)] = vals[i];
+				if(!out[(loc.y + dy) + height*(loc.x + dx)]){
+					out[(loc.y + dy) + height*(loc.x + dx)] = vals[i];
 				}
 			}
 		}
