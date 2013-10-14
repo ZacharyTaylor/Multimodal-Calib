@@ -69,7 +69,7 @@ float* ScanList::getIP(size_t idx, size_t ch){
 		return NULL;
 	}
 
-	return thrust::raw_pointer_cast(&scanL[idx][ch][0]);
+	return thrust::raw_pointer_cast(&scanI[idx][ch][0]);
 }
 
 void ScanList::addScan(std::vector<thrust::device_vector<float>>& scanLIn, std::vector<thrust::device_vector<float>>& scanIIn){

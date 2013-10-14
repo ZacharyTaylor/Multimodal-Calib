@@ -11,7 +11,6 @@ __global__ void generateOutputKernel(float* x, float* y, float* vals, float* out
 	}
 
 	if((x[i] < 0) || (y[i] < 0)){
-		out[0] = 1;
 		return;
 	}
 
@@ -60,10 +59,10 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 	}
 
 	//linear interpolate
-	out[i] = (1-yD)*(1-xD)*imageIn[xF + yF*width] + 
-		(1-yD)*xD*imageIn[xF+1 + yF*width] + 
-		yD*(1-xD)*imageIn[xF + (yF+1)*width] +
-		yD*xD*imageIn[xF+1 + (yF+1)*width];
+	out[i] = (1-xD)*(1-yD)*imageIn[yF + xF*height] + 
+		(1-xD)*yD*imageIn[yF+1 + xF*height] + 
+		xD*(1-yD)*imageIn[yF + (xF+1)*height] +
+		xD*yD*imageIn[yF+1 + (xF+1)*height];
 
 	//keep numbers finite
 	if(!isfinite(out[i])){
@@ -95,7 +94,7 @@ __global__ void NearNeighKernel(const float* const imageIn,
 	}
 
 	//nearest neighbour interpolation
-	out[i] = imageIn[xF + yF*width];
+	out[i] = imageIn[yF + xF*height];
 
 	//keep numbers finite
 	if(!isfinite(out[i])){
@@ -139,8 +138,6 @@ __global__ void CameraTransformKernel(const float* const tform,
 	if(i >= numPoints){
 		return;
 	}
-
-	unsigned int idx;
 
 	//transform points
 	float x = xIn[i]*tform[0] + yIn[i]*tform[4] + zIn[i]*tform[8] + tform[12];

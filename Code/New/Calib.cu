@@ -64,60 +64,54 @@ size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std:
 	cudaError_t err = cudaSuccess;
 	size_t i;
 
-	genL.resize(images.getNumImages());
-	genI.resize(images.getNumImages());
+	std::vector<float*> temp;
 
 	for(i = startIdx; i < images.getNumImages(); i++){
 
-		genL[i].resize(IMAGE_DIM);
+		temp.resize(IMAGE_DIM);
 		for(size_t j = 0; j < IMAGE_DIM; j++){
-			cudaError_t currentErr = cudaMalloc(&genL[i][j], sizeof(float)*points.getNumPoints(scanIdx[i]));
+			cudaError_t currentErr = cudaMalloc(&temp[j], sizeof(float)*points.getNumPoints(scanIdx[i]));
 			if(currentErr != cudaSuccess){
-				err = cudaErrorMemoryAllocation;
+				for(size_t k = 0; k < j; k++){
+					cudaFree(temp[k]);
+				}
 				break;
 			}
 		}
-		genI[i].resize(images.getDepth(i));
+		genL.push_back(temp);
+
+		temp.resize(images.getDepth(i));
 		for(size_t j = 0; j < images.getDepth(i); j++){
-			cudaError_t currentErr = cudaMalloc(&genI[i][j], sizeof(float)*points.getNumPoints(scanIdx[i]));
+			cudaError_t currentErr = cudaMalloc(&temp[j], sizeof(float)*points.getNumPoints(scanIdx[i]));
 			if(currentErr != cudaSuccess){
-				err = cudaErrorMemoryAllocation;
+				for(size_t k = 0; k < j; k++){
+					cudaFree(temp[k]);
+				}
 				break;
 			}
 		}
-
-		if(err == cudaErrorMemoryAllocation){
-			break;
-		}
+		genI.push_back(temp);
 	}
 
-	if(err == cudaErrorMemoryAllocation){
-		for(i = startIdx; i < images.getNumImages(); i++){
-			for(size_t j = 0; j < IMAGE_DIM; j++){
-				cudaFree(&genL[i][j]);
-			}
-			for(size_t j = 0; j < images.getDepth(i); j++){
-				cudaFree(&genI[i][j]);
-			}
-			break;
-		}
-	}
 
 	return i;
 }
 
-void Calib::clearGenMem(ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx){
+void Calib::clearGenMem(std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx){
 	
 	size_t i;
 
-	for(i = startIdx; i < images.getNumImages(); i++){
-		for(size_t j = 0; j < IMAGE_DIM; j++){
-			cudaFree(&genL[i][j]);
-		}
-		for(size_t j = 0; j < images.getDepth(i); j++){
-			cudaFree(&genI[i][j]);
+	for(i = startIdx; i < genL.size(); i++){
+		for(size_t j = 0; j < genL[i].size(); j++){
+			cudaFree(genL[i][j]);
 		}
 	}
+	for(i = startIdx; i < genI.size(); i++){
+		for(size_t j = 0; j < genI[i].size(); j++){
+			cudaFree(genI[i][j]);
+		}
+	}
+	CudaCheckError();
 }
 
 void Calib::setSSDMetric(void){
@@ -194,9 +188,10 @@ float CameraCalib::evalMetric(void){
 
 	size_t genLength = 0;
 	float out = 0;
+	
 	for(size_t i = 0; i < moveStore.getNumScans(); i+= (genLength+1)){
 		genLength = allocateGenMem(moveStore, baseStore, genL, genI, i);
-
+		
 		if(genLength == 0){
 			mexErrMsgTxt("Memory allocation for generated scans failed\n");
 		}
@@ -211,8 +206,8 @@ float CameraCalib::evalMetric(void){
 			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
 		}
-
-		clearGenMem(baseStore, genL, genI, i);
+		
+		clearGenMem(genL, genI, i);
 	}
 
 	return out;

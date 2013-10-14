@@ -18,20 +18,11 @@ imagePtr = libpointer('singlePtr',single(zeros(height,width,depth)));
 calllib('LibCal','outputImage',imagePtr, width, height, scanIdx, dilate, imageColour);
 
 image = get(imagePtr,'value');
-image = reshape(image,height,width,depth);
+image = reshape(image,
 
-for i = 1:depth
-    temp = image(:,:,i);
-    temp = temp - min(temp(:));
-    temp = temp/max(temp(:));
-    temp(temp ~= 0) = histeq(temp(temp ~= 0));
-    
-    image(:,:,i) = temp;
-end
-
-if(depth == 2)
-    image(end,end,3) = 0;
-end
+image = image - min(image(:));
+image = image/max(image(:));
+image(image ~= 0) = histeq(image(image ~= 0));
 
 end
 

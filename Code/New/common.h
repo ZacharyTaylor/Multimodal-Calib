@@ -69,11 +69,11 @@ inline void __cudaSafeCall( cudaError err, const char *file, const int line )
 inline void __cudaCheckError( const char *file, const int line )
 {
 #ifdef CUDA_ERROR_CHECK
-	cudaError err = cudaGetLastError();
-	if ( cudaSuccess != err ){
-		printf("CUDA Kernel Error at %s:%i : %s\n",
-		file, line, cudaGetErrorString( err ) );
-		//cudaDeviceReset();
+	cudaError errCuda = cudaGetLastError();
+	if ( cudaSuccess != errCuda ){
+		std::ostringstream err; err << "CUDA Kernel Error at " << file << ":" << line << " : " << cudaGetErrorString(errCuda);
+		mexErrMsgTxt(err.str().c_str());
+		cudaDeviceReset();
 	}
  
 	// More careful checking. However, this will affect performance.
