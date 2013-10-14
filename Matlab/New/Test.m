@@ -5,7 +5,7 @@ numMove = 1;
 %number of base images
 numBase = 1;
 %metric to use
-metric = 'GOM';
+metric = 'SSD';
 
 %% Setup
 
@@ -24,7 +24,10 @@ cam = [750, size(base{1}.v,2),size(base{1}.v,1)];
 Setup(metric, move, base, tform, cam, false, baseTform);
 
 %% Evaluate metric
-val = EvalMetric();
+%val = EvalMetric();
+image = GenerateImage( 1000, 1000, 0, 3, false);
+
+imshow(image);
 
 %% Clean up
 ClearEverything();

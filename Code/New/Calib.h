@@ -27,10 +27,16 @@ protected:
 	std::vector<size_t> scanIdx;
 
 	size_t allocateGenMem(ScanList points, ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx);
+	void Calib::clearGenMem(ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx);
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	Calib(std::string metricType);
+
+	//! Gets the base image depth
+	size_t getImageDepth(size_t idx);
+	//! Gets the number of channels in a moving scan
+	size_t getNumCh(size_t idx);
 
 	//! Clears all the scans, excluding generated ones
 	void clearScans(void);
@@ -68,7 +74,7 @@ public:
 	virtual float evalMetric(void);
 	
 	//! Outputs a render of the current alignment
-	virtual void generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	virtual void Calib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
 };
 
 class CameraCalib: public Calib {
@@ -96,7 +102,7 @@ public:
 	float evalMetric(void);
 
 	//! Outputs a render of the current alignment
-	void generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
 };
 
 #endif CALIB_H

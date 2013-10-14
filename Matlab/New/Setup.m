@@ -21,17 +21,22 @@ if(nargin > 2)
 end
 
 %convert to cells
+temp = cell(1,1);
 if(~iscell(move))
-    move{1} = move;
+    temp{1} = move;
+    move = temp;
 end
 if(~iscell(base))
-    base{1} = base;
+    temp{1} = base;
+    base = temp;
 end
 if(~iscell(tform))
-    tform{1} = tform;
+    temp{1} = tform;
+    tform = temp;
 end
 if(exist('cam','var') && ~iscell(cam))
-    cam{1} = cam;
+    temp{1} = cam;
+    cam = temp;
 end
 
 %check sizes

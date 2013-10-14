@@ -10,6 +10,11 @@ __global__ void generateOutputKernel(float* x, float* y, float* vals, float* out
 		return;
 	}
 
+	if((x[i] < 0) || (y[i] < 0)){
+		out[0] = 1;
+		return;
+	}
+
 	int2 loc;
 	loc.x = floor(x[i]+0.5f);
 	loc.y = floor(y[i]+0.5f);
@@ -49,7 +54,7 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 	float yD = y[i] - (float)yF;
 
 	//check image boundries
-	if((xF < 0) || (yF < 0) || (xF >= width) || (yF >= height)){
+	if((xF < 0) || (yF < 0) || (xF >= (width-1)) || (yF >= (height-1))){
 		out[i] = 0;
 		return;
 	}

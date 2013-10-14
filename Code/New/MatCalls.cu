@@ -5,6 +5,23 @@
 //global so that matlab never has to see them
 Calib* calibStore = NULL;
 
+
+DllExport unsigned int getImageDepth(unsigned int idx){
+	if(calibStore){
+		return calibStore->getImageDepth(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
+DllExport unsigned int getNumCh(unsigned int idx){
+	if(calibStore){
+		return calibStore->getNumCh(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
 DllExport void clearScans(void){
 	if(calibStore){
 		calibStore->clearScans();
@@ -123,23 +140,15 @@ DllExport float evalMetric(void){
 	return calibStore->evalMetric();
 }
 
-DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate){
-if(gen == NULL){
-TRACE_ERROR("A generated image is required");
-return 0;
-}
-if(moveNum >= numMove){
-TRACE_ERROR("Cannot get move image %i as only %i images exist",moveNum,numMove);
-return 0;
-}
+DllExport float* outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour){
+	if(calibStore){
+		thrust::device_vector<float> devImage;
+		calibStore->generateImage(devImage, width, height, dilate, moveNum, imageColour);
 
-SparseScan* move = moveStore[moveNum];
-
-if(move == NULL){
-TRACE_ERROR("A moving image is required");
-return 0;
-}
-
-render.GetImage(move->getPoints(), gen->GetLocation(), move->getNumPoints(), width, height, move->getNumCh(), dilate);
-return render.out_;
+		thrust::host_vector<float> test;
+		test = devImage;
+		//thrust::copy(devImage.begin(), devImage.end(), image);
+	}
+	image[0] = 1;
+	return image;
 }

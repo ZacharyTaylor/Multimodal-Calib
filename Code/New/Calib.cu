@@ -4,23 +4,14 @@
 
 Calib::Calib(std::string metricType){
 	checkForCUDA();
-	/*
-	std::transform(metricType.begin(), metricType.end(), metricType.begin(), ::tolower);
+}
 
-	if(tformType == "affine"){
-		tformStore = new AffineTforms;
-	}
-	else if(tformType == "camera"){
-		tformStore = new CameraTforms;
-	}
-	else{
-		std::ostringstream err; err << "Error unrecognized tform " << tformType << ". Options are affine or camera, defaulting to camera";
-		tformStore = new CameraTforms;
-	}
+size_t Calib::getImageDepth(size_t idx){
+	return baseStore.getDepth(idx);
+}
 
-	moveStore = new ScanList();
-	baseStore = new ImageList();
-	*/
+size_t Calib::getNumCh(size_t idx){
+	return moveStore.getNumCh(idx);
 }
 
 void Calib::clearScans(void){
@@ -96,6 +87,12 @@ size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std:
 		}
 
 		if(err == cudaErrorMemoryAllocation){
+			break;
+		}
+	}
+
+	if(err == cudaErrorMemoryAllocation){
+		for(i = startIdx; i < images.getNumImages(); i++){
 			for(size_t j = 0; j < IMAGE_DIM; j++){
 				cudaFree(&genL[i][j]);
 			}
@@ -107,6 +104,20 @@ size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std:
 	}
 
 	return i;
+}
+
+void Calib::clearGenMem(ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx){
+	
+	size_t i;
+
+	for(i = startIdx; i < images.getNumImages(); i++){
+		for(size_t j = 0; j < IMAGE_DIM; j++){
+			cudaFree(&genL[i][j]);
+		}
+		for(size_t j = 0; j < images.getDepth(i); j++){
+			cudaFree(&genI[i][j]);
+		}
+	}
 }
 
 void Calib::setSSDMetric(void){
@@ -127,7 +138,7 @@ void Calib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
 	return;
 }
 
-void Calib::generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
+void Calib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
 	return;
 }
 
@@ -195,20 +206,29 @@ float CameraCalib::evalMetric(void){
 			cudaStreamCreate ( &streams[j]);
 			tformStore.transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
-			baseStore.interpolateImage(i+j, scanIdx[i+j], genL[j], genI[j], moveStore.getNumPoints(i+j), true, streams[j]);
+			baseStore.interpolateImage(i+j, scanIdx[i+j], genL[j], genI[j], moveStore.getNumPoints(scanIdx[i+j]), true, streams[j]);
 			cudaDeviceSynchronize();
 			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
 		}
+
+		clearGenMem(baseStore, genL, genI, i);
 	}
 
 	return out;
 }
 
-void CameraCalib::generateImage(float* image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
+void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
 
 	std::vector<float*> genL;
 	std::vector<float*> genI;
+
+	if(imageColour){
+		image.resize(baseStore.getDepth(idx)*width*height);
+	}
+	else{
+		image.resize(moveStore.getNumCh(scanIdx[idx])*width*height);
+	}
 
 	genL.resize(IMAGE_DIM);
 	for(size_t j = 0; j < IMAGE_DIM; j++){
@@ -235,12 +255,16 @@ void CameraCalib::generateImage(float* image, size_t width, size_t height, size_
 	cudaDeviceSynchronize();
 
 	if(imageColour){
+		baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
+		cudaDeviceSynchronize();
+
 		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
+			
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
 				genL[0],
 				genL[1],
-				moveStore.getIP(scanIdx[idx],i),
-				&image[width*height*i],
+				genI[i],
+				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
 				height,
 				moveStore.getNumPoints(scanIdx[idx]),
@@ -248,16 +272,26 @@ void CameraCalib::generateImage(float* image, size_t width, size_t height, size_
 		}
 	}
 	else{
-		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
+		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[idx]); i++){
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
 				genL[0],
 				genL[1],
-				genI[i],
-				&image[width*height*i],
+				moveStore.getIP(scanIdx[idx],i),
+				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
 				height,
 				moveStore.getNumPoints(scanIdx[idx]),
 				dilate);
+		}
+	}
+
+	for(size_t j = 0; j < IMAGE_DIM; j++){
+		cudaFree(&genL[j]);
+	}
+	if(imageColour){
+		genI.resize(baseStore.getDepth(idx));
+		for(size_t j = 0; j < baseStore.getDepth(idx); j++){
+			cudaFree(&genI[j]);
 		}
 	}
 

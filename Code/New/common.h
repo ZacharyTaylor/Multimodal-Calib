@@ -73,17 +73,17 @@ inline void __cudaCheckError( const char *file, const int line )
 	if ( cudaSuccess != err ){
 		printf("CUDA Kernel Error at %s:%i : %s\n",
 		file, line, cudaGetErrorString( err ) );
-		cudaDeviceReset();
+		//cudaDeviceReset();
 	}
  
 	// More careful checking. However, this will affect performance.
 	// Comment away if needed.
-	err = cudaDeviceSynchronize();
+	/*err = cudaDeviceSynchronize();
 	if( cudaSuccess != err ){
 		printf("CUDA Kernel Error with sync failed at %s:%i : %s\n",
 		file, line, cudaGetErrorString( err ) );
 		cudaDeviceReset();
-	}
+	}*/
 #endif
  
 return;

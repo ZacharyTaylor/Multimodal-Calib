@@ -20,6 +20,11 @@
 	#endif
 #endif
 
+//! Gets the base image depth
+DllExport unsigned int getImageDepth(unsigned int idx);
+//! Gets the number of channels in a moving scan
+DllExport unsigned int getNumCh(unsigned int idx);
+
 //! Clears the memory allocated for the scans
 DllExport void clearScans(void);
 //! Clears the memory allocated for the images
@@ -101,7 +106,8 @@ DllExport float evalMetric(void);
 	\param height height of the image
 	\param moveNum the index of the scan to use
 	\param dilate number of pixels to dilate each point by
+	\param imageColour false to colour using scan intensities, true to colour using image intensities
 */
-DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate);
+DllExport float* outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour);
 
 #endif //MATLAB_CALLS_H
