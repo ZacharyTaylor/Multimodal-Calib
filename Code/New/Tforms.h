@@ -25,7 +25,7 @@ protected:
 
 	} tform;
 
-	//! Vector storing camera matrices
+	//! Vector storing transform matrices
 	std::vector<tform> tformD;
 
 public:

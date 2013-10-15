@@ -22,6 +22,31 @@ DllExport unsigned int getNumCh(unsigned int idx){
 	return NULL;
 }
 
+DllExport unsigned int getNumImages(void){
+	if(calibStore){
+		return calibStore->getNumImages();
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
+DllExport unsigned int getImageWidth(unsigned int idx){
+	if(calibStore){
+		return calibStore->getImageWidth(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
+DllExport unsigned int getImageHeight(unsigned int idx){
+	if(calibStore){
+		return calibStore->getImageHeight(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
+
 DllExport void clearScans(void){
 	if(calibStore){
 		calibStore->clearScans();

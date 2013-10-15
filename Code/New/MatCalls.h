@@ -24,6 +24,12 @@
 DllExport unsigned int getImageDepth(unsigned int idx);
 //! Gets the number of channels in a moving scan
 DllExport unsigned int getNumCh(unsigned int idx);
+//! Gets the number of images
+DllExport unsigned int getNumImages(void);
+//! Gets the width of an image
+DllExport unsigned int getImageWidth(unsigned int idx);
+//! Gets the height of an image
+DllExport unsigned int getImageHeight(unsigned int idx);
 
 //! Clears the memory allocated for the scans
 DllExport void clearScans(void);

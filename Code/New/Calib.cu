@@ -14,6 +14,18 @@ size_t Calib::getNumCh(size_t idx){
 	return moveStore.getNumCh(idx);
 }
 
+size_t Calib::getNumImages(void){
+	return baseStore.getNumImages();
+}
+
+size_t Calib::getImageWidth(size_t idx){
+	return baseStore.getWidth(idx);
+}
+
+size_t Calib::getImageHeight(size_t idx){
+	return baseStore.getHeight(idx);
+}
+
 void Calib::clearScans(void){
 	moveStore.removeAllScans();
 }
@@ -246,6 +258,7 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 
 	cudaStream_t stream;
 	cudaStreamCreate(&stream);
+	
 	tformStore.transform(moveStore, genL, cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], stream);
 	cudaDeviceSynchronize();
 
@@ -280,15 +293,14 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 		}
 	}
 
-	for(size_t j = 0; j < IMAGE_DIM; j++){
-		cudaFree(&genL[j]);
+	for(size_t j = 0; j < genL.size(); j++){
+		cudaFree(genL[j]);
 	}
 	if(imageColour){
-		genI.resize(baseStore.getDepth(idx));
-		for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-			cudaFree(&genI[j]);
+		for(size_t j = 0; j < genI.size(); j++){
+			cudaFree(genI[j]);
 		}
 	}
-
+	CudaCheckError();
 }
 

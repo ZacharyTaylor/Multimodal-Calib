@@ -37,6 +37,12 @@ public:
 	size_t getImageDepth(size_t idx);
 	//! Gets the number of channels in a moving scan
 	size_t getNumCh(size_t idx);
+	//! Gets the number of images
+	size_t getNumImages(void);
+	//! Gets the width of an image
+	size_t getImageWidth(size_t idx);
+	//! Gets the height of an image
+	size_t getImageHeight(size_t idx);
 
 	//! Clears all the scans, excluding generated ones
 	void clearScans(void);
