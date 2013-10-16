@@ -5,9 +5,9 @@ numMove = 1;
 %number of base images
 numBase = 1;
 %metric to use
-metric = 'GOM';
+metric = 'SSD';
 
-range = [0.5 0.5 0.5 0.3 0.3 0.3];
+range = [0.5 0.5 0.5 0.05 0.05 0.05];
 updatePeriod = 1;
 dilate = 2;
 
@@ -26,7 +26,7 @@ initalGuess = tform;
 %get camera
 cam = [750, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
 
-Setup(metric, move, base, tform, cam, false, baseTform);
+Setup(metric, move, base, tform, cam, true, baseTform);
 
 %% Evaluate metric and Optimize
 Optimize( initalGuess, range, updatePeriod, dilate )

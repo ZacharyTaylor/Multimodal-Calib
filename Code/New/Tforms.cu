@@ -52,7 +52,7 @@ size_t Tforms::getTformSize(size_t idx){
 	return (tformD[idx].tformSizeX * tformD[idx].tformSizeY);
 }
 
-void Tforms::transform(ScanList scansIn, std::vector<float*> locOut, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){}
+void Tforms::transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){};
 
 void CameraTforms::addTforms(thrust::device_vector<float> tformDIn){
 	if(tformDIn.size() != 16){

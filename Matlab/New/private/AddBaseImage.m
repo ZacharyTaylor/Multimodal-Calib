@@ -8,11 +8,6 @@ depth = size(image,3);
 
 image = single(image);
 
-imIn = single(zeros([size(image,2),size(image,1),size(image,3)]));
-for i = 1:size(image,3)
-    imIn(:,:,i) = image(:,:,i)';
-end
-
 calllib('LibCal','addBaseImage',image, height, width, depth);
 
 end

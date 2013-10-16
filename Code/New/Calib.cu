@@ -35,7 +35,7 @@ void Calib::clearImages(void){
 }
 
 void Calib::clearTforms(void){
-	tformStore.removeAllTforms();
+	return;
 }
 
 void Calib::clearExtras(void){
@@ -55,8 +55,12 @@ void Calib::addImage(thrust::host_vector<float>& imageIn, size_t height, size_t 
 	baseStore.addImage(imageIn, height, width, depth);
 }
 
-void Calib::addTform(thrust::host_vector<float>& tformIn, size_t tformSizeX, size_t tformSizeY){
+/*void Calib::addTform(thrust::host_vector<float>& tformIn, size_t tformSizeX, size_t tformSizeY){
 	tformStore.addTforms(tformIn, tformSizeX, tformSizeY);
+}*/
+
+void Calib::addTform(thrust::host_vector<float>& tformIn){
+	return;
 }
 
 float Calib::evalMetric(void){
@@ -150,6 +154,10 @@ void Calib::generateImage(thrust::device_vector<float>& image, size_t width, siz
 
 CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
 
+void CameraCalib::clearTforms(void){
+	tformStore.removeAllTforms();
+}
+
 void CameraCalib::clearExtras(void){
 	cameraStore.removeAllCameras();
 	return;
@@ -200,6 +208,11 @@ float CameraCalib::evalMetric(void){
 
 	size_t genLength = 0;
 	float out = 0;
+
+	//cudaEvent_t start, stop;
+	//float time;
+	//cudaEventCreate(&start);
+	//cudaEventCreate(&stop);
 	
 	for(size_t i = 0; i < moveStore.getNumScans(); i+= (genLength+1)){
 		genLength = allocateGenMem(moveStore, baseStore, genL, genI, i);
@@ -210,13 +223,24 @@ float CameraCalib::evalMetric(void){
 		
 		streams.resize(genLength-i);
 		for(size_t j = 0; j < streams.size(); j++){
+				//cudaEventRecord(start, 0);
 			cudaStreamCreate ( &streams[j]);
+				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for streams: %f ms\n", time);
+
+				//cudaEventRecord(start, 0);
 			tformStore.transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
+				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
+
+				//cudaEventRecord(start, 0);
 			baseStore.interpolateImage(i+j, scanIdx[i+j], genL[j], genI[j], moveStore.getNumPoints(scanIdx[i+j]), true, streams[j]);
 			cudaDeviceSynchronize();
+				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
+
+				//cudaEventRecord(start, 0);
 			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
 			cudaDeviceSynchronize();
+				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
 		}
 		
 		clearGenMem(genL, genI, i);

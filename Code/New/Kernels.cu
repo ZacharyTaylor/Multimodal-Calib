@@ -59,10 +59,10 @@ __global__ void LinearInterpolateKernel(const float* const imageIn,
 	}
 
 	//linear interpolate
-	out[i] = (1-xD)*(1-yD)*imageIn[yF + xF*height] + 
-		(1-xD)*yD*imageIn[yF+1 + xF*height] + 
-		xD*(1-yD)*imageIn[yF + (xF+1)*height] +
-		xD*yD*imageIn[yF+1 + (xF+1)*height];
+	out[i] = (1-yD)*(1-xD)*imageIn[yF + xF*height] + 
+		(1-yD)*xD*imageIn[yF + (xF+1)*height] + 
+		yD*(1-xD)*imageIn[yF+1 + xF*height] +
+		yD*xD*imageIn[yF+1 + (xF+1)*height];
 
 	//keep numbers finite
 	if(!isfinite(out[i])){
@@ -203,7 +203,7 @@ __global__ void GOMKernel(float* const genMag, float* const genPhase, const floa
 	
 	float phaseOut = PI*abs(genPhase[i] - phase[i])/180;
 
-    phaseOut = (cos(2*phaseOut)+1)/2;
+    phaseOut = cos(2*phaseOut)+1;
 	float magOut = genMag[i]*mag[i];
 
 	//ignore zeros

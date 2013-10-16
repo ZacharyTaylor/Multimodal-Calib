@@ -14,7 +14,7 @@ end
 width = calllib('LibCal','getImageWidth', scanIdx);
 height = calllib('LibCal','getImageHeight', scanIdx);
 
-imagePtr = libpointer('singlePtr',single(zeros(height,width,depth)));
+imagePtr = libpointer('singlePtr',single(zeros(width,height,depth)));
 
 calllib('LibCal','outputImage',imagePtr, width, height, scanIdx, dilate, imageColour);
 
@@ -25,10 +25,12 @@ for i = 1:depth
     temp = image(:,:,i);
     temp = temp - min(temp(:));
     temp = temp/max(temp(:));
-    temp(temp ~= 0) = histeq(temp(temp ~= 0));
+    %temp(temp ~= 0) = histeq(temp(temp ~= 0));
     
     image(:,:,i) = temp;
 end
+
+
 
 if(depth == 2)
     image(end,end,3) = 0;

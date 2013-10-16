@@ -17,8 +17,6 @@ protected:
 	ScanList moveStore;
 	ImageList baseStore;
 
-	Tforms tformStore;
-
 	Metric* metric;
 
 	//! index of transform to use on image
@@ -49,7 +47,7 @@ public:
 	//! Clears all the images
 	void clearImages(void);
 	//! Clears all the transforms
-	void clearTforms(void);
+	virtual void clearTforms(void);
 	//! Clear indicies
 	virtual void clearIndices(void);
 	//! Clears any extra parts that may be setup by derived classes
@@ -62,7 +60,7 @@ public:
 	//! Adds image onto end of stored images
 	void addImage(thrust::host_vector<float>& imageIn, size_t height, size_t width, size_t depth);
 	//! Adds transform onto end of stored transforms
-	void addTform(thrust::host_vector<float>& tformIn, size_t tformSizeX, size_t tformSizeY);
+	virtual void addTform(thrust::host_vector<float>& tformIn);
 
 	//! Adds the cameras indecies relating cameras to images
 	virtual void addCameraIndices(std::vector<size_t>& cameraIdxIn);
@@ -83,6 +81,7 @@ public:
 	virtual void Calib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
 };
 
+
 class CameraCalib: public Calib {
 protected:
 	CameraTforms tformStore;
@@ -94,6 +93,8 @@ public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	CameraCalib(std::string metricType);
 
+	//! Clears all the transforms
+	void clearTforms(void);
 	//! Clear indicies
 	void clearIndices(void);
 	//! Clears extras (in this case the camera)
