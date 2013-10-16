@@ -109,7 +109,31 @@ public:
 	float evalMetric(void);
 
 	//! Outputs a render of the current alignment
-	void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	void generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+};
+
+class ImageCalib: public Calib {
+protected:
+	AffineTforms tformStore;
+	Cameras noCamera;
+
+public:
+	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
+	ImageCalib(std::string metricType);
+
+	//! Clears all the transforms
+	void clearTforms(void);
+	//! Clear indicies
+	void clearIndices(void);
+	//! Clears extras (in this case the camera)
+	void clearExtras(void);
+	
+	void addTform(thrust::host_vector<float>& tformIn);
+	//! Calculates the metrics value for the given data
+	float evalMetric(void);
+
+	//! Outputs a render of the current alignment
+	void generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
 };
 
 #endif CALIB_H

@@ -34,7 +34,7 @@ __global__ void NearNeighKernel(const float* const imageIn,
 
 __global__ void generateOutputKernel(float* x, float* y, float* vals, float* out, size_t width, size_t height, size_t numPoints, size_t dilate);
 
-__global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints);
+__global__ void AffineTransformKernel(const float* tform, const float* xIn, const float* yIn, const size_t numPoints, float* xOut, float* yOut);
 
 __global__ void CameraTransformKernel(const float* tform, const float* cam, const float* pointsIn, float* pointsOut, const size_t numPoints, const bool panoramic);
 

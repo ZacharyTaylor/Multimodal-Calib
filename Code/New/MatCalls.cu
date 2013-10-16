@@ -89,6 +89,13 @@ DllExport void initalizeCamera(void){
 	calibStore = new CameraCalib("test");
 }
 
+DllExport void initalizeImage(void){
+	if(calibStore){
+		delete calibStore;
+	}
+	calibStore = new ImageCalib("test");
+}
+
 DllExport void addMovingScan(float* moveLIn, float* moveIIn, unsigned int length, unsigned int numDim, unsigned int numCh){ 
 
 	//copys data (slow and memory inefficient, but easy and memory safe)

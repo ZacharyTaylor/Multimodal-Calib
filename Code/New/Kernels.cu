@@ -102,7 +102,7 @@ __global__ void NearNeighKernel(const float* const imageIn,
 	}
 }
 
-__global__ void AffineTransformKernel(const float* tform, const float* pointsIn, float* pointsOut, const size_t numPoints){
+__global__ void AffineTransformKernel(const float* tform, const float* xIn, const float* yIn, const size_t numPoints, float* xOut, float* yOut){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -110,16 +110,9 @@ __global__ void AffineTransformKernel(const float* tform, const float* pointsIn,
 		return;
 	}
 
-	//make it a bit clearer which are x and y points
-	const float xIn = pointsIn[i];
-	const float yIn = pointsIn[i + numPoints];
-
 	//transform points
-	float xOut = xIn*tform[0] + yIn*tform[3] + tform[6];
-	float yOut = xIn*tform[1] + yIn*tform[4] + tform[7];
-
-	pointsOut[i] = xOut;
-	pointsOut[i + numPoints] = yOut;
+	xOut[i] = xIn[i]*tform[0] + yIn[i]*tform[3] + tform[6];
+	yOut[i] = xIn[i]*tform[1] + yIn[i]*tform[4] + tform[7];
 
 }
 

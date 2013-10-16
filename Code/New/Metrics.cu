@@ -73,12 +73,12 @@ float GOM::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 	
 	cudaDeviceSynchronize();
 
-	float phase = reduceEasy(gen[0], scan.getNumPoints(index));
-	float mag = reduceEasy(gen[1], scan.getNumPoints(index));
+	float phase = reduceEasy(gen[1], scan.getNumPoints(index));
+	float mag = reduceEasy(gen[0], scan.getNumPoints(index));
 	
 	float out = (phase / (2*mag));
 	
-	return out;
+	return -out;
 }
 
 /*LIV::LIV(float* avImg, size_t width, size_t height){

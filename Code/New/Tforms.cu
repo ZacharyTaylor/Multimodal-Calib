@@ -112,6 +112,14 @@ void AffineTforms::addTforms(thrust::device_vector<float> tformDIn){
 	tformD.back().tformSizeY = 3;
 }
 
-void AffineTforms::transform(ScanList in, std::vector<float*>& out, cudaStream_t stream){
+void AffineTforms::transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream){
+	AffineTransformKernel<<<gridSize(scansIn.getNumPoints(scanIdx)), BLOCK_SIZE, 0, stream>>>(
+		getTformP(tformIdx),
+		scansIn.getLP(scanIdx,0),
+		scansIn.getLP(scanIdx,1),
+		scansIn.getNumPoints(scanIdx),
+		locOut[0],
+		locOut[1]);
 
+	CudaCheckError();
 }

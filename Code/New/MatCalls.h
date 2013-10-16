@@ -47,6 +47,9 @@ DllExport void clearEverything(void);
 //! Sets up things ready to perform camera calibration
 DllExport void initalizeCamera(void);
 
+//! Sets up things ready to perform image calibration
+DllExport void initalizeImage(void);
+
 //! Adds a moving scan ready for calibration
 /*! \param moveLIn array holding location of points, treated as an array of size (length,numDim) given in column major order
 	\param moveIIn array holding intensity of points, treated as an array of size (length,numCh) given in colum major order
