@@ -1,7 +1,7 @@
 function [ out ] = FilterImage( image, metric )
 %FILTERIMAGE filters image ready for use with metric
 
-if(strcmp(metric,'MI'))
+if(strcmp(metric,'NMI'))
     image.v = histeq(image.v);
     out = single(image.v)/255;
 elseif(strcmp(metric,'GOM'))

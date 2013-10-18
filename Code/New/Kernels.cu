@@ -196,7 +196,7 @@ __global__ void GOMKernel(float* const genMag, float* const genPhase, const floa
 	
 	float phaseOut = PI*abs(genPhase[i] - phase[i])/180;
 
-    phaseOut = cos(2*phaseOut)+1;
+    phaseOut = (cos(2*phaseOut)+1)/2;
 	float magOut = genMag[i]*mag[i];
 
 	//ignore zeros

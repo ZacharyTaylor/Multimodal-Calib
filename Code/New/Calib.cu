@@ -6,6 +6,18 @@ Calib::Calib(std::string metricType){
 	checkForCUDA();
 }
 
+bool Calib::getIfPanoramic(size_t idx){
+	return NULL;
+}
+
+size_t Calib::getNumPoints(size_t idx){
+	return moveStore.getNumPoints(idx);
+}
+
+size_t Calib::getNumDim(size_t idx){
+	return moveStore.getNumDim(idx);
+}
+
 size_t Calib::getImageDepth(size_t idx){
 	return baseStore.getDepth(idx);
 }
@@ -138,6 +150,11 @@ void Calib::setGOMMetric(void){
 	metric = new GOM();
 }
 
+void Calib::setNMIMetric(void){
+	metric = new MI(50);
+}
+
+
 void Calib::addCameraIndices(std::vector<size_t>& cameraIdxIn){
 	mexErrMsgTxt("Attempted to setup camera for use with non-camera calibration");
 	return;
@@ -152,7 +169,15 @@ void Calib::generateImage(thrust::device_vector<float>& image, size_t width, siz
 	return;
 }
 
+void Calib::colourScan(float* scan, size_t idx){
+	return;
+}
+
 CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
+
+bool CameraCalib::getIfPanoramic(size_t idx){
+	return cameraStore.getPanoramic(idx);
+}
 
 void CameraCalib::clearTforms(void){
 	tformStore.removeAllTforms();
@@ -333,7 +358,60 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 	CudaCheckError();
 }
 
+void CameraCalib::colourScan(float* scan, size_t idx){
+	std::vector<float*> genL;
+	std::vector<float*> genI;
+
+
+	genL.resize(IMAGE_DIM);
+	for(size_t j = 0; j < IMAGE_DIM; j++){
+		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
+		if(currentErr != cudaSuccess){
+			mexErrMsgTxt("Memory allocation error when generating image");
+			break;
+		}
+	}
+	genI.resize(baseStore.getDepth(idx));
+	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
+		cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
+		if(currentErr != cudaSuccess){
+			mexErrMsgTxt("Memory allocation error when generating image");
+			break;
+		}
+	}
+
+	cudaStream_t stream;
+	cudaStreamCreate(&stream);
+	
+	tformStore.transform(moveStore, genL, cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], stream);
+	cudaDeviceSynchronize();
+
+	baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
+	cudaDeviceSynchronize();
+
+	cudaStreamDestroy(stream);
+
+	for(size_t j = 0; j < moveStore.getNumDim(idx); j++){
+		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getLP(idx,j),sizeof(float)*moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+	}
+	for(size_t j = 0; j < genI.size(); j++){
+		cudaMemcpy(&scan[(j+moveStore.getNumDim(idx))*moveStore.getNumPoints(idx)],genI[j],sizeof(float)*moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+	}
+
+	for(size_t j = 0; j < genL.size(); j++){
+		cudaFree(genL[j]);
+	}
+	for(size_t j = 0; j < genI.size(); j++){
+		cudaFree(genI[j]);
+	}
+	CudaCheckError();
+}
+
 ImageCalib::ImageCalib(std::string metricType) : Calib(metricType){}
+
+bool ImageCalib::getIfPanoramic(size_t idx){
+	return NULL;
+}
 
 void ImageCalib::clearTforms(void){
 	tformStore.removeAllTforms();
@@ -500,5 +578,53 @@ void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width
 	CudaCheckError();
 }
 
+void ImageCalib::colourScan(float* scan, size_t idx){
+	std::vector<float*> genL;
+	std::vector<float*> genI;
+
+
+	genL.resize(IMAGE_DIM);
+	for(size_t j = 0; j < IMAGE_DIM; j++){
+		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
+		if(currentErr != cudaSuccess){
+			mexErrMsgTxt("Memory allocation error when generating image");
+			break;
+		}
+	}
+	genI.resize(baseStore.getDepth(idx));
+	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
+		cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
+		if(currentErr != cudaSuccess){
+			mexErrMsgTxt("Memory allocation error when generating image");
+			break;
+		}
+	}
+
+	cudaStream_t stream;
+	cudaStreamCreate(&stream);
+	
+	tformStore.transform(moveStore, genL, noCamera, tformIdx[idx], NULL, scanIdx[idx], stream);
+	cudaDeviceSynchronize();
+
+	baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
+	cudaDeviceSynchronize();
+
+	cudaStreamDestroy(stream);
+
+	for(size_t j = 0; j < moveStore.getNumCh(idx); j++){
+		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getIP(idx,j),moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+	}
+	for(size_t j = 0; j < genI.size(); j++){
+		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],genI[j],moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+	}
+
+	for(size_t j = 0; j < genL.size(); j++){
+		cudaFree(genL[j]);
+	}
+	for(size_t j = 0; j < genI.size(); j++){
+		cudaFree(genI[j]);
+	}
+	CudaCheckError();
+}
 
 

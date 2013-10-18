@@ -20,6 +20,12 @@
 	#endif
 #endif
 
+//! Gets if the camera is panoramic
+DllExport unsigned int getIfPanoramic(unsigned int idx);
+//! Gets number of points in moving scan depth
+DllExport unsigned int getNumPoints(unsigned int idx);
+//! Gets the number of dimensions in a moving scan
+DllExport unsigned int getNumDim(unsigned int idx);
 //! Gets the base image depth
 DllExport unsigned int getImageDepth(unsigned int idx);
 //! Gets the number of channels in a moving scan
@@ -106,6 +112,9 @@ DllExport void setupSSDMetric(void);
 //! Sets up GOM metric
 DllExport void setupGOMMetric(void);
 
+//! Sets up NMI metric
+DllExport void setupNMIMetric(void);
+
 //!Evalutaes and returns metric
 DllExport float evalMetric(void);
 
@@ -118,5 +127,11 @@ DllExport float evalMetric(void);
 	\param imageColour false to colour using scan intensities, true to colour using image intensities
 */
 DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour);
+
+//! Outputs a scan coloured by the corrosponding image
+/*! \param scan scan to ouput to
+	\param moveNum index to use
+*/
+DllExport void colourScan(float* scan, unsigned int moveNum);
 
 #endif //MATLAB_CALLS_H

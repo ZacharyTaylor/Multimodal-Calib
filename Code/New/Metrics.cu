@@ -1,42 +1,31 @@
 #include "Metrics.h"
 #include "Kernels.h"
 #include "reduction.h"
+#include "mi.h"
 
 float Metric::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
 	mexErrMsgTxt("No metric has been specified");
 	return 0;
 }
 
-/*MI::MI(size_t bins):
+MI::MI(size_t bins):
 	bins_(bins){
 }
 
-void MI::evalMetric(std::vector<float*> A, std::vector< thrust::device_vector<float>> B, cudaStream_t stream){
+float MI::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
 	
-	//check scans exist
-	if(A == NULL || B == NULL){
-		TRACE_ERROR("Two scans are required for the metric to operate");
-		*value = 0;
-		return;
+	if((gen.size() != 1) || (scan.getNumCh(index) != 1)){
+		mexErrMsgTxt("MI metric can only accept a single intensity channel");
 	}
 
 	size_t numElements;
-	//check scans of same size
-	if(A->getPoints()->GetNumEntries() != B->getPoints()->GetNumEntries()){
-		numElements = (A->getPoints()->GetNumEntries() > B->getPoints()->GetNumEntries()) ? B->getPoints()->GetNumEntries() : A->getPoints()->GetNumEntries();
-		TRACE_WARNING("Number of entries does not match, Scan A has %i, Scan B has %i, only using %i entries",A->getPoints()->GetNumEntries(),B->getPoints()->GetNumEntries(),numElements);
-	}
-	else{
-		numElements = A->getPoints()->GetNumEntries();
-	}
 
-	//float miOut = 0;
-	float miOut = miRun((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), bins_, numElements, stream);
-	//struct cudaHistOptions *p_opt = 0;
-	//float miOut = cudaMIa((float*)A->getPoints()->GetGpuPointer(), (float*)B->getPoints()->GetGpuPointer(), numElements, MI_BINS, MI_BINS, p_opt, 1, true);
+	float miOut = miRun(gen[0], scan.getIP(index,0), bins_, scan.getNumPoints(index), &stream);
+	CudaCheckError();
+	cudaDeviceSynchronize();
 
-	*value = miOut;
-}*/
+	return -miOut;
+}
 
 SSD::SSD(){};
 
@@ -76,9 +65,10 @@ float GOM::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 	float phase = reduceEasy(gen[1], scan.getNumPoints(index));
 	float mag = reduceEasy(gen[0], scan.getNumPoints(index));
 	
-	float out = (phase / (2*mag));
+	float out = log(sqrt(6/(mag*PI))) - (6*((phase - (mag/2))*(phase - (mag/2)))/mag);
+	((phase/mag) < 0.5) ? out = 1*out : out = -1*out;
 	
-	return -out;
+	return out;
 }
 
 /*LIV::LIV(float* avImg, size_t width, size_t height){

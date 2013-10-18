@@ -5,6 +5,29 @@
 //global so that matlab never has to see them
 Calib* calibStore = NULL;
 
+DllExport unsigned int getIfPanoramic(unsigned int idx){
+	if(calibStore){
+		return calibStore->getIfPanoramic(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
+DllExport unsigned int getNumPoints(unsigned int idx){
+	if(calibStore){
+		return calibStore->getNumPoints(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
+
+DllExport unsigned int getNumDim(unsigned int idx){
+	if(calibStore){
+		return calibStore->getNumDim(idx);
+	}
+	mexErrMsgTxt("Setup not run\n");
+	return NULL;
+}
 
 DllExport unsigned int getImageDepth(unsigned int idx){
 	if(calibStore){
@@ -168,6 +191,10 @@ DllExport void setupGOMMetric(void){
 	calibStore->setGOMMetric();
 }
 
+DllExport void setupNMIMetric(void){
+	calibStore->setNMIMetric();
+}
+
 DllExport float evalMetric(void){
 	return calibStore->evalMetric();
 }
@@ -177,5 +204,11 @@ DllExport void outputImage(float* image, unsigned int width, unsigned int height
 		thrust::device_vector<float> devImage;
 		calibStore->generateImage(devImage, width, height, dilate, moveNum, imageColour);
 		thrust::copy(devImage.begin(), devImage.end(), image);
+	}
+}
+
+DllExport void colourScan(float* scan, unsigned int moveNum){
+	if(calibStore){
+		calibStore->colourScan(scan, moveNum);
 	}
 }

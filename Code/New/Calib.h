@@ -31,6 +31,12 @@ public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	Calib(std::string metricType);
 
+	//! Gets if the camera is panoramic
+	virtual bool getIfPanoramic(size_t idx);
+	//! Gets number of points in moving scan depth
+    size_t getNumPoints(size_t idx);
+    //! Gets the number of dimensions in a moving scan
+	size_t getNumDim(size_t idx);
 	//! Gets the base image depth
 	size_t getImageDepth(size_t idx);
 	//! Gets the number of channels in a moving scan
@@ -73,12 +79,16 @@ public:
 	void setSSDMetric(void);
 	//! Sets the metric to use GOM for evaluation
 	void setGOMMetric(void);
+	//! Sets the metric to use NMI for evaluation
+	void setNMIMetric(void);
 
 	//! Calculates the metrics value for the given data
 	virtual float evalMetric(void);
-	
+
 	//! Outputs a render of the current alignment
-	virtual void Calib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	virtual void generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	//! Outputs scan coloured by corrosponding image
+	virtual void colourScan(float* scan, size_t idx);
 };
 
 
@@ -93,6 +103,8 @@ public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	CameraCalib(std::string metricType);
 
+	//! Gets if the camera is panoramic
+	bool getIfPanoramic(size_t idx);
 	//! Clears all the transforms
 	void clearTforms(void);
 	//! Clear indicies
@@ -110,6 +122,8 @@ public:
 
 	//! Outputs a render of the current alignment
 	void generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	//! Outputs scan coloured by corrosponding image
+	void colourScan(float* scan, size_t idx);
 };
 
 class ImageCalib: public Calib {
@@ -121,6 +135,8 @@ public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	ImageCalib(std::string metricType);
 
+	//! Gets if the camera is panoramic
+	bool getIfPanoramic(size_t idx);
 	//! Clears all the transforms
 	void clearTforms(void);
 	//! Clear indicies
@@ -134,6 +150,8 @@ public:
 
 	//! Outputs a render of the current alignment
 	void generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
+	//! Outputs scan coloured by corrosponding image
+	void colourScan(float* scan, size_t idx);
 };
 
 #endif CALIB_H

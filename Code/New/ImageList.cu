@@ -94,7 +94,7 @@ void ImageList::interpolateImage(size_t imageIdx, size_t scanIdx, std::vector<fl
 	
 	for(size_t i = 0; i < getDepth(imageIdx); i++){
 		if(linear){
-			LinearInterpolateKernel<<<gridSize(numPoints), BLOCK_SIZE, 0, stream>>>(
+			NearNeighKernel<<<gridSize(numPoints), BLOCK_SIZE, 0, stream>>>(
 				getIP(imageIdx, i),
 				interVals[i],
 				getHeight(imageIdx),

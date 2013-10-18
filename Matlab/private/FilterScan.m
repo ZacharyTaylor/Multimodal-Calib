@@ -1,7 +1,7 @@
 function [ out ] = FilterScan( scan, metric, tform)
 %FILTERSCAN filters scan ready for use with metric
 
-if(strcmp(metric,'MI'))
+if(strcmp(metric,'NMI'))
     out = single(scan);
 elseif(strcmp(metric,'GOM'))   
     out = single(scan);
