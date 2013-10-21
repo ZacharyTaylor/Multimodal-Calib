@@ -21,29 +21,17 @@ if(~libisloaded('LibCal'))
         arch = '32';
     end
     
-    if(str(1) == 'P')
+    if(ispc)
         os = 'dll';
     else
         os = 'so';
     end
-    
-    global DEBUG_LEVEL;
-    if(DEBUG_LEVEL == 3)
-        debug = 'I';
-    elseif(DEBUG_LEVEL == 2)
-        debug = 'W';
-    else
-        debug = 'O';
-    end
-    
-    Version = ['Multimodal-Calib-' arch debug '.' os];
+       
+    Version = ['Multimodal-Calib' arch '.' os];
     
     fprintf('Loading multimodal calibration library\n');
     
-    %[notFound, warnings] = loadlibrary([pwd '/../Binaries/' Version],[pwd '/../Code/MatlabCalls.h'],'alias','LibCal');
-    [notFound, warnings] = loadlibrary('C:\Users\ztay8963\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib 2.0\x64\Release\Multimodal-Calib.dll',...
-        'C:\Users\ztay8963\Documents\GitHub\Multimodal-Calib\Code\New\MatCalls.h',...
-        'alias','LibCal');
+    [notFound, warnings] = loadlibrary([pwd '/../Binaries/' Version],[pwd '/../Code/MatCalls.h'],'alias','LibCal');
     
 end
 

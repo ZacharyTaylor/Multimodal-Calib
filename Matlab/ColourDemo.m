@@ -1,5 +1,16 @@
 %% User set parameters
 
+%the transform between the camera and the lidar
+%can be either a 4x4 transform matrix or [x,y,z,rx,ry,rz] (rotations in
+%radians, rotation order rx, ry, rz)
+tform = [0, 0, 0, -pi/2, 0, 3];
+
+%camera intrinsic parameters
+%can be either 3x4 camera matrix or [f, cx, cy] or [fx, fy, cx, fy]
+cam = [760, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
+
+%% Setup
+
 %number of moving scans
 numMove = 1;
 %number of base images
@@ -7,24 +18,14 @@ numBase = 1;
 %metric to use
 metric = 'None';
 
-%% Setup
-
 %get scans and images
 move = getPointClouds(1);
 move{1} = move{1}(:,:);
-move{1} = move{1} - repmat([10455.289,7824.418,681.748 0],size(move{1},1),1);
 base = getImagesC(1, false);
-
-%get transform
-tform = [0 0 0 -83.8 1.8 48];
-tform(4:6) = pi*tform(4:6)/180;
-
-%get camera
-cam = [5340, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
 
 Setup(metric, move, base, tform, cam, true);
 
-%% Evaluate metric and Optimize
+%% Colour and output scan
 scan = ColourScan(0);
 
 dlmwrite('ScanOut.csv',scan,'precision',12 );

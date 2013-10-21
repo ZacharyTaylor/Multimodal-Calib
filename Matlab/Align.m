@@ -17,7 +17,7 @@ AddTform(tform);
 out = EvalMetric();
 
 persistent time;
-persistent fig;
+global fig;
 if(isempty(time))
     time = clock;
 end

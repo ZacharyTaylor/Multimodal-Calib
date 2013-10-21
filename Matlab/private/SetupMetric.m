@@ -1,18 +1,22 @@
 function [] = SetupMetric( metric )
 %SETUPMETRIC Sets up specified metric for use
 
-if(strcmp(metric, 'NMI'))
-    SetupNMIMetric();
+if(strcmp(metric, 'MI'))
+    calllib('LibCal','setupMIMetric');
+elseif(strcmp(metric, 'NMI'))
+    calllib('LibCal','setupNMIMetric');
 elseif(strcmp(metric, 'GOM'))
-    SetupGOMMetric();
+    calllib('LibCal','setupGOMMetric');
+elseif(strcmp(metric, 'GOMS'))
+    calllib('LibCal','setupGOMSMetric');
 elseif(strcmp(metric, 'SSD'))
     SetupSSDMetric();
 elseif(strcmp(metric, 'LIV'))
-    printf('Not written yet\n');   
+    error('Not written yet');   
 elseif(strcmp(metric, 'None'))
     
 else
-    printf('Invalid metric\n');
+    error('Invalid metric');
 end
 
 end

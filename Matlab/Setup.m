@@ -17,7 +17,7 @@ SetupLib();
 
 %% Check, format and filter inputs
 %check for a camera input
-if(nargin > 0)
+if(nargin > 4)
     cam = varargin{1};
 end
     

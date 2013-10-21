@@ -5,11 +5,11 @@ numMove = 1;
 %number of base images
 numBase = 1;
 %metric to use
-metric = 'NMI';
+metric = 'GOMS';
 
-range = [2 2 2 3 3 3 300 0 0];
+range = [3 3 2 4 4 4 300 0 0];
 range(4:6) = pi*range(4:6)/180;
-updatePeriod = 5;
+updatePeriod = 60;
 dilate = 4;
 
 %% Setup
@@ -23,13 +23,12 @@ base = getImagesC(1, false);
 %base{1}.v = imresize(base{1}.v,0.25);
 
 %get transform
-tform = [0 0 0 -83.8 1.8 48];
-tform(4:6) = pi*tform(4:6)/180;
+tform = [ -6.943 -0.445 2.496 -1.454 0.028 0.958];
 
 %move{1} = GetNorms(move{1},tform);
 
 %get camera
-cam = [5340, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
+cam = [5600, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
 
 initalGuess = [tform, cam];
 
