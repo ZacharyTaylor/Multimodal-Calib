@@ -118,20 +118,20 @@ __global__ void AffineTransformKernel(const float* tform, const float* xIn, cons
 
 __global__ void CameraTransformKernel(const float* const tform,
 									  const float* const cam,
-									  const bool const pan,
+									  const bool pan,
 									  const float* const xIn,
 									  const float* const yIn,
 									  const float* const zIn,
 									  const size_t numPoints,
-									  float* const xOut,
-									  float* const yOut){
+									  float* xOut,
+									  float* yOut){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(i >= numPoints){
 		return;
 	}
-
+	
 	//transform points
 	float x = xIn[i]*tform[0] + yIn[i]*tform[4] + zIn[i]*tform[8] + tform[12];
 	float y = xIn[i]*tform[1] + yIn[i]*tform[5] + zIn[i]*tform[9] + tform[13];
@@ -184,6 +184,17 @@ __global__ void SSDKernel(float* const gen, const float* const scan, const size_
 	else{
 		gen[i] = 0;
 	}
+}
+
+__global__ void SetTest(float* gen, const size_t length){
+	
+	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(i >= length){
+		return;
+	}
+
+	gen[i] = 10;
 }
 
 __global__ void GOMKernel(float* const genMag, float* const genPhase, const float* const mag, const float* const phase, const size_t length){

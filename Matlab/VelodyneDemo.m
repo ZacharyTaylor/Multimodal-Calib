@@ -43,16 +43,19 @@ range = [0.5 0.5 0.5 0.1 0.1 0.1];
 %the metrics progress. Updating involves transfering the whole image off
 %the gpu and so for large scans causes a significant slow down (increase
 %value to reduce this issue)
-updatePeriod = 20;
+updatePeriod = 10;
 
 %How much to dialate each point by when generating an image from it (only
 %effects view generated in updates, does not change metric values)
-dilate = 3;
+dilate = 5;
 
 %Number of scans to use in calibration (130 scans in drive 35 set, must 
 %fit in gpu ram. For kitti data need about 10 mb per scan-image
 %pair. I usually find 20 is enough for a good result)
-numScans = 20;
+numScans = 30;
+
+%True for panoramic camera, false otherwise
+panFlag = false;
 
 %Path to Kitti dataset
 kittiPath = 'C:\DataSets\Mobile Sensor Plaforms\KITTI\raw data\drive 35';
@@ -81,7 +84,7 @@ move = ReadKittiVelData( kittiPath, scanIdx);
 
 initalGuess = tform;
 
-Setup(metric, move, base, tform, cam, true);
+Setup(metric, move, base, tform, cam, panFlag);
 
 %% Evaluate metric and Optimize
 Optimize( initalGuess, range, updatePeriod, dilate )

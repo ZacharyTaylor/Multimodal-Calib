@@ -22,7 +22,7 @@ tform = [0, 0, 0, -pi/2, 0, 3];
 
 %camera intrinsic parameters
 %can be either 3x4 camera matrix or [f, cx, cy] or [fx, fy, cx, fy]
-cam = [760, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
+cam = [760, 937, 160];
 
 %range around transform where the true solution lies 
 %can be the following forms
@@ -32,6 +32,9 @@ cam = [760, size(base{1}.v,2)/2,size(base{1}.v,1)/2];
 %[x,y,z,rx,ry,rz,fx,fy,cx,cy] if camera of form [fx,fy,cx,cy]
 %rotations in radians, rotation order rx, ry, rz)
 range = [0.5 0.5 0.5 0.1 0.1 0.1 40 0 0];
+
+%True for panoramic camera, false otherwise
+panFlag = true;
 
 %Sets the update rate in seconds of the output that can be used to evaluate
 %the metrics progress. Updating involves transfering the whole image off
@@ -57,7 +60,7 @@ base = getImagesC(1, false);
 
 initalGuess = [tform, cam];
 
-Setup(metric, move, base, tform, cam, true);
+Setup(metric, move, base, tform, cam, panFlag);
 
 %% Evaluate metric and Optimize
 Optimize( initalGuess, range, updatePeriod, dilate )

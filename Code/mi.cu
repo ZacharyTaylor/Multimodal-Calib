@@ -125,7 +125,7 @@ __global__ void entKernel(const unsigned int* histIn, const unsigned int numElem
 *	imNum - which image in imData will have the mi calculated
 *	Output - the normalized mutual information
 */
-float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize, cudaStream_t* stream){
+float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize, cudaStream_t stream){
 
 	//create histograms
 	unsigned int* histAI;
@@ -150,7 +150,7 @@ float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize,
 	CudaSafeCall(cudaMalloc((void**)&histABF, sizeof(float)*bins*bins));
 
 	//fill main histogram
-	HistKernel<<<gridSize(1024), BLOCK_SIZE, bins*bins*sizeof(unsigned int), *stream>>>
+	HistKernel<<<gridSize(1024), BLOCK_SIZE, bins*bins*sizeof(unsigned int), stream>>>
 		(A, B, histABI, bins, numElements);
 	CudaCheckError();
 
@@ -158,22 +158,27 @@ float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize,
 	unsigned int* histSize;
 	CudaSafeCall(cudaMalloc((void**)&histSize, sizeof(unsigned int)));
 	CudaSafeCall(cudaMemcpy(histSize, &numElements, sizeof(unsigned int),cudaMemcpyHostToDevice));
-	splitHistKernel<<<gridSize(bins*bins), BLOCK_SIZE, 0, *stream>>>
+	splitHistKernel<<<gridSize(bins*bins), BLOCK_SIZE, 0, stream>>>
 		(histABI, histAI, histBI, (bins*bins), histSize, bins);
 	CudaCheckError();
 
 	//get entropy
-	entKernel<<<gridSize(bins*bins), BLOCK_SIZE, 0, *stream>>>(histABI, (bins*bins), histSize, histABF);
+	entKernel<<<gridSize(bins*bins), BLOCK_SIZE, 0, stream>>>(histABI, (bins*bins), histSize, histABF);
 	CudaCheckError();
-	entKernel<<<gridSize(bins), BLOCK_SIZE, 0, *stream>>>(histAI, bins, histSize, histAF);
+	entKernel<<<gridSize(bins), BLOCK_SIZE, 0, stream>>>(histAI, bins, histSize, histAF);
 	CudaCheckError();
-	entKernel<<<gridSize(bins), BLOCK_SIZE, 0, *stream>>>(histBI, bins, histSize, histBF);
+	entKernel<<<gridSize(bins), BLOCK_SIZE, 0, stream>>>(histBI, bins, histSize, histBF);
 	CudaCheckError();
 
 	//reduce
-	float eAB = reduceEasy(histABF, bins*bins);
-	float eA = reduceEasy(histAF, bins);
-	float eB = reduceEasy(histBF, bins);
+	float* tempMem;
+	CudaSafeCall(cudaMalloc((void**)&tempMem, sizeof(float)*65535));
+
+	float eAB = reduceEasy(histABF, bins*bins,stream,tempMem);
+	float eA = reduceEasy(histAF, bins,stream,tempMem);
+	float eB = reduceEasy(histBF, bins,stream,tempMem);
+
+	CudaSafeCall(cudaFree(tempMem));
 
 	//finally get mi
 	float mi;

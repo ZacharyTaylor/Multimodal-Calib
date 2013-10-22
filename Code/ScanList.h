@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define MEM_LIMIT 0.5
+#define TEMP_MEM_SIZE 65535
 
 //! Holds the sensors scans
 class ScanList {
@@ -13,7 +13,19 @@ private:
 	
 	//! vector holding all the scans intensity data, indexed by [scan num][channel num][point num]
 	std::vector< std::vector< thrust::device_vector< float > > > scanI;
+
+	//! vector holding generated location data, indexed by [scan num][dimension num][point num]
+	std::vector< std::vector< thrust::device_vector< float > > > genL;
 	
+	//! vector holding generated intensity data, indexed by [scan num][channel num][point num]
+	std::vector< std::vector< thrust::device_vector< float > > > genI;
+	
+	//! vector of stream used to perform operations on scan
+	std::vector<cudaStream_t> streams;
+
+	//! temporary memory used in reductions (declared out here as mallocs force gpu sync)
+	std::vector< thrust::device_vector< float > > tempMem;
+
 public:
 	//! Constructor creates an empty scan
 	ScanList(void);
@@ -51,6 +63,28 @@ public:
 	*/
 	float* getIP(size_t idx, size_t ch);
 
+	//! Gets the pointer of the generated location array
+	/*! \param idx index of scan
+		\param dim index of dimension
+	*/
+	float* getGLP(size_t idx, size_t dim);
+
+	//! Gets the pointer of the generated intensity array
+	/*! \param idx index of the scan
+		\param ch index of the intensity channel to return
+	*/
+	float* getGIP(size_t idx, size_t ch);
+
+	//! Gets the pointer to the temporary memory
+	/*! \param idx index of the scan
+	*/
+	float* getTMP(size_t idx);
+
+	//! Gets the stream of the corrosponding scan
+	/*! \param idx index of the scan
+	*/
+	cudaStream_t getStream(size_t idx);
+
 	//! Adds a scan to the list
 	/*! \param scanLIn input scans location information
 		\param scanIIn input scans intensity information
@@ -62,6 +96,8 @@ public:
 		\param scanIIn input scans intensity information
 	*/
 	void addScan(std::vector<thrust::host_vector<float>>& scanLIn, std::vector<thrust::host_vector<float>>& scanIIn);
+
+	void setGenIDepth(size_t idx, size_t depth);
 
 	//! Removes a scan from the list
 	/*! \param idx index of scan to remove

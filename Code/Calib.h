@@ -24,9 +24,6 @@ protected:
 	//! index of scan assosiated with image
 	std::vector<size_t> scanIdx;
 
-	size_t allocateGenMem(ScanList points, ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx);
-	void Calib::clearGenMem(std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx);
-
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
 	Calib(std::string metricType);

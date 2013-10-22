@@ -87,61 +87,6 @@ void Calib::addScanIndices(std::vector<size_t>& scansIdxIn){
 	scanIdx.insert(scanIdx.end(),scansIdxIn.begin(), scansIdxIn.end());
 }
 
-size_t Calib::allocateGenMem(ScanList points, ImageList images, std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx){
-	
-	cudaError_t err = cudaSuccess;
-	size_t i;
-
-	std::vector<float*> temp;
-
-	for(i = startIdx; i < images.getNumImages(); i++){
-
-		temp.resize(IMAGE_DIM);
-		for(size_t j = 0; j < IMAGE_DIM; j++){
-			cudaError_t currentErr = cudaMalloc(&temp[j], sizeof(float)*points.getNumPoints(scanIdx[i]));
-			if(currentErr != cudaSuccess){
-				for(size_t k = 0; k < j; k++){
-					cudaFree(temp[k]);
-				}
-				break;
-			}
-		}
-		genL.push_back(temp);
-
-		temp.resize(images.getDepth(i));
-		for(size_t j = 0; j < images.getDepth(i); j++){
-			cudaError_t currentErr = cudaMalloc(&temp[j], sizeof(float)*points.getNumPoints(scanIdx[i]));
-			if(currentErr != cudaSuccess){
-				for(size_t k = 0; k < j; k++){
-					cudaFree(temp[k]);
-				}
-				break;
-			}
-		}
-		genI.push_back(temp);
-	}
-
-
-	return i;
-}
-
-void Calib::clearGenMem(std::vector<std::vector<float*>>& genL, std::vector<std::vector<float*>>& genI, size_t startIdx){
-	
-	size_t i;
-
-	for(i = startIdx; i < genL.size(); i++){
-		for(size_t j = 0; j < genL[i].size(); j++){
-			cudaFree(genL[i][j]);
-		}
-	}
-	for(i = startIdx; i < genI.size(); i++){
-		for(size_t j = 0; j < genI[i].size(); j++){
-			cudaFree(genI[i][j]);
-		}
-	}
-	CudaCheckError();
-}
-
 void Calib::setSSDMetric(void){
 	metric = new SSD();
 }
@@ -216,12 +161,7 @@ void CameraCalib::addCamera(thrust::host_vector<float>& cameraIn, boolean panora
 
 float CameraCalib::evalMetric(void){
 
-	std::vector<std::vector<float*>> genL;
-	std::vector<std::vector<float*>> genI;
-
 	std::vector<float> metricVal;
-
-	std::vector<cudaStream_t> streams;
 
 	if(tformIdx.size() != baseStore.getNumImages()){
 		std::ostringstream err; err << "Transform index has not been correctly set up";
@@ -239,7 +179,6 @@ float CameraCalib::evalMetric(void){
 		return 0;
 	}
 
-	size_t genLength = 0;
 	float out = 0;
 
 	//cudaEvent_t start, stop;
@@ -247,48 +186,33 @@ float CameraCalib::evalMetric(void){
 	//cudaEventCreate(&start);
 	//cudaEventCreate(&stop);
 	
-	for(size_t i = 0; i < moveStore.getNumScans(); i+= (genLength+1)){
-		genLength = allocateGenMem(moveStore, baseStore, genL, genI, i);
-		if(genLength == 0){
-			mexErrMsgTxt("Memory allocation for generated scans failed\n");
+
+	for(size_t j = 0; j < baseStore.getNumImages(); j++){
+		for(size_t i = 0; i < IMAGE_DIM; i++){
+			CudaSafeCall(cudaMemsetAsync(moveStore.getGLP(scanIdx[j],i),0,moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
 		}
-		
-		streams.resize(genLength-i);
-		for(size_t j = 0; j < streams.size(); j++){
-				//cudaEventRecord(start, 0);
-			cudaStreamCreate ( &streams[j]);
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for streams: %f ms\n", time);
-
-				//cudaEventRecord(start, 0);
-			tformStore.transform(moveStore, genL[j], cameraStore, tformIdx[i+j], cameraIdx[i+j], scanIdx[i+j], streams[j]);
-			cudaDeviceSynchronize();
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
-
-				//cudaEventRecord(start, 0);
-			baseStore.interpolateImage(i+j, scanIdx[i+j], genL[j], genI[j], moveStore.getNumPoints(scanIdx[i+j]), true, streams[j]);
-			cudaDeviceSynchronize();
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
-
-				//cudaEventRecord(start, 0);
-			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
-			cudaDeviceSynchronize();
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
+		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[j]); i++){
+			CudaSafeCall(cudaMemsetAsync(moveStore.getGIP(scanIdx[j],i),0,moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
 		}
-		
-		for(size_t j = 0; j< streams.size(); j++){
-			cudaStreamDestroy(streams[j]);
-		}
+ 	
+			//cudaEventRecord(start, 0);
+		tformStore.transform(&moveStore, &cameraStore, tformIdx[j], cameraIdx[j], scanIdx[j]);
+			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
 
-		clearGenMem(genL, genI, i);
+			//cudaEventRecord(start, 0);
+		baseStore.interpolateImage(&moveStore, j, scanIdx[j], true);
+			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
+
+			//cudaEventRecord(start, 0);
+		out += metric->evalMetric(&moveStore, scanIdx[j]);
+			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
+
 	}
 
 	return out;
 }
 
 void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
-
-	std::vector<float*> genL;
-	std::vector<float*> genI;
 
 	if(imageColour){
 		image.resize(baseStore.getDepth(idx)*width*height);
@@ -297,41 +221,18 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 		image.resize(moveStore.getNumCh(scanIdx[idx])*width*height);
 	}
 
-	genL.resize(IMAGE_DIM);
-	for(size_t j = 0; j < IMAGE_DIM; j++){
-		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-		if(currentErr != cudaSuccess){
-			mexErrMsgTxt("Memory allocation error when generating image");
-			break;
-		}
-	}
-	if(imageColour){
-		genI.resize(baseStore.getDepth(idx));
-		for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-			cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-			if(currentErr != cudaSuccess){
-				mexErrMsgTxt("Memory allocation error when generating image");
-				break;
-			}
-		}
-	}
-
-	cudaStream_t stream;
-	cudaStreamCreate(&stream);
-	
-	tformStore.transform(moveStore, genL, cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], stream);
+	tformStore.transform(&moveStore, &cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx]);
 	cudaDeviceSynchronize();
 
 	if(imageColour){
-		baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
+		baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
 		cudaDeviceSynchronize();
 
 		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
-			
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				genL[0],
-				genL[1],
-				genI[i],
+				moveStore.getGLP(scanIdx[idx],0),
+				moveStore.getGLP(scanIdx[idx],1),
+				moveStore.getGIP(scanIdx[idx],i),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
 				height,
@@ -342,8 +243,8 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 	else{
 		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[idx]); i++){
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				genL[0],
-				genL[1],
+				moveStore.getGLP(scanIdx[idx],0),
+				moveStore.getGLP(scanIdx[idx],1),
 				moveStore.getIP(scanIdx[idx],i),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
@@ -353,64 +254,23 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 		}
 	}
 
-	cudaStreamDestroy(stream);
-
-	for(size_t j = 0; j < genL.size(); j++){
-		cudaFree(genL[j]);
-	}
-	if(imageColour){
-		for(size_t j = 0; j < genI.size(); j++){
-			cudaFree(genI[j]);
-		}
-	}
 	CudaCheckError();
 }
 
 void CameraCalib::colourScan(float* scan, size_t idx){
-	std::vector<float*> genL;
-	std::vector<float*> genI;
-
-
-	genL.resize(IMAGE_DIM);
-	for(size_t j = 0; j < IMAGE_DIM; j++){
-		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-		if(currentErr != cudaSuccess){
-			mexErrMsgTxt("Memory allocation error when generating image");
-			break;
-		}
-	}
-	genI.resize(baseStore.getDepth(idx));
-	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-		cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-		if(currentErr != cudaSuccess){
-			mexErrMsgTxt("Memory allocation error when generating image");
-			break;
-		}
-	}
-
-	cudaStream_t stream;
-	cudaStreamCreate(&stream);
 	
-	tformStore.transform(moveStore, genL, cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], stream);
+	moveStore.setGenIDepth(scanIdx[idx], baseStore.getDepth(idx));
+	tformStore.transform(&moveStore, &cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx]);
+
+	baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
+
 	cudaDeviceSynchronize();
 
-	baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
-	cudaDeviceSynchronize();
-
-	cudaStreamDestroy(stream);
-
-	for(size_t j = 0; j < moveStore.getNumDim(idx); j++){
-		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getLP(idx,j),sizeof(float)*moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+	for(size_t j = 0; j < moveStore.getNumCh(idx); j++){
+		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getIP(idx,j),moveStore.getNumPoints(idx)*sizeof(float),cudaMemcpyDeviceToHost);
 	}
-	for(size_t j = 0; j < genI.size(); j++){
-		cudaMemcpy(&scan[(j+moveStore.getNumDim(idx))*moveStore.getNumPoints(idx)],genI[j],sizeof(float)*moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
-	}
-
-	for(size_t j = 0; j < genL.size(); j++){
-		cudaFree(genL[j]);
-	}
-	for(size_t j = 0; j < genI.size(); j++){
-		cudaFree(genI[j]);
+	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
+		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],moveStore.getGIP(scanIdx[idx],j),moveStore.getNumPoints(idx)*sizeof(float),cudaMemcpyDeviceToHost);
 	}
 	CudaCheckError();
 }
@@ -440,12 +300,7 @@ void ImageCalib::addTform(thrust::host_vector<float>& tformIn){
 
 float ImageCalib::evalMetric(void){
 
-	std::vector<std::vector<float*>> genL;
-	std::vector<std::vector<float*>> genI;
-
 	std::vector<float> metricVal;
-
-	std::vector<cudaStream_t> streams;
 
 	if(tformIdx.size() != baseStore.getNumImages()){
 		std::ostringstream err; err << "Transform index has not been correctly set up";
@@ -458,7 +313,6 @@ float ImageCalib::evalMetric(void){
 		return 0;
 	}
 
-	size_t genLength = 0;
 	float out = 0;
 
 	//cudaEvent_t start, stop;
@@ -466,40 +320,27 @@ float ImageCalib::evalMetric(void){
 	//cudaEventCreate(&start);
 	//cudaEventCreate(&stop);
 	
-	for(size_t i = 0; i < moveStore.getNumScans(); i+= (genLength+1)){
-		genLength = allocateGenMem(moveStore, baseStore, genL, genI, i);
-		
-		if(genLength == 0){
-			mexErrMsgTxt("Memory allocation for generated scans failed\n");
+	
+	for(size_t j = 0; j < baseStore.getNumImages(); j++){
+				
+		for(size_t i = 0; i < IMAGE_DIM; i++){
+			CudaSafeCall(cudaMemsetAsync(moveStore.getGLP(scanIdx[j],i),0,sizeof(float)*moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
 		}
-		
-		streams.resize(genLength-i);
-		for(size_t j = 0; j < streams.size(); j++){
-				//cudaEventRecord(start, 0);
-			cudaStreamCreate ( &streams[j]);
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for streams: %f ms\n", time);
-
-				//cudaEventRecord(start, 0);
-			tformStore.transform(moveStore, genL[j], noCamera, tformIdx[i+j], NULL, scanIdx[i+j], streams[j]);
-			cudaDeviceSynchronize();
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
-
-				//cudaEventRecord(start, 0);
-			baseStore.interpolateImage(i+j, scanIdx[i+j], genL[j], genI[j], moveStore.getNumPoints(scanIdx[i+j]), true, streams[j]);
-			cudaDeviceSynchronize();
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
-
-				//cudaEventRecord(start, 0);
-			out += metric->evalMetric(genI[j], moveStore, scanIdx[i+j], streams[j]);
-			cudaDeviceSynchronize();
-				//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
-		}
-		
-		for(size_t j = 0; j< streams.size(); j++){
-			cudaStreamDestroy(streams[i]);
+		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[j]); i++){
+			CudaSafeCall(cudaMemsetAsync(moveStore.getGIP(scanIdx[j],i),0,sizeof(float)*moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
 		}
 
-		clearGenMem(genL, genI, i);
+			//cudaEventRecord(start, 0);
+		tformStore.transform(&moveStore, &noCamera, tformIdx[j], NULL, scanIdx[j]);
+			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
+		//cudaStreamSynchronize(moveStore.getStream(scanIdx[j]));
+			//cudaEventRecord(start, 0);
+		baseStore.interpolateImage(&moveStore, j, scanIdx[j], true);
+			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
+
+			//cudaEventRecord(start, 0);
+		out += metric->evalMetric(&moveStore, scanIdx[j]);
+			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
 	}
 
 	return out;
@@ -507,51 +348,27 @@ float ImageCalib::evalMetric(void){
 
 void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
 
-	std::vector<float*> genL;
-	std::vector<float*> genI;
-
 	if(imageColour){
 		image.resize(baseStore.getDepth(idx)*width*height);
+		moveStore.setGenIDepth(scanIdx[idx], baseStore.getDepth(idx));
 	}
 	else{
 		image.resize(moveStore.getNumCh(scanIdx[idx])*width*height);
 	}
 
-	genL.resize(IMAGE_DIM);
-	for(size_t j = 0; j < IMAGE_DIM; j++){
-		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-		if(currentErr != cudaSuccess){
-			mexErrMsgTxt("Memory allocation error when generating image");
-			break;
-		}
-	}
-	if(imageColour){
-		genI.resize(baseStore.getDepth(idx));
-		for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-			cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-			if(currentErr != cudaSuccess){
-				mexErrMsgTxt("Memory allocation error when generating image");
-				break;
-			}
-		}
-	}
-
-	cudaStream_t stream;
-	cudaStreamCreate(&stream);
-	
-	tformStore.transform(moveStore, genL, noCamera, tformIdx[idx], NULL, scanIdx[idx], stream);
+	tformStore.transform(&moveStore, &noCamera, tformIdx[idx], NULL, scanIdx[idx]);
 	cudaDeviceSynchronize();
 
 	if(imageColour){
-		baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
+		baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
 		cudaDeviceSynchronize();
 
 		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
 			
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				genL[0],
-				genL[1],
-				genI[i],
+				moveStore.getGLP(scanIdx[idx],0),
+				moveStore.getGLP(scanIdx[idx],1),
+				moveStore.getGIP(scanIdx[idx],i),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
 				height,
@@ -562,8 +379,8 @@ void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width
 	else{
 		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[idx]); i++){
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				genL[0],
-				genL[1],
+				moveStore.getGLP(scanIdx[idx],0),
+				moveStore.getGLP(scanIdx[idx],1),
 				moveStore.getIP(scanIdx[idx],i),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
@@ -573,64 +390,24 @@ void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width
 		}
 	}
 
-	cudaStreamDestroy(stream);
-
-	for(size_t j = 0; j < genL.size(); j++){
-		cudaFree(genL[j]);
-	}
-	if(imageColour){
-		for(size_t j = 0; j < genI.size(); j++){
-			cudaFree(genI[j]);
-		}
-	}
 	CudaCheckError();
 }
 
 void ImageCalib::colourScan(float* scan, size_t idx){
-	std::vector<float*> genL;
-	std::vector<float*> genI;
-
-
-	genL.resize(IMAGE_DIM);
-	for(size_t j = 0; j < IMAGE_DIM; j++){
-		cudaError_t currentErr = cudaMalloc(&genL[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-		if(currentErr != cudaSuccess){
-			mexErrMsgTxt("Memory allocation error when generating image");
-			break;
-		}
-	}
-	genI.resize(baseStore.getDepth(idx));
-	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-		cudaError_t currentErr = cudaMalloc(&genI[j], sizeof(float)*moveStore.getNumPoints(scanIdx[idx]));
-		if(currentErr != cudaSuccess){
-			mexErrMsgTxt("Memory allocation error when generating image");
-			break;
-		}
-	}
-
-	cudaStream_t stream;
-	cudaStreamCreate(&stream);
 	
-	tformStore.transform(moveStore, genL, noCamera, tformIdx[idx], NULL, scanIdx[idx], stream);
-	cudaDeviceSynchronize();
+	moveStore.setGenIDepth(scanIdx[idx], baseStore.getDepth(idx));
 
-	baseStore.interpolateImage(idx, scanIdx[idx], genL, genI, moveStore.getNumPoints(scanIdx[idx]), true, stream);
-	cudaDeviceSynchronize();
+	tformStore.transform(&moveStore, &noCamera, tformIdx[idx], NULL, scanIdx[idx]);
 
-	cudaStreamDestroy(stream);
+	baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
+
+	cudaDeviceSynchronize();
 
 	for(size_t j = 0; j < moveStore.getNumCh(idx); j++){
 		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getIP(idx,j),moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
 	}
-	for(size_t j = 0; j < genI.size(); j++){
-		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],genI[j],moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
-	}
-
-	for(size_t j = 0; j < genL.size(); j++){
-		cudaFree(genL[j]);
-	}
-	for(size_t j = 0; j < genI.size(); j++){
-		cudaFree(genI[j]);
+	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
+		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],moveStore.getGIP(scanIdx[idx],j),moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
 	}
 	CudaCheckError();
 }

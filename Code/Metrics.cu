@@ -3,7 +3,7 @@
 #include "reduction.h"
 #include "mi.h"
 
-float Metric::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
+float Metric::evalMetric(ScanList* scan, size_t index){
 	mexErrMsgTxt("No metric has been specified");
 	return 0;
 }
@@ -12,15 +12,13 @@ MI::MI(size_t bins):
 	bins_(bins){
 }
 
-float MI::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
+float MI::evalMetric(ScanList* scan, size_t index){
 	
-	if((gen.size() != 1) || (scan.getNumCh(index) != 1)){
+	if((scan->getNumCh(index) != 1)){
 		mexErrMsgTxt("MI metric can only accept a single intensity channel");
 	}
 
-	size_t numElements;
-
-	float miOut = miRun(gen[0], scan.getIP(index,0), bins_, scan.getNumPoints(index), false, &stream);
+	float miOut = miRun(scan->getGIP(index,0), scan->getIP(index,0), bins_, scan->getNumPoints(index), false, scan->getStream(index));
 	CudaCheckError();
 	cudaDeviceSynchronize();
 
@@ -31,15 +29,13 @@ NMI::NMI(size_t bins):
 	bins_(bins){
 }
 
-float NMI::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
+float NMI::evalMetric(ScanList* scan, size_t index){
 	
-	if((gen.size() != 1) || (scan.getNumCh(index) != 1)){
+	if((scan->getNumCh(index) != 1)){
 		mexErrMsgTxt("NMI metric can only accept a single intensity channel");
 	}
 
-	size_t numElements;
-
-	float miOut = miRun(gen[0], scan.getIP(index,0), bins_, scan.getNumPoints(index), true, &stream);
+	float miOut = miRun(scan->getGIP(index,0), scan->getIP(index,0), bins_, scan->getNumPoints(index), true, scan->getStream(index));
 	CudaCheckError();
 	cudaDeviceSynchronize();
 
@@ -48,20 +44,18 @@ float NMI::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 
 SSD::SSD(){};
 
-float SSD::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
+float SSD::evalMetric(ScanList* scan, size_t index){
 	
-	if((gen.size() != 1) || (scan.getNumCh(index) != 1)){
+	if((scan->getNumCh(index) != 1)){
 		mexErrMsgTxt("SSD metric can only accept a single intensity channel");
 	}
-
-	SSDKernel<<<gridSize(scan.getNumPoints(index)), BLOCK_SIZE, 0, stream>>>
-		(gen[0], scan.getIP(index,0), scan.getNumPoints(index));
+	
+	SSDKernel<<<gridSize(scan->getNumPoints(index)), BLOCK_SIZE, 0, scan->getStream(index)>>>
+		(scan->getGIP(index,0), scan->getIP(index,0), scan->getNumPoints(index));
 	CudaCheckError();
-
-	cudaDeviceSynchronize();
-
+	
 	//perform reduction
-	float temp = reduceEasy(gen[0], scan.getNumPoints(index));
+	float temp = reduceEasy(scan->getGIP(index,0), scan->getNumPoints(index), scan->getStream(index), scan->getTMP(index));
 	temp = sqrt(temp);
 
 	return temp;
@@ -69,20 +63,18 @@ float SSD::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 
 GOM::GOM(){};
 
-float GOM::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
+float GOM::evalMetric(ScanList* scan, size_t index){
 	
-	if((gen.size() != 2) || (scan.getNumCh(index) != 2)){
+	if((scan->getNumCh(index) != 2)){
 		mexErrMsgTxt("GOM metric can only accept a two intensity channels (mag and angle)");
 	}
-   
-	GOMKernel<<<gridSize(scan.getNumPoints(index)), BLOCK_SIZE, 0, stream>>>
-		(gen[0],gen[1],scan.getIP(index,0),scan.getIP(index,1), scan.getNumPoints(index));
-	CudaCheckError();
 	
-	cudaDeviceSynchronize();
+	GOMKernel<<<gridSize(scan->getNumPoints(index)), BLOCK_SIZE, 0, scan->getStream(index)>>>
+		(scan->getGIP(index,0),scan->getGIP(index,1),scan->getIP(index,0),scan->getIP(index,1), scan->getNumPoints(index));
+	CudaCheckError();
 
-	float phase = reduceEasy(gen[1], scan.getNumPoints(index));
-	float mag = reduceEasy(gen[0], scan.getNumPoints(index));
+	float phase = reduceEasy(scan->getGIP(index,1), scan->getNumPoints(index), scan->getStream(index), scan->getTMP(index));
+	float mag = reduceEasy(scan->getGIP(index,0), scan->getNumPoints(index), scan->getStream(index), scan->getTMP(index));
 	
 	float out = -phase / mag;
 
@@ -91,20 +83,18 @@ float GOM::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cud
 
 GOMS::GOMS(){};
 
-float GOMS::evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream){
+float GOMS::evalMetric(ScanList* scan, size_t index){
 	
-	if((gen.size() != 2) || (scan.getNumCh(index) != 2)){
+	if((scan->getNumCh(index) != 2)){
 		mexErrMsgTxt("GOM metric can only accept a two intensity channels (mag and angle)");
 	}
    
-	GOMKernel<<<gridSize(scan.getNumPoints(index)), BLOCK_SIZE, 0, stream>>>
-		(gen[0],gen[1],scan.getIP(index,0),scan.getIP(index,1), scan.getNumPoints(index));
+	GOMKernel<<<gridSize(scan->getNumPoints(index)), BLOCK_SIZE, 0, scan->getStream(index)>>>
+		(scan->getGIP(index,0),scan->getGIP(index,1),scan->getIP(index,0),scan->getIP(index,1), scan->getNumPoints(index));
 	CudaCheckError();
-	
-	cudaDeviceSynchronize();
 
-	float phase = reduceEasy(gen[1], scan.getNumPoints(index));
-	float mag = reduceEasy(gen[0], scan.getNumPoints(index));
+	float phase = reduceEasy(scan->getGIP(index,1), scan->getNumPoints(index), scan->getStream(index), scan->getTMP(index));
+	float mag = reduceEasy(scan->getGIP(index,0), scan->getNumPoints(index), scan->getStream(index), scan->getTMP(index));
 	
 	float out = log(sqrt(6/(mag*PI))) - (6*((phase - (mag/2))*(phase - (mag/2)))/mag);
 	((phase/mag) > 0.5) ? out = 1*out : out = -1*out;

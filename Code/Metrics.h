@@ -11,7 +11,7 @@
 class Metric {
 public:
 	//! Evalutaes two scans A and B to give a measure of their match strength
-	virtual float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	virtual float evalMetric(ScanList* scan, size_t index);
 };
 
 //! Evaluates scans using the MI metric
@@ -20,7 +20,7 @@ public:
 	//! Sets up metric, note for MI due to implementation number of bins must be less then 64
 	MI(size_t numBins);
 	//! Evaluates MI for two scans and gives result
-	float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	float evalMetric(ScanList* scan, size_t index);
 private:
 	//! Number of bins to use when calculating MI
 	const size_t bins_;
@@ -32,7 +32,7 @@ public:
 	//! Sets up metric, note for MI due to implementation number of bins must be less then 64
 	NMI(size_t numBins);
 	//! Evaluates MI for two scans and gives result
-	float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	float evalMetric(ScanList* scan, size_t index);
 private:
 	//! Number of bins to use when calculating MI
 	const size_t bins_;
@@ -44,7 +44,7 @@ public:
 	//! Sets up metric
 	SSD(void);
 	//! Evaluates SSD for two scans and gives result
-	float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	float evalMetric(ScanList* scan, size_t index);
 };
 
 //! Evaluate scans using the GOM metric
@@ -53,7 +53,7 @@ public:
 	//! Basic setup
 	GOM(void);
 	//! Evaluates GOM for two scans and gives result
-	float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	float evalMetric(ScanList* scan, size_t index);
 };
 
 //! Evaluate scans using the GOMS metric
@@ -62,7 +62,7 @@ public:
 	//! Basic setup
 	GOMS(void);
 	//! Evaluates GOMS for two scans and gives result
-	float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	float evalMetric(ScanList* scan, size_t index);
 };
 
 //! Evaluates two scans using the Levinson method
@@ -73,7 +73,7 @@ public:
 	//! Destructor clears avImg_
 	~LIV();
 	//! Evaluates Levinson method for two scans and gives result
-	float evalMetric(std::vector<float*>& gen, ScanList scan, size_t index, cudaStream_t stream);
+	float evalMetric(ScanList* scan, size_t index);
 private:
 	//! Average of all base images
 	//PointsList* avImg_;

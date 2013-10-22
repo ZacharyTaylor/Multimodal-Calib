@@ -8,7 +8,7 @@ texture<float, 2, cudaReadModeElementType> tex;
 
 __global__ void CameraTransformKernel(const float* const tform,
 									  const float* const cam,
-									  const bool const pan,
+									  const bool pan,
 									  const float* const xIn,
 									  const float* const yIn,
 									  const float* const zIn,
@@ -39,6 +39,8 @@ __global__ void AffineTransformKernel(const float* tform, const float* xIn, cons
 __global__ void CameraTransformKernel(const float* tform, const float* cam, const float* pointsIn, float* pointsOut, const size_t numPoints, const bool panoramic);
 
 __global__ void SSDKernel(float* const gen, const float* const scan, const size_t length);
+
+__global__ void SetTest(float* gen, const size_t length);
 
 __global__ void GOMKernel(float* const genMag, float* const genPhase, const float* const mag, const float* const phase, const size_t length);
 

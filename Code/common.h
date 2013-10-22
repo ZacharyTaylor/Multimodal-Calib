@@ -15,6 +15,7 @@
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 #define BUFF_SIZE 500
+#pragma warning (disable : 4267)
 
 // includes, graphics
 #if defined (__APPLE__) || defined(MACOSX)
@@ -78,10 +79,10 @@ inline void __cudaCheckError( const char *file, const int line )
  
 	// More careful checking. However, this will affect performance.
 	// Comment away if needed.
-	/*err = cudaDeviceSynchronize();
-	if( cudaSuccess != err ){
+	/*errCuda = cudaDeviceSynchronize();
+	if( cudaSuccess != errCuda ){
 		printf("CUDA Kernel Error with sync failed at %s:%i : %s\n",
-		file, line, cudaGetErrorString( err ) );
+		file, line, cudaGetErrorString( errCuda ) );
 		cudaDeviceReset();
 	}*/
 #endif

@@ -45,13 +45,13 @@ public:
 	size_t getTformSize(size_t idx);
 	
 	//! Transforms the scans coordinates
-	/*! \param in the original scans
-		\param out generated output scans
-		\param imageList holding transform indexs
-		\param start index of first point to transform
-		\param end index of last point to transform
+	/*! \param scans the original scans
+		\param cam holds cameras needed for transform
+		\param tformIdx index of transform to use
+		\param camIdx index of camera to use
+		\param scanIdx index of scan to use
 	*/
-	void transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
+	virtual void transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx);
 };
 
 //! Places a virtual camera in the scan and projects the points through its lense onto a surface
@@ -62,12 +62,13 @@ public:
 	void addTforms(thrust::host_vector<float> tformDIn);
 
 	//! Transforms the scans coordinates
-	/*! \param in the original scans
-		\param out generated output scans
-		\param start index of first point to transform
-		\param end index of last point to transform
+	/*! \param scans the original scans
+		\param cam holds cameras needed for transform
+		\param tformIdx index of transform to use
+		\param camIdx index of camera to use
+		\param scanIdx index of scan to use
 	*/
-	void transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
+	void transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx);
 };
 
 //! Performs a simple affine transform on 2D data
@@ -78,13 +79,14 @@ public:
 
 	void addTforms(thrust::host_vector<float> tformDIn);
 
-	//! Performs the affine transform on a scan
-	/*! \param in the original scans
-		\param out generated output scans
-		\param start index of first point to transform
-		\param end index of last point to transform
+	//! Transforms the scans coordinates
+	/*! \param scans the original scans
+		\param cam holds cameras needed for transform
+		\param tformIdx index of transform to use
+		\param camIdx index of camera to use
+		\param scanIdx index of scan to use
 	*/
-	void transform(ScanList scansIn, std::vector<float*>& locOut, Cameras cam, size_t tformIdx, size_t camIdx, size_t scanIdx, cudaStream_t stream);
+	void transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx);
 };
 
 #endif //TFORM_H

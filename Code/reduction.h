@@ -20,11 +20,11 @@
 	\param size of the input array
 	\return the sum reduced array
 */
-float reduceEasy(float* d_idata, int size);
+float reduceEasy(float* d_idata, int size, cudaStream_t stream, float* tempMem);
 
 //! Copy pasted this straight out of the examples that come with the cuda toolkit
 template <class T>
 void reduce(int size, int threads, int blocks,
-            int whichKernel, T *d_idata, T *d_odata);
+            int whichKernel, T *d_idata, T *d_odata, cudaStream_t stream);
 
 #endif

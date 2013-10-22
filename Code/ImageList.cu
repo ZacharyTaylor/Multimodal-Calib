@@ -90,28 +90,29 @@ void ImageList::removeAllImages(){
 	imageD.clear();
 };
 
-void ImageList::interpolateImage(size_t imageIdx, size_t scanIdx, std::vector<float*>& interLocs, std::vector<float*>& interVals, size_t numPoints, boolean linear, cudaStream_t stream){
-	
+void ImageList::interpolateImage(ScanList* scans, size_t imageIdx, size_t scanIdx, boolean linear){
+
 	for(size_t i = 0; i < getDepth(imageIdx); i++){
 		if(linear){
-			NearNeighKernel<<<gridSize(numPoints), BLOCK_SIZE, 0, stream>>>(
+
+			NearNeighKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, scans->getStream(scanIdx)>>>(
 				getIP(imageIdx, i),
-				interVals[i],
+				scans->getGIP(scanIdx,i),
 				getHeight(imageIdx),
 				getWidth(imageIdx),
-				interLocs[0],
-				interLocs[1],
-				numPoints);
+				scans->getGLP(scanIdx,0),
+				scans->getGLP(scanIdx,1),
+				scans->getNumPoints(scanIdx));
 		}
 		else{
-			NearNeighKernel<<<gridSize(numPoints), BLOCK_SIZE, 0, stream>>>(
+			NearNeighKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, scans->getStream(scanIdx)>>>(
 				getIP(imageIdx, i),
-				interVals[i],
+				scans->getGIP(scanIdx,i),
 				getHeight(imageIdx),
 				getWidth(imageIdx),
-				interLocs[0],
-				interLocs[1],
-				numPoints);
+				scans->getGLP(scanIdx,0),
+				scans->getGLP(scanIdx,0),
+				scans->getNumPoints(scanIdx));
 		}
 	}
 }

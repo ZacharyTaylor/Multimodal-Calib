@@ -11,6 +11,6 @@
 	\param bins number of bins to use, due to issue with gpu shared memory must be less then 64
 	\param numElements number of points in signal 1 and 2 (signals must be same size)
 */
-float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize, cudaStream_t* stream);
+float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize, cudaStream_t stream);
 
 #endif

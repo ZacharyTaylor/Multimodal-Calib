@@ -27,11 +27,11 @@ if(~libisloaded('LibCal'))
         os = 'so';
     end
        
-    Version = ['Multimodal-Calib' arch '.' os];
+    Version = ['Multimodal-Calib'  '.' os];
     
     fprintf('Loading multimodal calibration library\n');
     
-    [notFound, warnings] = loadlibrary([pwd '/../Binaries/' Version],[pwd '/../Code/MatCalls.h'],'alias','LibCal');
+    [notFound, warnings] = loadlibrary(['C:\Users\ztay8963\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib 2.0\x64\Release\' Version],[pwd '/../Code/MatCalls.h'],'alias','LibCal');
     
 end
 

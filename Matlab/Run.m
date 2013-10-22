@@ -5,7 +5,7 @@ numMove = 1;
 %number of base images
 numBase = 1;
 %metric to use
-metric = 'GOMS';
+metric = 'NMI';
 
 range = [3 3 2 4 4 4 300 0 0];
 range(4:6) = pi*range(4:6)/180;
