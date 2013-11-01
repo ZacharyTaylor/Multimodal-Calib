@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['affinetform',['AffineTform',['../class_affine_tform.html',1,'']]]
+  ['affinetforms',['AffineTforms',['../class_affine_tforms.html',1,'']]]
 ];
