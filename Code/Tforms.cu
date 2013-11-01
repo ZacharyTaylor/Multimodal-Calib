@@ -3,6 +3,7 @@
 #include "Tforms.h"
 #include "ScanList.h"
 #include "ImageList.h"
+#include "GenList.h"
 #include "Kernels.h"
 
 void Tforms::addTforms(thrust::device_vector<float> tformDIn, size_t tformSizeX, size_t tformSizeY){
@@ -52,7 +53,7 @@ size_t Tforms::getTformSize(size_t idx){
 	return (tformD[idx].tformSizeX * tformD[idx].tformSizeY);
 }
 
-void Tforms::transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx){};
+void Tforms::transform(ScanList* scans, Cameras* cam, GenList* gen, size_t tformIdx, size_t camIdx, size_t scanIdx, size_t genIdx){};
 
 void CameraTforms::addTforms(thrust::device_vector<float> tformDIn){
 	if(tformDIn.size() != 16){
@@ -80,9 +81,9 @@ void CameraTforms::addTforms(thrust::host_vector<float> tformDIn){
 	tformD.back().tformSizeY = 4;
 }
 
-void CameraTforms::transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx){
+void CameraTforms::transform(ScanList* scans, Cameras* cam, GenList* gen, size_t tformIdx, size_t camIdx, size_t scanIdx, size_t genIdx){
 
-	CameraTransformKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, scans->getStream(scanIdx)>>>(
+	CameraTransformKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, gen->getStream(genIdx)>>>(
 		getTformP(tformIdx),
 		cam->getCamP(camIdx),
 		cam->getPanoramic(camIdx),
@@ -90,8 +91,8 @@ void CameraTforms::transform(ScanList* scans, Cameras* cam, size_t tformIdx, siz
 		scans->getLP(scanIdx,1),
 		scans->getLP(scanIdx,2),
 		scans->getNumPoints(scanIdx),
-		scans->getGLP(scanIdx,0),
-		scans->getGLP(scanIdx,1));
+		gen->getGLP(genIdx,0,scans->getNumPoints(scanIdx)),
+		gen->getGLP(genIdx,1,scans->getNumPoints(scanIdx)));
 
 	CudaCheckError();
 }
@@ -112,14 +113,14 @@ void AffineTforms::addTforms(thrust::device_vector<float> tformDIn){
 	tformD.back().tformSizeY = 3;
 }
 
-void AffineTforms::transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx){
-	AffineTransformKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, scans->getStream(scanIdx)>>>(
+void AffineTforms::transform(ScanList* scans, Cameras* cam, GenList* gen, size_t tformIdx, size_t camIdx, size_t scanIdx, size_t genIdx){
+	AffineTransformKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, gen->getStream(genIdx)>>>(
 		getTformP(tformIdx),
 		scans->getLP(scanIdx,0),
 		scans->getLP(scanIdx,1),
 		scans->getNumPoints(scanIdx),
-		scans->getGLP(scanIdx,0),
-		scans->getGLP(scanIdx,1));
+		gen->getGLP(genIdx,0,scans->getNumPoints(scanIdx)),
+		gen->getGLP(genIdx,1,scans->getNumPoints(scanIdx)));
 
 	CudaCheckError();
 }

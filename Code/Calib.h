@@ -4,6 +4,7 @@
 #include "common.h"
 #include "ImageList.h"
 #include "ScanList.h"
+#include "GenList.h"
 #include "Tforms.h"
 #include "Cameras.h"
 #include "Setup.h"
@@ -16,6 +17,7 @@ class Calib {
 protected:
 	ScanList moveStore;
 	ImageList baseStore;
+	GenList genStore;
 
 	Metric* metric;
 
@@ -26,7 +28,9 @@ protected:
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
-	Calib(std::string metricType);
+	Calib(size_t numGenScans);
+
+	~Calib();
 
 	//! Gets if the camera is panoramic
 	virtual bool getIfPanoramic(size_t idx);
@@ -82,9 +86,14 @@ public:
 	void setMIMetric(void);
 	//! Sets the metric to use NMI for evaluation
 	void setNMIMetric(void);
+	//! Sets the metric to use LEV for evaluation
+	void setLEVMetric(void);
 
 	//! Calculates the metrics value for the given data
 	virtual float evalMetric(void);
+
+	//! Get base image
+	void getBaseImage(thrust::device_vector<float>& image, size_t idx);
 
 	//! Outputs a render of the current alignment
 	virtual void generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour);
@@ -102,7 +111,7 @@ protected:
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
-	CameraCalib(std::string metricType);
+	CameraCalib(size_t numGenScans);
 
 	//! Gets if the camera is panoramic
 	bool getIfPanoramic(size_t idx);
@@ -134,7 +143,7 @@ protected:
 
 public:
 	//! Constructor. Sets up graphics card for CUDA, sets transform type, camera type and metric type.
-	ImageCalib(std::string metricType);
+	ImageCalib(size_t numGenScans);
 
 	//! Gets if the camera is panoramic
 	bool getIfPanoramic(size_t idx);

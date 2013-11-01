@@ -44,7 +44,7 @@ __global__ void SetTest(float* gen, const size_t length);
 
 __global__ void GOMKernel(float* const genMag, float* const genPhase, const float* const mag, const float* const phase, const size_t length);
 
-__global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out);
+__global__ void levValKernel(float* const gen, const float* const scan, const size_t length);
 
 void RunBSplineKernel(float* volume, size_t width, size_t height);
 

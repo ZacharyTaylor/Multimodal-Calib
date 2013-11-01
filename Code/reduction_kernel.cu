@@ -571,7 +571,7 @@ void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThread
 }
 
 // All the reduction steps in one for a float
-float reduceEasy(float* d_idata, int size, cudaStream_t stream, float* tempMem){
+float reduceEasy(float* d_idata, int size, cudaStream_t stream, float* tempMemD, float* tempMemH){
 	
 	int maxThreads = 512;  // number of threads per block
     int whichKernel = 6;
@@ -584,11 +584,11 @@ float reduceEasy(float* d_idata, int size, cudaStream_t stream, float* tempMem){
     getNumBlocksAndThreads(whichKernel, size, maxBlocks, maxThreads, numBlocks, numThreads);
 
 	// allocate mem for the result on host side
-    float *h_odata = (float *)malloc(numBlocks*sizeof(float));
+    float *h_odata = tempMemH;
 
     // allocate device memory and data
     float *d_odata = NULL;
-	d_odata = tempMem;
+	d_odata = tempMemD;
 
 	CudaSafeCall(cudaMemcpyAsync(d_odata, d_idata, numBlocks*sizeof(float), cudaMemcpyDeviceToDevice,stream));
 
@@ -643,8 +643,6 @@ float reduceEasy(float* d_idata, int size, cudaStream_t stream, float* tempMem){
         CudaSafeCall(cudaMemcpyAsync(&out, d_odata, sizeof(float), cudaMemcpyDeviceToHost,stream));
 		//cudaStreamSynchronize(stream);
     }
-
-	free(h_odata);
 
 	return out;
 }

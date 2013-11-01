@@ -42,7 +42,7 @@ move = in(1);
 
 initalGuess = tform;
 
-Setup(metric, move, base, tform);
+Setup(1,metric, move, base, tform);
 
 %% Evaluate metric and Optimize
 Optimize( initalGuess, range, updatePeriod, dilate )

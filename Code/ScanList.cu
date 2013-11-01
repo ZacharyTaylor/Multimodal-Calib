@@ -58,78 +58,18 @@ float* ScanList::getLP(size_t idx, size_t dim){
 }
 
 float* ScanList::getIP(size_t idx, size_t ch){
-	if(scanL.size() <= idx){
+	if(scanI.size() <= idx){
 		std::ostringstream err; err << "Error only " << scanL.size() << " scans exist cannot get pointer to scan " << idx;
 		mexErrMsgTxt(err.str().c_str());
 		return NULL;
 	}
-	if(scanL[idx].size() <= ch){
+	if(scanI[idx].size() <= ch){
 		std::ostringstream err; err << "Error only " << scanL[idx].size() << " channels exist cannot get pointer to channel " << ch;
 		mexErrMsgTxt(err.str().c_str());
 		return NULL;
 	}
 
 	return thrust::raw_pointer_cast(&scanI[idx][ch][0]);
-}
-
-float* ScanList::getGLP(size_t idx, size_t dim){
-	if(genL.size() <= idx){
-		std::ostringstream err; err << "Error only " << scanL.size() << " scans exist cannot get pointer to scan " << idx;
-		mexErrMsgTxt(err.str().c_str());
-		return NULL;
-	}
-	if(genL[idx].size() <= dim){
-		std::ostringstream err; err << "Error only " << scanL[idx].size() << " dimensions exist cannot get pointer to dimension " << dim;
-		mexErrMsgTxt(err.str().c_str());
-		return NULL;
-	}
-
-	return thrust::raw_pointer_cast(&genL[idx][dim][0]);
-}
-
-float* ScanList::getGIP(size_t idx, size_t ch){
-	if(genI.size() <= idx){
-		std::ostringstream err; err << "Error only " << scanL.size() << " scans exist cannot get pointer to scan " << idx;
-		mexErrMsgTxt(err.str().c_str());
-		return NULL;
-	}
-	if(genI[idx].size() <= ch){
-		std::ostringstream err; err << "Error only " << scanL[idx].size() << " channels exist cannot get pointer to channel " << ch;
-		mexErrMsgTxt(err.str().c_str());
-		return NULL;
-	}
-
-	return thrust::raw_pointer_cast(&genI[idx][ch][0]);
-}
-
-void ScanList::setGenIDepth(size_t idx, size_t depth){
-	if(genI.size() <= idx){
-		std::ostringstream err; err << "Error only " << scanL.size() << " scans exist cannot get pointer to scan " << idx;
-		mexErrMsgTxt(err.str().c_str());
-	}
-	while(genI[idx].size() < depth){
-		genI[idx].push_back(genI[idx].back());
-	}
-}
-
-float* ScanList::getTMP(size_t idx){
-	if(tempMem.size() <= idx){
-		std::ostringstream err; err << "Error only " << scanL.size() << " scans exist cannot get temp memory for scan " << idx;
-		mexErrMsgTxt(err.str().c_str());
-		return NULL;
-	}
-
-	return thrust::raw_pointer_cast(&tempMem[idx][0]);
-}
-
-cudaStream_t ScanList::getStream(size_t idx){
-	if(scanL.size() <= idx){
-		std::ostringstream err; err << "Error only " << scanL.size() << " scans exist cannot get stream for scan " << idx;
-		mexErrMsgTxt(err.str().c_str());
-		return NULL;
-	}
-
-	return streams[idx];
 }
 
 void ScanList::addScan(std::vector<thrust::device_vector<float>>& scanLIn, std::vector<thrust::device_vector<float>>& scanIIn){
@@ -156,16 +96,6 @@ void ScanList::addScan(std::vector<thrust::device_vector<float>>& scanLIn, std::
 
 	scanL.push_back(scanLIn);
 	scanI.push_back(scanIIn);
-
-	genL.push_back(scanLIn);
-	genI.push_back(scanIIn);
-
-	streams.push_back(NULL);
-	cudaStreamCreate (&(streams.back()));
-
-	std::vector<float> temp;
-	tempMem.push_back(temp);
-	tempMem.back().resize(TEMP_MEM_SIZE);
 }
 
 void ScanList::addScan(std::vector<thrust::host_vector<float>>& scanLIn, std::vector<thrust::host_vector<float>>& scanIIn){
@@ -201,16 +131,6 @@ void ScanList::addScan(std::vector<thrust::host_vector<float>>& scanLIn, std::ve
 
 	scanL.push_back(tempLIn);
 	scanI.push_back(tempIIn);
-
-	genL.push_back(tempLIn);
-	genI.push_back(tempIIn);
-
-	streams.push_back(NULL);
-	cudaStreamCreate (&(streams.back()));
-
-	std::vector<float> temp;
-	tempMem.push_back(temp);
-	tempMem.back().resize(TEMP_MEM_SIZE);
 }
 
 void ScanList::removeScan(size_t idx){
@@ -221,40 +141,14 @@ void ScanList::removeScan(size_t idx){
 	}
 	scanL.erase(scanL.begin() + idx);
 	scanI.erase(scanI.begin() + idx);
-
-	genL.erase(genL.begin() + idx);
-	genI.erase(genI.begin() + idx);
-
-	cudaStreamDestroy(streams[idx]);
-	streams.erase(streams.begin() + idx);
-
-	tempMem.erase(tempMem.begin() + idx);
 }
 
 void ScanList::removeLastScan(){
 	scanL.pop_back();
 	scanI.pop_back();
-
-	genL.pop_back();
-	genI.pop_back();
-
-	cudaStreamDestroy(streams.back());
-	streams.pop_back();
-
-	tempMem.pop_back();
 }
 
 void ScanList::removeAllScans(){
 	scanL.clear();
 	scanI.clear();
-
-	genL.clear();
-	genI.clear();
-
-	for(size_t i = 0; i < streams.size(); i++){
-		cudaStreamDestroy(streams[i]);
-	}
-	streams.clear();
-
-	tempMem.clear();
 }

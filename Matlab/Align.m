@@ -1,4 +1,4 @@
-function [ out ] = Align( tform, updatePeriod, dilate )
+function [ out ] = Align( tform, updatePeriod, dilate, varargin )
 %ALIGN Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,7 +12,17 @@ if(length(tform) >= 9)
 end
 
 ClearTransforms();
-AddTform(tform);
+
+if(nargin > 3)
+    multicam = varargin{1};
+    for i = 1:length(multicam(:))
+        tb = CreateTformMat(tform);
+        tc = CreateTformMat(multicam{1,i});
+        AddTform(tc\tb);
+    end
+else
+    AddTform(tform);
+end
 
 out = EvalMetric();
 
@@ -38,17 +48,24 @@ if(etime(clock,time) > updatePeriod)
     subplot(2,3,4:6);
     numImages = calllib('LibCal','getNumImages');
     imNum = round((numImages-1)*rand(1));
+    %imNum = 3;
     
     move = GenerateImage( imNum, dilate, false);
     move = repmat(move(:,:,1),[1,1,3]);
 
-    base = GenerateImage( imNum, dilate, true);
-    base = repmat(base(:,:,1),[1,1,3]);
+    base = GetBaseImage(imNum);
+    if(size(base,3) == 1)
+        base = repmat(base(:,:,1),[1,1,3]);
+    end
 
     C = imfuse(move(:,:,1),base(:,:,1),'falsecolor','Scaling','independent','ColorChannels',[2 1 2]);
     
     set(0,'CurrentFigure',fig)
-    imshow([move;base;C]);
+    if(size(move,1) > size(move,2))
+        imshow([move,base,C]);
+    else
+        imshow([move;base;C]);
+    end
     drawnow;
     
     fprintf('Metric value = %1.3f ', out);

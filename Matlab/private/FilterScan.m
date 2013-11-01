@@ -13,7 +13,7 @@ elseif(or(strcmp(metric,'GOM'),strcmp(metric,'GOMS')))
     out = [out(:,1:3),mag,phase];
 elseif(strcmp(metric,'LEV'))
     out = single(scan);
-    out = livLidar(out);
+    out = LevLidar(out);
 elseif(strcmp(metric,'SSD'))
     out = single(scan);
 elseif(strcmp(metric,'None'))

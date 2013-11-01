@@ -47,7 +47,7 @@ function [out] = getPointClouds(varargin)
             if(nargin == 2)
                 dlim = varargin{2};
             else
-                dlim = ' ';
+                dlim = ',';
             end
             
             cloud = dlmread([pathList{i}, fileList{i}],dlim,0,0);

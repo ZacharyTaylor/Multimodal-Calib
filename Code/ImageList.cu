@@ -40,6 +40,10 @@ size_t ImageList::getNumImages(void){
 	return imageD.size();
 }
 	
+thrust::device_vector<float> ImageList::getImage(size_t idx){
+	return imageD[idx].image;
+}
+
 float* ImageList::getIP(size_t idx, size_t depthIdx){
 	if(imageD.size() <= idx){
 		std::ostringstream err; err << "Cannot get pointer to element " << idx << " as only " << imageD.size() << " elements exist";
@@ -90,28 +94,28 @@ void ImageList::removeAllImages(){
 	imageD.clear();
 };
 
-void ImageList::interpolateImage(ScanList* scans, size_t imageIdx, size_t scanIdx, boolean linear){
+void ImageList::interpolateImage(ScanList* scans, GenList* gen, size_t imageIdx, size_t scanIdx, size_t genIdx, boolean linear){
 
 	for(size_t i = 0; i < getDepth(imageIdx); i++){
 		if(linear){
-
-			NearNeighKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, scans->getStream(scanIdx)>>>(
+			
+			NearNeighKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, gen->getStream(genIdx)>>>(
 				getIP(imageIdx, i),
-				scans->getGIP(scanIdx,i),
+				gen->getGIP(genIdx,i,scans->getNumPoints(scanIdx)),
 				getHeight(imageIdx),
 				getWidth(imageIdx),
-				scans->getGLP(scanIdx,0),
-				scans->getGLP(scanIdx,1),
+				gen->getGLP(genIdx,0,scans->getNumPoints(scanIdx)),
+				gen->getGLP(genIdx,1,scans->getNumPoints(scanIdx)),
 				scans->getNumPoints(scanIdx));
 		}
 		else{
-			NearNeighKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, scans->getStream(scanIdx)>>>(
+			NearNeighKernel<<<gridSize(scans->getNumPoints(scanIdx)), BLOCK_SIZE, 0, gen->getStream(genIdx)>>>(
 				getIP(imageIdx, i),
-				scans->getGIP(scanIdx,i),
+				gen->getGIP(genIdx,i,scans->getNumPoints(scanIdx)),
 				getHeight(imageIdx),
 				getWidth(imageIdx),
-				scans->getGLP(scanIdx,0),
-				scans->getGLP(scanIdx,0),
+				gen->getGLP(genIdx,0,scans->getNumPoints(scanIdx)),
+				gen->getGLP(genIdx,1,scans->getNumPoints(scanIdx)),
 				scans->getNumPoints(scanIdx));
 		}
 	}

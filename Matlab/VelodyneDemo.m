@@ -13,16 +13,16 @@
 % GOM - gradient orientation measure
 % GOMS - modified GOM method that evalutes statistical significants of
 % results. Usually outperforms GOM
-% LEV - levinson's method (not yet implemented)
+% LEV - levinson's method (Buggy, still working on it)
 % None - no metric assigned used in generating images and coloured scans
 % Note (NMI, MI, LEV and GOM) multiplied by -1 to give minimums in
 % optimization
-metric = 'GOMS';
+metric = 'GOM';
 
 %inital guess as to the transform between the camera and the lidar
 %can be either a 4x4 transform matrix or [x,y,z,rx,ry,rz] (rotations in
 %radians, rotation order rx, ry, rz)
-tform = [0, 0, 0, -pi/2, 0, -pi/2];
+tform = [0,0,0,-pi/2,-pi/2,pi];
 
 %camera intrinsic parameters (taken from calibration of camera 0 given on 
 %the kitti site)
@@ -43,7 +43,7 @@ range = [0.5 0.5 0.5 0.1 0.1 0.1];
 %the metrics progress. Updating involves transfering the whole image off
 %the gpu and so for large scans causes a significant slow down (increase
 %value to reduce this issue)
-updatePeriod = 10;
+updatePeriod = 5;
 
 %How much to dialate each point by when generating an image from it (only
 %effects view generated in updates, does not change metric values)
@@ -52,7 +52,13 @@ dilate = 5;
 %Number of scans to use in calibration (130 scans in drive 35 set, must 
 %fit in gpu ram. For kitti data need about 10 mb per scan-image
 %pair. I usually find 20 is enough for a good result)
-numScans = 30;
+numScans = 5;
+
+%feature to use as intensity information of lidar scans. Options are 
+%intensity - basic lidar intensity
+%range - distance of points from the lidar
+%normals - angle between line from lidar to point and a horizontal plane
+feature = 'intensity';
 
 %True for panoramic camera, false otherwise
 panFlag = false;
@@ -82,9 +88,14 @@ for i = 1:length(scanIdx)
 end
 move = ReadKittiVelData( kittiPath, scanIdx);
 
+%get features for scans
+for i = 1:size(move,1)
+    move{i} = ScanFeature(move{i}, feature, tform);
+end
+
 initalGuess = tform;
 
-Setup(metric, move, base, tform, cam, panFlag);
+Setup(10,metric, move, base, tform, cam, panFlag);
 
 %% Evaluate metric and Optimize
 Optimize( initalGuess, range, updatePeriod, dilate )

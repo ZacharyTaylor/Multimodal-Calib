@@ -7,12 +7,7 @@ function [] = AddTform( tform )
 tform = single(tform(:,:,1));
 
 if(isequal(size(tform),[1,6]))
-    tformMat = angle2dcm(tform(6), tform(5), tform(4));
-    tformMat(4,4) = 1;
-    tformMat(1,4) = tform(1);
-    tformMat(2,4) = tform(2);
-    tformMat(3,4) = tform(3);
-    tform = tformMat;
+    tform = CreateTformMat(tform);
 elseif(isequal(size(tform),[1,7]))
     rot = [cosd(tform(3)),-sind(tform(3)),0;sind(tform(3)),cosd(tform(3)),0;0,0,1]; 
     scale = [tform(4),0,0;0,tform(5),0;0,0,1];

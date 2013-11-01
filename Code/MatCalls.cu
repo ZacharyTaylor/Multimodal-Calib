@@ -105,18 +105,18 @@ DllExport void clearIndices(void){
 	}
 }
 
-DllExport void initalizeCamera(void){
+DllExport void initalizeCamera(unsigned int numGen){
 	if(calibStore){
 		delete calibStore;
 	}
-	calibStore = new CameraCalib("test");
+	calibStore = new CameraCalib(numGen);
 }
 
-DllExport void initalizeImage(void){
+DllExport void initalizeImage(unsigned int numGen){
 	if(calibStore){
 		delete calibStore;
 	}
-	calibStore = new ImageCalib("test");
+	calibStore = new ImageCalib(numGen);
 }
 
 DllExport void addMovingScan(float* moveLIn, float* moveIIn, unsigned int length, unsigned int numDim, unsigned int numCh){ 
@@ -203,8 +203,20 @@ DllExport void setupNMIMetric(void){
 	calibStore->setNMIMetric();
 }
 
+DllExport void setupLEVMetric(void){
+	calibStore->setLEVMetric();
+}
+
 DllExport float evalMetric(void){
 	return calibStore->evalMetric();
+}
+
+DllExport void outputBaseImage(float* image, unsigned int baseNum){
+	if(calibStore){
+		thrust::device_vector<float> devImage;
+		calibStore->getBaseImage(devImage, baseNum);
+		thrust::copy(devImage.begin(), devImage.end(), image);
+	}
 }
 
 DllExport void outputImage(float* image, unsigned int width, unsigned int height, unsigned int moveNum, unsigned int dilate, bool imageColour){

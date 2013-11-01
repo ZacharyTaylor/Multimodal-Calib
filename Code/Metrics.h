@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "ScanList.h"
+#include "GenList.h"
 
 //! Depth of GOM images as need both phase and magnitude
 #define GOM_DEPTH 2 
@@ -11,7 +12,7 @@
 class Metric {
 public:
 	//! Evalutaes two scans A and B to give a measure of their match strength
-	virtual float evalMetric(ScanList* scan, size_t index);
+	virtual float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 };
 
 //! Evaluates scans using the MI metric
@@ -20,7 +21,7 @@ public:
 	//! Sets up metric, note for MI due to implementation number of bins must be less then 64
 	MI(size_t numBins);
 	//! Evaluates MI for two scans and gives result
-	float evalMetric(ScanList* scan, size_t index);
+	float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 private:
 	//! Number of bins to use when calculating MI
 	const size_t bins_;
@@ -32,7 +33,7 @@ public:
 	//! Sets up metric, note for MI due to implementation number of bins must be less then 64
 	NMI(size_t numBins);
 	//! Evaluates MI for two scans and gives result
-	float evalMetric(ScanList* scan, size_t index);
+	float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 private:
 	//! Number of bins to use when calculating MI
 	const size_t bins_;
@@ -44,7 +45,7 @@ public:
 	//! Sets up metric
 	SSD(void);
 	//! Evaluates SSD for two scans and gives result
-	float evalMetric(ScanList* scan, size_t index);
+	float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 };
 
 //! Evaluate scans using the GOM metric
@@ -53,7 +54,7 @@ public:
 	//! Basic setup
 	GOM(void);
 	//! Evaluates GOM for two scans and gives result
-	float evalMetric(ScanList* scan, size_t index);
+	float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 };
 
 //! Evaluate scans using the GOMS metric
@@ -62,21 +63,16 @@ public:
 	//! Basic setup
 	GOMS(void);
 	//! Evaluates GOMS for two scans and gives result
-	float evalMetric(ScanList* scan, size_t index);
+	float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 };
 
 //! Evaluates two scans using the Levinson method
-class LIV: public Metric {
+class LEV: public Metric {
 public:
-	//! Setup takes an image that is the average of all base images used
-	LIV(float* avImg, size_t width, size_t height);
-	//! Destructor clears avImg_
-	~LIV();
+	//! Basic setup
+	LEV(void);
 	//! Evaluates Levinson method for two scans and gives result
-	float evalMetric(ScanList* scan, size_t index);
-private:
-	//! Average of all base images
-	//PointsList* avImg_;
+	float evalMetric(ScanList* scan, GenList* gen, size_t scanIdx, size_t genIdx);
 };
 
 #endif //METRIC_H

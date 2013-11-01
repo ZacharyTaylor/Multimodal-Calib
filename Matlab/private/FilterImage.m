@@ -33,8 +33,10 @@ elseif(or(strcmp(metric,'GOM'),strcmp(metric,'GOMS')))
 elseif(strcmp(metric,'SSD'))
     image.v = histeq(image.v);
     out = single(image.v)/255;
+elseif(strcmp(metric,'LEV'))
+    out = single(LevImage(image.v));
 elseif(strcmp(metric,'None'))
-    out = single(image.c)/255;
+    out = single(image.c);
 else
     error('Invalid metric type');
 end

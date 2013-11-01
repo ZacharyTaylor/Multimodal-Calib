@@ -219,7 +219,7 @@ __global__ void GOMKernel(float* const genMag, float* const genPhase, const floa
 	genMag[i] = magOut;
 }
 
-__global__ void livValKernel(const float* A, const float* B, const float* Bavg, const size_t length, float* out){
+__global__ void levValKernel(float* const gen, const float* const scan, const size_t length){
 	
 	unsigned int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -227,7 +227,7 @@ __global__ void livValKernel(const float* A, const float* B, const float* Bavg, 
 		return;
 	}
 
-	out[i] = A[i] * fabs(B[i] - Bavg[i]);
+	gen[i] = gen[i] * scan[i];
 }
 
 void RunBSplineKernel(float* volume, size_t width, size_t height){

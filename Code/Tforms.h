@@ -5,6 +5,7 @@
 #include "Cameras.h"
 #include "ScanList.h"
 #include "ImageList.h"
+#include "GenList.h"
 
 //! dimensionality of data an affine transform can be used on
 #define AFFINE_DIM 2
@@ -47,11 +48,13 @@ public:
 	//! Transforms the scans coordinates
 	/*! \param scans the original scans
 		\param cam holds cameras needed for transform
+		\param gen holds generated scan values
 		\param tformIdx index of transform to use
 		\param camIdx index of camera to use
 		\param scanIdx index of scan to use
+		\param genIdx index of generated scan to use
 	*/
-	virtual void transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx);
+	virtual void transform(ScanList* scans, Cameras* cam, GenList* gen, size_t tformIdx, size_t camIdx, size_t scanIdx, size_t genIdx);
 };
 
 //! Places a virtual camera in the scan and projects the points through its lense onto a surface
@@ -64,11 +67,13 @@ public:
 	//! Transforms the scans coordinates
 	/*! \param scans the original scans
 		\param cam holds cameras needed for transform
+		\param gen holds generated scan values
 		\param tformIdx index of transform to use
 		\param camIdx index of camera to use
 		\param scanIdx index of scan to use
+		\param genIdx index of generated scan to use
 	*/
-	void transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx);
+	void transform(ScanList* scans, Cameras* cam, GenList* gen, size_t tformIdx, size_t camIdx, size_t scanIdx, size_t genIdx);
 };
 
 //! Performs a simple affine transform on 2D data
@@ -82,11 +87,13 @@ public:
 	//! Transforms the scans coordinates
 	/*! \param scans the original scans
 		\param cam holds cameras needed for transform
+		\param gen holds generated scan values
 		\param tformIdx index of transform to use
 		\param camIdx index of camera to use
 		\param scanIdx index of scan to use
+		\param genIdx index of generated scan to use
 	*/
-	void transform(ScanList* scans, Cameras* cam, size_t tformIdx, size_t camIdx, size_t scanIdx);
+	void transform(ScanList* scans, Cameras* cam, GenList* gen, size_t tformIdx, size_t camIdx, size_t scanIdx, size_t genIdx);
 };
 
 #endif //TFORM_H

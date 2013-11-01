@@ -51,10 +51,10 @@ DllExport void clearIndices(void);
 DllExport void clearEverything(void);
 
 //! Sets up things ready to perform camera calibration
-DllExport void initalizeCamera(void);
+DllExport void initalizeCamera(unsigned int numGen);
 
 //! Sets up things ready to perform image calibration
-DllExport void initalizeImage(void);
+DllExport void initalizeImage(unsigned int numGen);
 
 //! Adds a moving scan ready for calibration
 /*! \param moveLIn array holding location of points, treated as an array of size (length,numDim) given in column major order
@@ -121,8 +121,17 @@ DllExport void setupMIMetric(void);
 //! Sets up NMI metric
 DllExport void setupNMIMetric(void);
 
+//! Sets up LEV metric
+DllExport void setupLEVMetric(void);
+
 //!Evalutaes and returns metric
 DllExport float evalMetric(void);
+
+//! Outputs the current image of the stored scan
+/*! \param image image to output
+	\param baseNum the index of the image to use
+*/
+DllExport void outputBaseImage(float* image, unsigned int baseNum);
 
 //! Outputs the current image of the stored scan
 /*! \param image image to output

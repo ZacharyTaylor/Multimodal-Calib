@@ -2,8 +2,13 @@
 #include <algorithm>
 #include <string> 
 
-Calib::Calib(std::string metricType){
+Calib::Calib(size_t numGenScans){
 	checkForCUDA();
+	genStore.setupGenList(numGenScans);
+}
+
+Calib::~Calib(void){
+
 }
 
 bool Calib::getIfPanoramic(size_t idx){
@@ -23,7 +28,7 @@ size_t Calib::getImageDepth(size_t idx){
 }
 
 size_t Calib::getNumCh(size_t idx){
-	return moveStore.getNumCh(idx);
+	return moveStore.getNumCh(scanIdx[idx]);
 }
 
 size_t Calib::getNumImages(void){
@@ -107,6 +112,10 @@ void Calib::setNMIMetric(void){
 	metric = new NMI(50);
 }
 
+void Calib::setLEVMetric(void){
+	metric = new LEV();
+}
+
 
 void Calib::addCameraIndices(std::vector<size_t>& cameraIdxIn){
 	mexErrMsgTxt("Attempted to setup camera for use with non-camera calibration");
@@ -118,6 +127,10 @@ void Calib::addCamera(thrust::host_vector<float>& cameraIn, boolean panoramic){
 	return;
 }
 
+void Calib::getBaseImage(thrust::device_vector<float>& image, size_t idx){
+	image = baseStore.getImage(idx);
+}
+
 void Calib::generateImage(thrust::device_vector<float>& image, size_t width, size_t height, size_t dilate, size_t idx, bool imageColour){
 	return;
 }
@@ -126,7 +139,7 @@ void Calib::colourScan(float* scan, size_t idx){
 	return;
 }
 
-CameraCalib::CameraCalib(std::string metricType) : Calib(metricType){}
+CameraCalib::CameraCalib(size_t numGen) : Calib(numGen){}
 
 bool CameraCalib::getIfPanoramic(size_t idx){
 	return cameraStore.getPanoramic(idx);
@@ -181,32 +194,32 @@ float CameraCalib::evalMetric(void){
 
 	float out = 0;
 
-	//cudaEvent_t start, stop;
-	//float time;
-	//cudaEventCreate(&start);
-	//cudaEventCreate(&stop);
-	
-
-	for(size_t j = 0; j < baseStore.getNumImages(); j++){
-		for(size_t i = 0; i < IMAGE_DIM; i++){
-			CudaSafeCall(cudaMemsetAsync(moveStore.getGLP(scanIdx[j],i),0,moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
-		}
-		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[j]); i++){
-			CudaSafeCall(cudaMemsetAsync(moveStore.getGIP(scanIdx[j],i),0,moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
-		}
+	for(size_t j = 0; j < baseStore.getNumImages(); j+= genStore.getNumGen()){
+		for(size_t i = 0; i < genStore.getNumGen(); i++){
+			if((i+j) >= baseStore.getNumImages()){
+				break;
+			}
+			for(size_t k = 0; k < IMAGE_DIM; k++){
+				CudaSafeCall(cudaMemsetAsync(genStore.getGLP(i,k,moveStore.getNumPoints(scanIdx[j+i])),0,moveStore.getNumPoints(scanIdx[j+i]),genStore.getStream(i)));
+			}
+			for(size_t k = 0; k < moveStore.getNumCh(scanIdx[j]); k++){
+				CudaSafeCall(cudaMemsetAsync(genStore.getGIP(i,k,moveStore.getNumPoints(scanIdx[j+i])),0,moveStore.getNumPoints(scanIdx[j+i]),genStore.getStream(i)));
+			}
  	
-			//cudaEventRecord(start, 0);
-		tformStore.transform(&moveStore, &cameraStore, tformIdx[j], cameraIdx[j], scanIdx[j]);
-			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
-
-			//cudaEventRecord(start, 0);
-		baseStore.interpolateImage(&moveStore, j, scanIdx[j], true);
-			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
-
-			//cudaEventRecord(start, 0);
-		out += metric->evalMetric(&moveStore, scanIdx[j]);
-			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
-
+			tformStore.transform(&moveStore, &cameraStore, &genStore, tformIdx[j+i], cameraIdx[j+i], scanIdx[j+i],i);
+		}
+		for(size_t i = 0; i < genStore.getNumGen(); i++){
+			if((i+j) >= baseStore.getNumImages()){
+				break;
+			}
+			baseStore.interpolateImage(&moveStore, &genStore, j+i, scanIdx[j+i], i, true);
+		}
+		for(size_t i = 0; i < genStore.getNumGen(); i++){
+			if((i+j) >= baseStore.getNumImages()){
+				break;
+			}
+			out += metric->evalMetric(&moveStore, &genStore, scanIdx[j+i], i);
+		}
 	}
 
 	return out;
@@ -221,18 +234,18 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 		image.resize(moveStore.getNumCh(scanIdx[idx])*width*height);
 	}
 
-	tformStore.transform(&moveStore, &cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx]);
+	tformStore.transform(&moveStore, &cameraStore, &genStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], 0);
 	cudaDeviceSynchronize();
 
 	if(imageColour){
-		baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
+		baseStore.interpolateImage(&moveStore, &genStore, idx, scanIdx[idx], 0, true);
 		cudaDeviceSynchronize();
-
+		
 		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				moveStore.getGLP(scanIdx[idx],0),
-				moveStore.getGLP(scanIdx[idx],1),
-				moveStore.getGIP(scanIdx[idx],i),
+				genStore.getGLP(0,0,moveStore.getNumPoints(scanIdx[idx])),
+				genStore.getGLP(0,1,moveStore.getNumPoints(scanIdx[idx])),
+				genStore.getGIP(0,i,moveStore.getNumPoints(scanIdx[idx])),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
 				height,
@@ -243,8 +256,8 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 	else{
 		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[idx]); i++){
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				moveStore.getGLP(scanIdx[idx],0),
-				moveStore.getGLP(scanIdx[idx],1),
+				genStore.getGLP(0,0,moveStore.getNumPoints(scanIdx[idx])),
+				genStore.getGLP(0,1,moveStore.getNumPoints(scanIdx[idx])),
 				moveStore.getIP(scanIdx[idx],i),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
@@ -259,23 +272,22 @@ void CameraCalib::generateImage(thrust::device_vector<float>& image, size_t widt
 
 void CameraCalib::colourScan(float* scan, size_t idx){
 	
-	moveStore.setGenIDepth(scanIdx[idx], baseStore.getDepth(idx));
-	tformStore.transform(&moveStore, &cameraStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx]);
+	tformStore.transform(&moveStore, &cameraStore, &genStore, tformIdx[idx], cameraIdx[idx], scanIdx[idx], 0);
 
-	baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
+	baseStore.interpolateImage(&moveStore, &genStore, idx, scanIdx[idx], 0, true);
 
 	cudaDeviceSynchronize();
 
-	for(size_t j = 0; j < moveStore.getNumCh(idx); j++){
-		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getIP(idx,j),moveStore.getNumPoints(idx)*sizeof(float),cudaMemcpyDeviceToHost);
+	for(size_t j = 0; j < moveStore.getNumDim(scanIdx[idx]); j++){
+		cudaMemcpy(&scan[j*moveStore.getNumPoints(scanIdx[idx])],moveStore.getLP(scanIdx[idx],j),moveStore.getNumPoints(scanIdx[idx])*sizeof(float),cudaMemcpyDeviceToHost);
 	}
 	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],moveStore.getGIP(scanIdx[idx],j),moveStore.getNumPoints(idx)*sizeof(float),cudaMemcpyDeviceToHost);
+		cudaMemcpy(&scan[(j+moveStore.getNumDim(scanIdx[idx]))*moveStore.getNumPoints(scanIdx[idx])],genStore.getGIP(0,j,moveStore.getNumPoints(scanIdx[idx])),moveStore.getNumPoints(scanIdx[idx])*sizeof(float),cudaMemcpyDeviceToHost);
 	}
 	CudaCheckError();
 }
 
-ImageCalib::ImageCalib(std::string metricType) : Calib(metricType){}
+ImageCalib::ImageCalib(size_t numGen) : Calib(numGen){}
 
 bool ImageCalib::getIfPanoramic(size_t idx){
 	return NULL;
@@ -315,32 +327,32 @@ float ImageCalib::evalMetric(void){
 
 	float out = 0;
 
-	//cudaEvent_t start, stop;
-	//float time;
-	//cudaEventCreate(&start);
-	//cudaEventCreate(&stop);
-	
-	
-	for(size_t j = 0; j < baseStore.getNumImages(); j++){
-				
-		for(size_t i = 0; i < IMAGE_DIM; i++){
-			CudaSafeCall(cudaMemsetAsync(moveStore.getGLP(scanIdx[j],i),0,sizeof(float)*moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
+	for(size_t j = 0; j < baseStore.getNumImages(); j+= genStore.getNumGen()){
+		for(size_t i = 0; i < genStore.getNumGen(); i++){
+			if((i+j) >= baseStore.getNumImages()){
+				break;
+			}
+			for(size_t k = 0; k < IMAGE_DIM; k++){
+				CudaSafeCall(cudaMemsetAsync(genStore.getGLP(i,k,moveStore.getNumPoints(scanIdx[j+i])),0,moveStore.getNumPoints(scanIdx[j+i]),genStore.getStream(i)));
+			}
+			for(size_t k = 0; k < moveStore.getNumCh(scanIdx[j]); k++){
+				CudaSafeCall(cudaMemsetAsync(genStore.getGIP(i,k,moveStore.getNumPoints(scanIdx[j+i])),0,moveStore.getNumPoints(scanIdx[j+i]),genStore.getStream(i)));
+			}
+ 	
+			tformStore.transform(&moveStore, &noCamera, &genStore, tformIdx[j+i], NULL, scanIdx[j+i],i);
 		}
-		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[j]); i++){
-			CudaSafeCall(cudaMemsetAsync(moveStore.getGIP(scanIdx[j],i),0,sizeof(float)*moveStore.getNumPoints(scanIdx[j]),moveStore.getStream(scanIdx[j])));
+		for(size_t i = 0; i < genStore.getNumGen(); i++){
+			if((i+j) >= baseStore.getNumImages()){
+				break;
+			}
+			baseStore.interpolateImage(&moveStore, &genStore, j+i, scanIdx[j+i], i, true);
 		}
-
-			//cudaEventRecord(start, 0);
-		tformStore.transform(&moveStore, &noCamera, tformIdx[j], NULL, scanIdx[j]);
-			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for transform: %f ms\n", time);
-		//cudaStreamSynchronize(moveStore.getStream(scanIdx[j]));
-			//cudaEventRecord(start, 0);
-		baseStore.interpolateImage(&moveStore, j, scanIdx[j], true);
-			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for interpolation: %f ms\n", time);
-
-			//cudaEventRecord(start, 0);
-		out += metric->evalMetric(&moveStore, scanIdx[j]);
-			//cudaEventRecord(stop, 0);cudaEventSynchronize(stop);cudaEventElapsedTime(&time, start, stop);mexPrintf ("Time for evaluation: %f ms\n", time);
+		for(size_t i = 0; i < genStore.getNumGen(); i++){
+			if((i+j) >= baseStore.getNumImages()){
+				break;
+			}
+			out += metric->evalMetric(&moveStore, &genStore, scanIdx[j+i], i);
+		}
 	}
 
 	return out;
@@ -350,25 +362,23 @@ void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width
 
 	if(imageColour){
 		image.resize(baseStore.getDepth(idx)*width*height);
-		moveStore.setGenIDepth(scanIdx[idx], baseStore.getDepth(idx));
 	}
 	else{
 		image.resize(moveStore.getNumCh(scanIdx[idx])*width*height);
 	}
 
-	tformStore.transform(&moveStore, &noCamera, tformIdx[idx], NULL, scanIdx[idx]);
+	tformStore.transform(&moveStore, &noCamera, &genStore, tformIdx[idx], NULL, scanIdx[idx], 0);
 	cudaDeviceSynchronize();
 
 	if(imageColour){
-		baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
+		baseStore.interpolateImage(&moveStore, &genStore, idx, scanIdx[idx], 0, true);
 		cudaDeviceSynchronize();
-
+		
 		for(size_t i = 0; i < baseStore.getDepth(idx); i++){
-			
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				moveStore.getGLP(scanIdx[idx],0),
-				moveStore.getGLP(scanIdx[idx],1),
-				moveStore.getGIP(scanIdx[idx],i),
+				genStore.getGLP(0,0,moveStore.getNumPoints(scanIdx[idx])),
+				genStore.getGLP(0,1,moveStore.getNumPoints(scanIdx[idx])),
+				genStore.getGIP(0,i,moveStore.getNumPoints(scanIdx[idx])),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
 				height,
@@ -379,8 +389,8 @@ void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width
 	else{
 		for(size_t i = 0; i < moveStore.getNumCh(scanIdx[idx]); i++){
 			generateOutputKernel<<<gridSize(moveStore.getNumPoints(scanIdx[idx])) ,BLOCK_SIZE>>>(
-				moveStore.getGLP(scanIdx[idx],0),
-				moveStore.getGLP(scanIdx[idx],1),
+				genStore.getGLP(0,0,moveStore.getNumPoints(scanIdx[idx])),
+				genStore.getGLP(0,1,moveStore.getNumPoints(scanIdx[idx])),
 				moveStore.getIP(scanIdx[idx],i),
 				thrust::raw_pointer_cast(&image[width*height*i]),
 				width,
@@ -394,20 +404,18 @@ void ImageCalib::generateImage(thrust::device_vector<float>& image, size_t width
 }
 
 void ImageCalib::colourScan(float* scan, size_t idx){
-	
-	moveStore.setGenIDepth(scanIdx[idx], baseStore.getDepth(idx));
 
-	tformStore.transform(&moveStore, &noCamera, tformIdx[idx], NULL, scanIdx[idx]);
+	tformStore.transform(&moveStore, &noCamera, &genStore, tformIdx[idx], NULL, scanIdx[idx], 0);
 
-	baseStore.interpolateImage(&moveStore, idx, scanIdx[idx], true);
+	baseStore.interpolateImage(&moveStore, &genStore, idx, scanIdx[idx], 0, true);
 
 	cudaDeviceSynchronize();
 
 	for(size_t j = 0; j < moveStore.getNumCh(idx); j++){
-		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getIP(idx,j),moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+		cudaMemcpy(&scan[j*moveStore.getNumPoints(idx)],moveStore.getIP(idx,j),moveStore.getNumPoints(idx)*sizeof(float),cudaMemcpyDeviceToHost);
 	}
 	for(size_t j = 0; j < baseStore.getDepth(idx); j++){
-		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],moveStore.getGIP(scanIdx[idx],j),moveStore.getNumPoints(idx),cudaMemcpyDeviceToHost);
+		cudaMemcpy(&scan[(j+moveStore.getNumCh(idx))*moveStore.getNumPoints(idx)],genStore.getGIP(0,j,moveStore.getNumPoints(scanIdx[idx])),moveStore.getNumPoints(idx)*sizeof(float),cudaMemcpyDeviceToHost);
 	}
 	CudaCheckError();
 }

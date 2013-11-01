@@ -171,14 +171,16 @@ float miRun(float* A, float* B, size_t bins, size_t numElements, bool normalize,
 	CudaCheckError();
 
 	//reduce
-	float* tempMem;
-	CudaSafeCall(cudaMalloc((void**)&tempMem, sizeof(float)*65535));
+	float* tempMemD, *tempMemH;
+	CudaSafeCall(cudaMalloc((void**)&tempMemD, sizeof(float)*65535));
+	CudaSafeCall(cudaMallocHost((void**)&tempMemH, sizeof(float)*65535));
 
-	float eAB = reduceEasy(histABF, bins*bins,stream,tempMem);
-	float eA = reduceEasy(histAF, bins,stream,tempMem);
-	float eB = reduceEasy(histBF, bins,stream,tempMem);
+	float eAB = reduceEasy(histABF, bins*bins,stream,tempMemD,tempMemH);
+	float eA = reduceEasy(histAF, bins,stream,tempMemD,tempMemH);
+	float eB = reduceEasy(histBF, bins,stream,tempMemD,tempMemH);
 
-	CudaSafeCall(cudaFree(tempMem));
+	CudaSafeCall(cudaFree(tempMemD));
+	CudaSafeCall(cudaFreeHost(tempMemH));
 
 	//finally get mi
 	float mi;

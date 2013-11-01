@@ -11,8 +11,8 @@ elseif(strcmp(metric, 'GOMS'))
     calllib('LibCal','setupGOMSMetric');
 elseif(strcmp(metric, 'SSD'))
     SetupSSDMetric();
-elseif(strcmp(metric, 'LIV'))
-    error('Not written yet');   
+elseif(strcmp(metric, 'LEV'))
+    calllib('LibCal','setupLEVMetric'); 
 elseif(strcmp(metric, 'None'))
     
 else

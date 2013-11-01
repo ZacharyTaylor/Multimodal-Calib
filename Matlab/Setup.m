@@ -1,9 +1,16 @@
-function [] = Setup( metric, move, base, tform, varargin )
+function [] = Setup( numGen, metric, move, base, tform, varargin )
 %SETUP Summary of this function goes here
+%   numGen- number of scans to operate on simultaneously.
+%           setting > 1 gives performance boost on datasets with large
+%           numbers of small scans at the expense of gpu memory.
+%           A range of 1-10 is recommended
 %   metric- metric to use for comparing images
 %           GOM gradient orientation measure
+%           GOMS modified GOM (experimental)
 %           SSD sum of squared differences
+%           MI mutual information
 %           NMI normalized mutual information
+%           LEV levinson et al's method
 %           NONE no metric (for use with colouring scans)
 %   move- cell containing moving scans or images
 %   base- cell of base images
@@ -24,7 +31,7 @@ end
 scan = exist('cam','var');
 if(scan)
     %check for a camera panoramic flag
-    if(nargin > 1)
+    if(nargin > 5)
         panFlag = varargin{2};
     end
 end
@@ -76,8 +83,21 @@ for i = 1:size(base(:),1)
     base{i} = FilterImage(base{i}, metric);
 end
 
+%correct for average image in levinson method
+if(and(strcmp(metric,'LEV'),size(base(:),1) ~= 1))
+    avImg = base{1};
+    for i = 2:size(base(:),1)
+        avImg = avImg + base{2};
+    end
+    avImg = avImg / size(base(:),1);
+
+    for i = 1:size(base(:),1)
+        base{i} = base{i} - avImg;
+    end
+end
+
 %% Initalize GPU
-Initilize(scan);
+Initilize(scan, numGen);
 
 %% Clear old stuff
 ClearCameras();

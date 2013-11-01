@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "ScanList.h"
+#include "GenList.h"
 
 //! holds the sensors images
 class ImageList {
@@ -49,6 +50,11 @@ public:
 	
 	//! Gets the number of images stored
 	size_t getNumImages(void);
+
+	//! Gets the image
+	/*! /param idx index of image
+	*/
+	thrust::device_vector<float> getImage(size_t idx);
 	
 	//! Gets the pointer of the image data array
 	/*! /param idx index of image
@@ -82,11 +88,13 @@ public:
 
 	//! Interpolates specified image at given locations
 	/*! \param scans list of scans with points to interpolate at
+		\param gen list of generated images to save results to
 		\param imageIdx the index of the image
 		\param scanIdx the index of the scan to use
+		\param genIdx the index to save generated points at
 		\param linear true for linear interpolation, false for nearset neighbour
 	*/
-	void ImageList::interpolateImage(ScanList* scans, size_t imageIdx, size_t scanIdx, boolean linear);
+	void ImageList::interpolateImage(ScanList* scans, GenList* gen, size_t imageIdx, size_t scanIdx, size_t genIdx, boolean linear);
 };
 
 #endif //IMAGELIST_H
