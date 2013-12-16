@@ -13,7 +13,14 @@ elseif(isequal(size(tform),[1,7]))
     scale = [tform(4),0,0;0,tform(5),0;0,0,1];
     shear = [1,tform(6),0;tform(7),1,0;0,0,1];
     trans = [1,0,tform(1);0,1,tform(2);0,0,1];
-    tform = single(trans*shear*scale*rot);
+    
+    width = calllib('LibCal','getImageWidth', 0);
+    height = calllib('LibCal','getImageHeight', 0);
+    
+    offset1 = [1,0,width/2;0,1,height/2;0,0,1];
+    offset2 = [1,0,-width/2;0,1,-height/2;0,0,1];
+    
+    tform = single(offset1*rot*trans*shear*scale*offset2);
 end
         
 tformSizeX = size(tform,2);

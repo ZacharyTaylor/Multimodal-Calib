@@ -36,16 +36,31 @@ yLocs = kdTree.X(:,2);
 dyLocs = repmat(yLocs,1,8);
 dyLocs(:) = dyLocs(:) - yLocs(idx(:));
 
-dxLocs = sum(dxLocs.*dVals,2) /8;
-dyLocs = sum(dyLocs.*dVals,2) /8;
+%dxLocs = sum(dxLocs.*dVals,2) /8;
+%dyLocs = sum(dyLocs.*dVals,2) /8;
 
-dVals = sum(abs(dVals),2) /8;
+dLocs = sqrt(dxLocs.^2 + dyLocs.^2);
+phase = atan2(dyLocs,dxLocs);
 
-mag = dVals;
-phase = 180*atan2(-dxLocs,-dyLocs)/pi;
+dVals = dVals./dLocs;
+dxLocs = sum(dVals.*cos(phase),2)/8;
+dyLocs = sum(dVals.*sin(phase),2)/8;
+
+%mag = sum(abs(dVals),2) /8;
+
+mag = sqrt(dxLocs.^2 + dyLocs.^2);
+%phase = 180*atan2(-dxLocs,-dyLocs)/pi;
+phase = 180*atan2(dxLocs,dyLocs)/pi;
+phase = mod(phase+180,180);
+
 
 phase(isnan(phase)) = 0;
 mag(isnan(mag)) = 0;
+phase(isinf(phase)) = 0;
+mag(isinf(mag)) = 0;
+
+mag = mag - min(mag);
+mag = mag / max(mag);
 
 end
 

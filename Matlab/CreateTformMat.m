@@ -13,7 +13,7 @@ tform = tform(:)';
 
 roll = tform(4); pitch = tform(5); yaw = tform(6);
 
-tformMat = angle2dcm(yaw,pitch,roll)';
+tformMat = angle2dcm(yaw,pitch,roll);
 
 tformMat(4,4) = 1;
 

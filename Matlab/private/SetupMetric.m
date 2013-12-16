@@ -10,7 +10,7 @@ elseif(strcmp(metric, 'GOM'))
 elseif(strcmp(metric, 'GOMS'))
     calllib('LibCal','setupGOMSMetric');
 elseif(strcmp(metric, 'SSD'))
-    SetupSSDMetric();
+    calllib('LibCal','setupSSDMetric');
 elseif(strcmp(metric, 'LEV'))
     calllib('LibCal','setupLEVMetric'); 
 elseif(strcmp(metric, 'None'))

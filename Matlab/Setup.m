@@ -17,6 +17,7 @@ function [] = Setup( numGen, metric, move, base, tform, varargin )
 %   tform- cell of inital transforms
 %   cam- (optional) inital camera
 %   panFlag- (optional) if true uses panoramic camera, else pin-point(default) 
+%   mask- mask to apply to image
     
 
 %% Setup library
@@ -24,15 +25,25 @@ SetupLib();
 
 %% Check, format and filter inputs
 %check for a camera input
-if(nargin > 4)
+if(nargin > 5)
     cam = varargin{1};
 end
     
 scan = exist('cam','var');
 if(scan)
     %check for a camera panoramic flag
-    if(nargin > 5)
+    if(nargin > 6)
         panFlag = varargin{2};
+    end
+end
+
+%check for masks
+if(nargin > 7)
+    mask = varargin{3};
+else
+    mask = cell(size(base));
+    for i = 1:size(base(:),1)
+        mask{i} = ones(size(base{i}));
     end
 end
 
@@ -74,25 +85,29 @@ for i = 1:size(move(:),1)
     if(scan)
         move{i} = FilterScan(move{i}, metric, tform{1});
     else
-        move{i} = FilterImage(move{i}, metric);
+        move{i} = FilterImage(move{i}, metric, mask{i});
     end
 end
 
 %filter base images
 for i = 1:size(base(:),1)
-    base{i} = FilterImage(base{i}, metric);
+    if(nargin > 7)
+        base{i} = FilterImage(base{i}, metric, mask{i});
+    else
+        base{i} = FilterImage(base{i}, metric, ones(size(base{i})));
+    end
 end
 
 %correct for average image in levinson method
 if(and(strcmp(metric,'LEV'),size(base(:),1) ~= 1))
-    avImg = base{1};
+    avImg = base{1}(:,:,1);
     for i = 2:size(base(:),1)
-        avImg = avImg + base{2};
+        avImg = avImg + base{i}(:,:,1);
     end
     avImg = avImg / size(base(:),1);
 
     for i = 1:size(base(:),1)
-        base{i} = base{i} - avImg;
+        base{i}(:,:,1) = base{i}(:,:,1) - avImg;
     end
 end
 

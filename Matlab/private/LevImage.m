@@ -1,4 +1,4 @@
-function [ out ] = livImage(in)
+function [ out ] = LevImage(in)
 %gets distance to each point
 in = double(in);
 

@@ -52,7 +52,7 @@ dilate = 5;
 %Number of scans to use in calibration (130 scans in drive 35 set, must 
 %fit in gpu ram. For kitti data need about 10 mb per scan-image
 %pair. I usually find 20 is enough for a good result)
-numScans = 5;
+numScans = 2;
 
 %feature to use as intensity information of lidar scans. Options are 
 %intensity - basic lidar intensity
@@ -98,7 +98,8 @@ initalGuess = tform;
 Setup(10,metric, move, base, tform, cam, panFlag);
 
 %% Evaluate metric and Optimize
-Optimize( initalGuess, range, updatePeriod, dilate )
+Align( initalGuess, 0, dilate );
+%Optimize( initalGuess, range, updatePeriod, dilate )
 
 %% Clean up
 ClearEverything();

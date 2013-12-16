@@ -1,16 +1,31 @@
 function [ out ] = FilterScan( scan, metric, tform)
 %FILTERSCAN filters scan ready for use with metric
 
+scan = double(scan);
+%scan(:,4) = scan(:,4) - min(scan(:,4));
+%scan(:,4) = scan(:,4) / max(scan(:,4));
+scan(:,4) = MyHistEq(scan(:,4));
+
 if(or(strcmp(metric,'MI'),strcmp(metric,'NMI')))
     out = single(scan);
-elseif(or(strcmp(metric,'GOM'),strcmp(metric,'GOMS')))   
+elseif(strcmp(metric,'GOM'))   
     out = single(scan);
     
     [mag, phase ] = Get2DGradient(out,tform);
-    mag = mag - min(mag(:));
-    mag = mag / max(mag(:));
-    %mag(:) = histeq(mag(:));
+    
+    mag(:) = MyHistEq(mag(:));
+    %phase = phase(mag < 0.8);
+    %out = out(mag < 0.8,1:3);
+    %mag = mag(mag < 0.8);
+    
     out = [out(:,1:3),mag,phase];
+elseif(strcmp(metric,'GOMS'))
+    out = single(scan);
+    
+    [mag, phase ] = Get2DGradient(out,tform);
+    
+    out = [out(:,1:3),mag,phase, out(:,4)];
+    
 elseif(strcmp(metric,'LEV'))
     out = single(scan);
     out = LevLidar(out);

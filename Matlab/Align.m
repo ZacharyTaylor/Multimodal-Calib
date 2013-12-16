@@ -38,9 +38,10 @@ end
 
 %checks if figure exists and if it dosn't exits
 if(~ishandle(fig))
-    ClearEverything;
-    clear fig;
-    error('Program terminated by user')
+    fig = figure;
+%     ClearEverything;
+%     clear fig;
+%     error('Program terminated by user')
 end
 
 if(etime(clock,time) > updatePeriod)
@@ -48,9 +49,9 @@ if(etime(clock,time) > updatePeriod)
     subplot(2,3,4:6);
     numImages = calllib('LibCal','getNumImages');
     imNum = round((numImages-1)*rand(1));
-    %imNum = 3;
-    
-    move = GenerateImage( imNum, dilate, false);
+    %imNum = 0;
+ 
+    move = GenerateImage( imNum, dilate, false);   
     move = repmat(move(:,:,1),[1,1,3]);
 
     base = GetBaseImage(imNum);
