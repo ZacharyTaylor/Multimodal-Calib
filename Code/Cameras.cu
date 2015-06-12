@@ -1,5 +1,6 @@
 #include "Cameras.h"
 
+
 void Cameras::addCams(thrust::device_vector<float>& camDIn, boolean panoramic){
 	if(camDIn.size() != (CAM_WIDTH * CAM_HEIGHT)){
 		std::ostringstream err; err << "Error input camera matricies must be " << (CAM_WIDTH * CAM_HEIGHT) << " in size";

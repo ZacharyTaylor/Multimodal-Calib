@@ -22,7 +22,7 @@ metric = 'GOM';
 %inital guess as to the transform between the camera and the lidar
 %can be either a 4x4 transform matrix or [x,y,z,rx,ry,rz] (rotations in
 %radians, rotation order rx, ry, rz)
-tform = [0,0,0,-pi/2,-pi/2,pi];
+tform = [0,0,0,-pi/2,0,-pi/2];
 
 %camera intrinsic parameters (taken from calibration of camera 0 given on 
 %the kitti site)
@@ -43,16 +43,16 @@ range = [0.5 0.5 0.5 0.1 0.1 0.1];
 %the metrics progress. Updating involves transfering the whole image off
 %the gpu and so for large scans causes a significant slow down (increase
 %value to reduce this issue)
-updatePeriod = 5;
+updatePeriod = 30;
 
 %How much to dialate each point by when generating an image from it (only
 %effects view generated in updates, does not change metric values)
-dilate = 5;
+dilate = 3;
 
 %Number of scans to use in calibration (130 scans in drive 35 set, must 
 %fit in gpu ram. For kitti data need about 10 mb per scan-image
 %pair. I usually find 20 is enough for a good result)
-numScans = 2;
+numScans = 10;
 
 %feature to use as intensity information of lidar scans. Options are 
 %intensity - basic lidar intensity
@@ -64,7 +64,7 @@ feature = 'intensity';
 panFlag = false;
 
 %Path to Kitti dataset
-kittiPath = 'C:\DataSets\Mobile Sensor Plaforms\KITTI\raw data\drive 35';
+kittiPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_09_26_drive_0035_sync';
 
 %% Setup
 
@@ -98,8 +98,8 @@ initalGuess = tform;
 Setup(10,metric, move, base, tform, cam, panFlag);
 
 %% Evaluate metric and Optimize
-Align( initalGuess, 0, dilate );
-%Optimize( initalGuess, range, updatePeriod, dilate )
+%Align( initalGuess, 0, dilate );
+Optimize( initalGuess, range, updatePeriod, dilate )
 
 %% Clean up
 ClearEverything();

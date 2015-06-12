@@ -11,7 +11,10 @@ if(or(strcmp(metric,'MI'),strcmp(metric,'NMI')))
 elseif(strcmp(metric,'GOM'))   
     out = single(scan);
     
-    [mag, phase ] = Get2DGradient(out,tform);
+    [x,y] = Get2DGradProject(out,tform);
+    
+    mag = sqrt(x.^2 + y.^2);
+    phase = 180*atan2(x,y)/pi;
     
     mag(:) = MyHistEq(mag(:));
     %phase = phase(mag < 0.8);

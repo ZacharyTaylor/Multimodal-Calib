@@ -13,12 +13,15 @@ class Cameras {
 private:
 
 	//! structre holding infomation about each camera
-	typedef struct {
+	typedef struct camInit{
 		//! vector holding camera matrix
 		thrust::device_vector<float> cam;
 
 		//! flag for if camera is boolean
 		boolean panoramic;
+
+		camInit(){};
+
 	} cam;
 
 	//! Vector storing camera matrices

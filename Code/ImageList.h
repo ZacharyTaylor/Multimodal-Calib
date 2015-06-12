@@ -10,7 +10,7 @@ class ImageList {
 private:
 
 	//! structre holding infomation about each image
-	typedef struct {
+	typedef struct imageInit{
 		//! vector holding image data
 		thrust::device_vector<float> image;
 	
@@ -20,6 +20,8 @@ private:
 		size_t width;
 		//! image depth
 		size_t depth;
+
+		imageInit(){};
 	} image;
 
 	//! vector holding all the images data

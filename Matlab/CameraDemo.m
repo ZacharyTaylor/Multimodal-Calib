@@ -18,8 +18,7 @@ metric = 'GOM';
 %inital guess as to the transform between the camera and the lidar
 %can be either a 4x4 transform matrix or [x,y,z,rx,ry,rz] (rotations in
 %radians, rotation order rz, ry, rx)
-%tform = [0,0,0,-1.57079632679490,0,3.14159265358979];
-tform = [-0.8 0.1 0.25 -88.5 0.2 88];
+tform = [0,0,0,-90,0,180];
 tform(4:6) = pi*tform(4:6)/180;
 
 %camera intrinsic parameters
@@ -33,7 +32,7 @@ cam = [770, 1005, 160];
 %[x,y,z,rx,ry,rz,f,cx,cy] if camera of form [f,cx,cy]
 %[x,y,z,rx,ry,rz,fx,fy,cx,cy] if camera of form [fx,fy,cx,cy]
 %rotations in radians, rotation order rx, ry, rz)
-range = [0.5 0.5 0.5 4 4 4 20 0 30];
+range = [0.5 0.5 0.5 10 10 10 20 0 30];
 range(4:6) = pi*range(4:6)/180;
 
 %feature to use as intensity information of lidar scans. Options are 
@@ -58,8 +57,8 @@ dilate = 2;
 %% Setup
 
 %get scans and images
-%move = GetPointClouds(1);
-%base = GetImagesC(1, false);
+move = GetPointClouds(1);
+base = GetImagesC(1, false);
 mask{1} = ones(size(base{1}));
 
 %G = fspecial('gaussian',[50 50],2);

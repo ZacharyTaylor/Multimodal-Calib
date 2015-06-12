@@ -17,12 +17,14 @@ class Tforms {
 protected:
 
 	//! structre holding infomation about each camera
-	typedef struct {
+	typedef struct tformInit{
 		//! vector holding transform matrix
 		thrust::device_vector<float> tform;
 
 		size_t tformSizeX;
 		size_t tformSizeY;
+
+		tformInit(){};
 
 	} tform;
 

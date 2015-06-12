@@ -36,11 +36,9 @@ dilate = 2;
 %% Setup
 
 %get images
-%in = getImagesC(2, false);
-%base = in(2);
-%move = in(1);
-base{1} = comp{1};
-move{1} = comp{6};
+in = GetImagesC(2, false);
+base = in(2);
+move = in(1);
 
 initalGuess = tform;
 

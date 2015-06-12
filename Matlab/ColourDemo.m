@@ -15,8 +15,8 @@ cam = [770.165286176755,1005,173.413134492138];
 metric = 'None';
 
 %get scans and images
-%move = GetPointClouds(1);
-%base = GetImagesC(1, false);
+move = GetPointClouds(1);
+base = GetImagesC(1, false);
 
 scan = co;
 scan(end,135) = 0;

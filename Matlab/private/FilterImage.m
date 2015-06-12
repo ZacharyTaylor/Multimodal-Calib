@@ -35,7 +35,7 @@ elseif(strcmp(metric,'GOM'))
     %y = imfilter(y,G,'same');
     
     mag = sqrt(x.^2 + y.^2);
-    phase = 180*atan2(abs(x),abs(y))/pi;
+    phase = 180*atan2(x,y)/pi;
     %    phase = imfilter(phase,G,'same');
     
     %mag = mag - min(mag(:));

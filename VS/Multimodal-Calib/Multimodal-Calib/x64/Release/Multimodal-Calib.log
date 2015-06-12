@@ -1,0 +1,32 @@
+﻿Build started 12/06/2015 12:03:19 PM.
+     1>Project "C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\Multimodal-Calib\Multimodal-Calib.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\Multimodal-Calib.dll" /NOLOGO /LIBPATH:"C:\Program Files\MATLAB\R2014b\extern\lib\win64\microsoft" /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\lib\x64" cudart.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib gpu.lib libmex.lib libmat.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\Multimodal-Calib.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\Multimodal-Calib.lib" /MACHINE:X64 /DLL x64\Release\Calib.cu.obj
+         x64\Release\Cameras.cu.obj
+         x64\Release\GenList.cu.obj
+         x64\Release\ImageList.cu.obj
+         x64\Release\Kernels.cu.obj
+         x64\Release\MatCalls.cu.obj
+         x64\Release\Metrics.cu.obj
+         x64\Release\mi.cu.obj
+         x64\Release\out.cu.obj
+         x64\Release\reduction_kernel.cu.obj
+         x64\Release\ScanList.cu.obj
+         x64\Release\Setup.cu.obj
+         x64\Release\Tforms.cu.obj
+            Creating library C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\Multimodal-Calib.lib and object C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\Multimodal-Calib.exp
+         LINK : /LTCG specified but no code generation required; remove /LTCG from the link command line to improve linker performance
+         Multimodal-Calib.vcxproj -> C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\Multimodal-Calib.dll
+       PostBuildEvent:
+         echo copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart*.dll" "C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\"
+         copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart*.dll" "C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\"
+         :VCEnd
+         copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart*.dll" "C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\x64\Release\"
+         C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart32_70.dll
+         C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart64_70.dll
+                 2 file(s) copied.
+     1>Done Building Project "C:\Users\Zachary\Documents\GitHub\Multimodal-Calib\VS\Multimodal-Calib\Multimodal-Calib\Multimodal-Calib.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.35
